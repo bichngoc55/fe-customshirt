@@ -1,70 +1,49 @@
-# Getting Started with Create React App
+<div align="center">
+    <a href="https://www.uit.edu.vn/" title="Trường Đại học Công nghệ Thông tin" target="_blank">
+        <img src="https://www.uit.edu.vn/sites/vi/files/banner_uit_15.png">
+    </a>
+</div>
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Table of Contents
+- [Tính Năng](#features)
+- [Công nghệ](#technology)
+- [Demo](#Demo)
+- [Thông tin môn học](#ThongTin)
+- [Đóng góp](#contribution)
+  
+# WEBSITE BÁN ÁO THUN THEO YÊU CẦU TÍCH HỢP NFT VÀ AI TẠO STCIKER 
 
-## Available Scripts
+Website DOMDOM là một website bán áo thun theo yêu cầu, tích hợp công nghệ NFT và AI. Mục tiêu của dự án là tạo ra một nền tảng cho phép người dùng thiết kế áo thun độc đáo, đồng thời khám phá những tính năng thú vị như tạo sticker và trải nghiệm 3D với Three.js.
 
-In the project directory, you can run:
+ ## <a name="features">Chức năng</a>
 
-### `npm start`
+- Tùy chỉnh áo thun: Khách hàng có thể thiết kế áo theo ý thích với nhiều mẫu mã và màu sắc.
+- Tích hợp NFT: Mỗi sản phẩm áo thun được cung cấp với một NFT độc quyền, khẳng định quyền sở hữu.
+- AI tạo sticker: Sử dụng trí tuệ nhân tạo để tạo ra các sticker độc đáo, phù hợp với thiết kế áo.
+- Giao diện thân thiện: Dễ dàng sử dụng trên cả máy tính và thiết bị di động.
+- Hệ thống thanh toán và đặt hàng thông minh: Quản lý đơn hàng và theo dõi trạng thái đơn hàng một cách dễ dàng.
+- Tích hợp mạng xã hội: Chia sẻ thiết kế và sản phẩm lên các nền tảng mạng xã hội.
+- Khuyến mãi và giảm giá: Cung cấp mã giảm giá và chương trình khuyến mãi hấp dẫn cho khách hàng.
+- Tích hợp Three.js: Hiển thị 3D áo thun, giúp khách hàng xem và tương tác với sản phẩm trong môi trường 3D sống động.
+  
+## <a name="technology">Công Nghệ</a>
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- React & MUI (Frontend) 
+- Nodejs & Express (Backend)
+- MongoDB (database)
+  
+## <a name="Demo">Demo</a>
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+# <a name="ThongTin">Thông Tin Môn Học</a>
 
-### `npm test`
+| Môn Học        | Đồ án 1 |
+| -------------- | ---------------------- |
+| Lớp            | SE121.P11              |
+| GV Hướng Dẫn   | ThS. Trần Thị Hồng Yến |
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# <a name="contribution">Thông Tin Thành Viên</a>
 
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+| MSSV       | Họ và Tên          | Email                   | Github                                                                                                                      |
+| ---------- | ------------------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `22520957` | Nguyễn Thị Bích Ngọc| 222520957@gm.uit.edu.vn | [![](https://img.shields.io/badge/bichngoc-%2324292f.svg?style=flat-square&logo=github      )](https://github.com/bichngoc55) |
+| `22520757` | Đặng Bảo Linh| 225207574@gm.uit.edu.vn | [![](https://img.shields.io/badge/baolinh-%2324292f.svg?style=flat-square&logo=github      )]((https://github.com/hniloablingg)) | 
