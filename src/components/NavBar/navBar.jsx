@@ -4,9 +4,11 @@ import logo from "./logo.png";
 import defaultAva from "../../assets/images/no_img.jpeg";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import "./navBar.css";
-// import '../../../public/images/logo.png'
+import { Link, useNavigate } from "react-router-dom";
+
 export const NavBar = () => {
   const [isLogin, setLogin] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="container">
@@ -15,15 +17,19 @@ export const NavBar = () => {
         <div className="domdom">DOMDOM</div>
       </div>
       <div className="components">
-        <Typography>Home</Typography>
+        <Typography onClick={() => navigate("/")}>Home</Typography>
         <Typography>Our Product</Typography>
         <Typography>Design</Typography>
         <Typography>Terms&Conditions</Typography>
       </div>
       {isLogin === false && (
         <div className="service">
-          <button className="Login">LOGIN</button>
-          <button className="Register">Register</button>
+          <button className="Login" onClick={() => navigate("/login")}>
+            LOGIN
+          </button>
+          <button className="Register" onClick={() => navigate("/register")}>
+            Register
+          </button>
         </div>
       )}
       {isLogin && (
