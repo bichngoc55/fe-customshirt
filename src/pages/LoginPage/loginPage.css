@@ -1,0 +1,17 @@
+/* .container {
+  background-color: aqua;
+}
+.content {
+  background-color: bisque;
+} */
+.signup-link {
+  color: #2ebb77;
+  font-family: Montserrat;
+  font-weight: bold;
+  transition: color 0.3s ease, font-size 0.3s ease;
+}
+
+.signup-link:hover {
+  color: rgb(81, 177, 81);
+  font-size: 1.1em;
+}
