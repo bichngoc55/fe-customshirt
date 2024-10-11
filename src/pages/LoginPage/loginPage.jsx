@@ -4,6 +4,8 @@ import "./loginPage.css";
 import InputForm from "../../components/inputForm/inputForm";
 import BtnComponent from "../../components/btnComponent/btnComponent";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { loginUser } from "../../redux/authSlice.js";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -11,9 +13,45 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [loginStatus, setLoginStatus] = useState(null);
   const isMobile = useMediaQuery("(max-width:768px)");
+  const dispatch = useDispatch();
 
-  const handleLoginClick = () => {};
-
+  const handleLoginClick = async (e) => {
+    e.preventDefault();
+    const newUser = { email: email, password: password };
+    try {
+      const result = await dispatch(loginUser(newUser));
+      console.log("result trong login : ", result);
+      if (result.error) {
+        console.log(result.error.message);
+        setLoginStatus(result.error.message);
+      } else {
+        console.log(result.message);
+        setLoginStatus(result.message);
+        navigate("/home");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const forgotPassword = async (e) => {
+    e.preventDefault();
+    console.log(email);
+    fetch("http://localhost:3000/auth/forgotPassword", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: email }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data, "userRegister");
+        alert(data.status);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
   return (
     <Box
       className="container"
@@ -121,11 +159,13 @@ const LoginPage = () => {
             SIGN IN
           </Typography>
           <form
+            onSubmit={handleLoginClick}
             style={{
               display: "flex",
               flexDirection: "column",
               gap: "10px",
               width: "100%",
+              marginBottom: "15%",
               maxWidth: "300px",
             }}
           >
@@ -137,15 +177,17 @@ const LoginPage = () => {
                 marginLeft: "4%",
               }}
             >
-              Username/Email
+              Email
             </Typography>
-            <InputForm
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              width="100%"
-              height="50px"
-            />
+            <Box sx={{ marginBottom: "8%" }}>
+              <InputForm
+                placeholder="Enter your email here..."
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                width="300px"
+                height="35px"
+              />
+            </Box>
             <Typography
               sx={{
                 color: "white",
@@ -156,14 +198,16 @@ const LoginPage = () => {
             >
               Password
             </Typography>
-            <InputForm
-              placeholder="Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              width="100%"
-              height="50px"
-            />
+            <Box sx={{ marginBottom: "5%" }}>
+              <InputForm
+                placeholder="Enter your password here..."
+                value={password}
+                type="password"
+                onChange={(e) => setPassword(e.target.value)}
+                width="300px"
+                height="35px"
+              />
+            </Box>
             {loginStatus && (
               <Typography
                 sx={{

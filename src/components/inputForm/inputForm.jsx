@@ -1,27 +1,4 @@
 import React, { useState } from "react";
-import { TextField as MuiTextField } from "@mui/material";
-import { styled } from "@mui/system";
-
-const StyledTextField = styled(MuiTextField)(
-  ({ width, height, isFocused }) => ({
-    width: width,
-    height: height,
-    backgroundColor: "transparent",
-    borderColor: isFocused ? "white" : "#3C3B3B",
-    borderWidth: 1,
-    padding: "15px",
-    borderRadius: "20px",
-    marginBottom: "15px",
-    transition: "border-color 0.3s ease",
-    "&:hover": {
-      borderColor: "white",
-    },
-    "& .MuiInputBase-input::placeholder": {
-      color: "white",
-      opacity: 1,
-    },
-  })
-);
 
 const InputForm = ({
   placeholder,
@@ -31,9 +8,10 @@ const InputForm = ({
   onChange,
   onFocus,
   onBlur,
-  ...otherProps
+  type = "text",
 }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleFocus = (event) => {
     setIsFocused(true);
@@ -45,19 +23,47 @@ const InputForm = ({
     if (onBlur) onBlur(event);
   };
 
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
+
   return (
-    <StyledTextField
-      variant="outlined"
-      placeholder={placeholder}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      value={value}
-      onChange={onChange}
-      {...otherProps}
-      sx={{
-        borderColor: isFocused ? "white" : "#3C3B3B",
-      }}
-    />
+    <div style={{ width: width || "100%", height: height || "auto" }}>
+      <input
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          width: "100%",
+          height: "100%",
+          padding: "10px",
+          border: `1px solid ${
+            isFocused ? "white" : isHovered ? "#808080" : "#3C3B3B"
+          }`,
+          borderRadius: "4px",
+          fontFamily: "Montserrat, sans-serif",
+          color: "white",
+          backgroundColor: "transparent",
+          outline: "none",
+          transition: "border-color 0.3s ease",
+        }}
+        className="custom-input"
+      />
+      <style jsx>{`
+        .custom-input::placeholder {
+          color: lightgray;
+        }
+      `}</style>
+    </div>
   );
 };
 

@@ -3,15 +3,41 @@ import { Box, Typography, useMediaQuery } from "@mui/material";
 import InputForm from "../../components/inputForm/inputForm";
 import BtnComponent from "../../components/btnComponent/btnComponent";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 function RegisterPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
-  const [loginStatus, setLoginStatus] = useState(null);
+  const [registerStatus, setRegisterStatus] = useState(null);
   const isMobile = useMediaQuery("(max-width:768px)");
+  const dispatch = useDispatch();
 
-  const handleRegisterClick = () => {};
+  const handleRegisterClick = async (e) => {
+    try {
+      e.preventDefault();
+      const newUser = { username: username, email: email, password: password };
+      const response = await fetch("http://localhost:3005/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newUser),
+      });
+      const data = await response.json();
+      console.log(JSON.stringify(data));
+      if (data.error) {
+        setRegisterStatus(data.error.message);
+      } else {
+        setRegisterStatus(data.message);
+        navigate("/login");
+      }
+    } catch (error) {
+      console.error(error);
+      setRegisterStatus("An error occurred while registering.");
+    }
+  };
+
   return (
     <Box
       className="container"
@@ -87,7 +113,7 @@ function RegisterPage() {
               Already have an account?{" "}
               <span
                 className="signup-link"
-                onClick={() => navigate("/register")}
+                onClick={() => navigate("/login")}
                 style={{ cursor: "pointer" }}
               >
                 Sign in
@@ -119,13 +145,14 @@ function RegisterPage() {
             SIGN UP
           </Typography>
           <form
+            onSubmit={handleRegisterClick}
             style={{
               display: "flex",
               flexDirection: "column",
               //   gap: "5px",
               width: "100%",
               maxWidth: "300px",
-              marginBottom: "50px",
+              marginBottom: "60px",
             }}
           >
             <Typography
@@ -138,13 +165,15 @@ function RegisterPage() {
             >
               Username
             </Typography>
-            <InputForm
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              width="100%"
-              height="50px"
-            />
+            <Box sx={{ marginBottom: "15%", marginTop: "5%" }}>
+              <InputForm
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                width="100%"
+                height="35px"
+              />
+            </Box>
             <Typography
               sx={{
                 color: "white",
@@ -155,13 +184,15 @@ function RegisterPage() {
             >
               Email
             </Typography>
-            <InputForm
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              width="100%"
-              height="50px"
-            />
+            <Box sx={{ marginBottom: "15%", marginTop: "5%" }}>
+              <InputForm
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                width="100%"
+                height="35px"
+              />
+            </Box>
             <Typography
               sx={{
                 color: "white",
@@ -172,24 +203,26 @@ function RegisterPage() {
             >
               Password
             </Typography>
-            <InputForm
-              placeholder="Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              width="100%"
-              height="50px"
-            />
-            {loginStatus && (
+            <Box sx={{ marginBottom: "15%", marginTop: "5%" }}>
+              <InputForm
+                placeholder="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                width="100%"
+                height="35px"
+              />
+            </Box>
+            {registerStatus && (
               <Typography
                 sx={{
-                  color: loginStatus.success ? "green" : "red",
+                  color: registerStatus.success ? "green" : "red",
                   textAlign: "center",
                   marginTop: "10px",
                   fontSize: "clamp(12px, 1.5vw, 14px)",
                 }}
               >
-                {loginStatus.message}
+                {registerStatus.message}
               </Typography>
             )}
             <Box
@@ -220,7 +253,7 @@ function RegisterPage() {
               Do not have an account?{" "}
               <span
                 className="signup-link"
-                onClick={() => navigate("/register")}
+                onClick={() => navigate("/login")}
                 style={{ cursor: "pointer" }}
               >
                 Sign up
