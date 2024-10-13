@@ -6,7 +6,7 @@
 } */
 .signup-link {
   color: #2ebb77;
-  font-family: Montserrat;
+  font-family: "Montserrat", sans-serif;
   font-weight: bold;
   transition: color 0.3s ease, font-size 0.3s ease;
 }
