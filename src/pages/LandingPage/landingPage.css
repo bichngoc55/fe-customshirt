@@ -1,3 +1,612 @@
-.container {
-  background-color: aqua;
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Protest+Strike&display=swap");
+.landing-page {
+  /* background-color: #1a1a2e; */
+  color: #ffffff;
+  font-family: "Montserrat", sans-serif;
+  margin: 0% 3%;
+}
+
+.hero {
+  /* background-image: url("path-to-your-night-sky-image.jpg"); */
+  background-size: cover;
+  background-position: center;
+  text-align: center;
+  padding: 90px 0;
+}
+/* landing page cloud */
+cloud-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.cloud {
+  position: absolute;
+  opacity: 0.8;
+}
+
+.cloud-1 {
+  top: 10%;
+  left: 10%;
+  width: 150px;
+}
+.cloud-2 {
+  top: 20%;
+  right: 15%;
+  width: 100px;
+}
+.cloud-3 {
+  top: 40%;
+  left: 20%;
+  width: 120px;
+}
+.cloud-4 {
+  top: 60%;
+  right: 25%;
+  width: 80px;
+}
+.cloud-5 {
+  top: 80%;
+  left: 30%;
+  width: 130px;
+}
+
+.moon {
+  position: absolute;
+  top: 2%;
+  left: 20%;
+  transform: translateX(-40%);
+  width: auto;
+  height: auto;
+
+  /* box-shadow: 0 0 20px rgba(255, 255, 255, 0.5); */
+}
+
+/* h1 {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+} */
+.DOMDOM {
+  font-size: 4rem;
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 900;
+  font-style: normal;
+  text-align: center;
+  background: linear-gradient(to right, #e6d6ad, #f3d893, #beaf89);
+
+  background-clip: text;
+  color: transparent;
+}
+
+.hero p {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+}
+
+.cta-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.cta-button:hover {
+  background-color: #45a049;
+}
+
+.features {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 40px;
+  text-align: center;
+  margin-top: -50px;
+  border-radius: 10px;
+}
+
+.features h2 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.features p {
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.feature-list {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.feature-list span {
+  margin: 0 15px;
+  font-size: 1rem;
+}
+
+/* h1,
+h2,
+h3 {
+  margin-bottom: 20px;
+} */
+
+footer {
+  /* background-image: url("path-to-your-footer-image.jpg"); */
+  background-size: cover;
+  background-position: center;
+  text-align: center;
+  padding: 50px 0;
+}
+
+/* best selling */
+/* ... (previous styles remain the same) */
+
+.best-selling {
+  background-color: #1a1a2e;
+  padding: 60px 20px;
+}
+
+.best-selling-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 40px;
+}
+
+.best-selling h2 {
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.best-selling p {
+  font-size: 1rem;
+  color: #a0a0a0;
+  margin-bottom: 20px;
+}
+
+.see-more-btn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.see-more-btn:hover {
+  background-color: #45a049;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.t-shirt-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.t-shirt-item {
+  background-color: #252547;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.3s;
+}
+
+.t-shirt-item:hover {
+  transform: translateY(-5px);
+}
+
+.t-shirt-image {
+  width: 100%;
+  height: 200px;
+  background-color: #f0f0f0;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23cccccc"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 48px;
+}
+
+.t-shirt-name {
+  font-size: 1rem;
+  color: #ffffff;
+  padding: 10px;
+  margin: 0;
+}
+
+.t-shirt-price {
+  font-size: 1rem;
+  color: #a0a0a0;
+  padding: 0 10px 10px;
+  margin: 0;
+}
+
+/* about us */
+
+.about-us {
+  background-color: #1a1a2e;
+  padding: 60px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.about-us::before,
+.about-us::after {
+  content: "";
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  /* background-image: url("path-to-your-cloud-image.png"); */
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.5;
+}
+
+.about-us::before {
+  top: -50px;
+  left: -50px;
+}
+
+.about-us::after {
+  bottom: -50px;
+  right: -50px;
+  transform: rotate(180deg);
+}
+
+.about-us h2 {
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.about-description {
+  font-size: 1rem;
+  color: #a0a0a0;
+  margin-bottom: 40px;
+}
+
+.about-features {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.feature {
+  flex-basis: 30%;
+  margin-bottom: 30px;
+}
+
+.feature-icon {
+  background-color: #e0f2f1;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 20px;
+}
+
+.feature-icon svg {
+  font-size: 2rem;
+  color: #1a1a2e;
+}
+
+.feature h3 {
+  font-size: 1.2rem;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.feature p {
+  font-size: 0.9rem;
+  color: #a0a0a0;
+  line-height: 1.5;
+}
+
+/* voucher section */
+/* ... (previous styles remain the same) */
+
+.voucher-section {
+  background-color: #1a1a2e;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.voucher-section h2 {
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.voucher-description {
+  font-size: 1rem;
+  color: #a0a0a0;
+  margin-bottom: 40px;
+}
+
+.voucher-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.voucher-item {
+  background-color: #252547;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: left;
+  border: 1px solid #3a3a5e;
+}
+
+.voucher-item h3 {
+  font-size: 1.8rem;
+  color: #ffffff;
+  margin-bottom: 5px;
+}
+
+.for-text {
+  font-size: 0.9rem;
+  color: #a0a0a0;
+  margin-bottom: 15px;
+}
+
+.voucher-code {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.voucher-code span {
+  font-size: 0.9rem;
+  color: #ffffff;
+}
+
+.copy-btn,
+.apply-btn {
+  background: none;
+  border: none;
+  color: #4caf50;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.copy-btn svg,
+.apply-btn svg {
+  margin-right: 5px;
+}
+
+.validity,
+.for-products {
+  font-size: 0.8rem;
+  color: #a0a0a0;
+  margin-bottom: 5px;
+}
+
+.see-more-btn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 30px;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.see-more-btn:hover {
+  background-color: #45a049;
+}
+
+/* guidance section */
+/* ... (previous styles remain the same) */
+
+.guidance-section {
+  background-color: #1a1a2e;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.guidance-section h2 {
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.guidance-description {
+  font-size: 1rem;
+  color: #a0a0a0;
+  margin-bottom: 30px;
+}
+
+.process-title {
+  font-size: 1.8rem;
+  color: #ffffff;
+  margin-bottom: 30px;
+}
+
+.guidance-content {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+.t-shirt-preview {
+  width: 200px;
+  height: 300px;
+  background-color: #252547;
+  border-radius: 10px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23cccccc"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 48px;
+}
+
+.steps-container {
+  text-align: left;
+}
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 30px;
+}
+
+.step-arrow {
+  width: 40px;
+  height: 40px;
+  background-color: #ffffff;
+  color: #1a1a2e;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  margin-right: 20px;
+  flex-shrink: 0;
+}
+
+.step-text h4 {
+  font-size: 1.2rem;
+  color: #ffffff;
+  margin-bottom: 5px;
+}
+
+.step-text p {
+  font-size: 0.9rem;
+  color: #a0a0a0;
+  line-height: 1.5;
+}
+
+/* faq section */
+/* ... (previous styles remain the same) */
+
+.faq-section {
+  background-color: #1a1a2e;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.faq-section h2 {
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.faq-description {
+  font-size: 1rem;
+  color: #a0a0a0;
+  margin-bottom: 40px;
+}
+
+.faq-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.faq-support {
+  flex-basis: 30%;
+}
+
+.faq-support h3 {
+  font-size: 1.5rem;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.faq-support p {
+  font-size: 0.9rem;
+  color: #a0a0a0;
+  margin-bottom: 20px;
+}
+
+.any-questions {
+  font-size: 0.8rem;
+  color: #a0a0a0;
+  margin-bottom: 5px;
+}
+
+.support-email {
+  font-size: 1.2rem;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.faq-questions {
+  flex-basis: 65%;
+}
+
+.faq-item {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #333;
+}
+
+.faq-question {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding-bottom: 10px;
+}
+
+.faq-question h3 {
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+.faq-toggle {
+  font-size: 1.5rem;
+  color: #ffffff;
+  transition: transform 0.3s ease;
+}
+
+.faq-toggle.open {
+  transform: rotate(45deg);
+}
+
+.faq-answer {
+  padding: 10px 0 20px;
+}
+
+.faq-answer p {
+  font-size: 0.9rem;
+  color: #a0a0a0;
+  line-height: 1.6;
+}
+
+/* Add this to your existing styles for the footer image */
+.faq-section {
+  /* background-image: url("path-to-your-footer-image.jpg"); */
+  background-size: cover;
+  background-position: bottom;
+  background-repeat: no-repeat;
+}
+
+/* footer */
+.section-hidden {
+  opacity: 0;
+  transform: translateY(8rem);
+  transition: opacity 1s, transform 1s;
+}
+
+.section-visible {
+  opacity: 1;
+  transform: translateY(0);
 }

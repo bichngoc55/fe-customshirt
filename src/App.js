@@ -1,6 +1,7 @@
 import "./App.css";
-import LandingPage from "./pages/LandingPage/landingPage";
+import LandingPage from "./pages/LandingPage/landingPage2";
 import { NavBar } from "./components/NavBar/navBar";
+import TermsAndCondition from "./pages/TermsAndCondition/termsAndCondition";
 
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import RegisterPage from "./pages/RegisterPage/registerPage";
@@ -19,6 +20,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/terms" element={<TermsAndCondition />} />
           </Routes>
         </main>
         <Footer />
