@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import RegisterPage from "./pages/RegisterPage/registerPage";
 import LoginPage from "./pages/LoginPage/loginPage";
 import Footer from "./components/footer/footer";
+import CollectionPage from "./pages/CollectionPage/collectionPage";
 
 function App() {
   const [isAuth, setAuth] = useState(false);
@@ -18,6 +19,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/collection" element={<CollectionPage />} />
         </Routes>
       </main>
       <Footer />

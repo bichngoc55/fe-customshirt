@@ -18,7 +18,9 @@ export const NavBar = () => {
       </div>
       <div className="components">
         <Typography onClick={() => navigate("/")}>Home</Typography>
-        <Typography>Our Product</Typography>
+        <Link to="/collection" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Typography>Our Product</Typography>
+        </Link>
         <Typography>Design</Typography>
         <Typography>Terms&Conditions</Typography>
       </div>
