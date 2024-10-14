@@ -39,7 +39,8 @@ export const NavBar = () => {
     { text: "Home", path: "/" },
     { text: "Our Product", path: "#" },
     { text: "Design", path: "#" },
-    { text: "Terms&Conditions", path: "#" },
+    { text: "Terms&Conditions", path: "/terms" },
+    { text: "Collection", path: "/collection" },
   ];
 
   const dropdownItems = [
@@ -49,6 +50,7 @@ export const NavBar = () => {
   ];
 
   return (
+ 
     <>
       <div className="container">
         <div className="name">
@@ -61,6 +63,7 @@ export const NavBar = () => {
               {item.text}
             </Typography>
           ))}
+ 
         </div>
         <div className="mobile-menu">
           <IconButton onClick={toggleMenu} sx={{ color: "white" }}>
