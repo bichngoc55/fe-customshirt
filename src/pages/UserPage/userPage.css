@@ -1,0 +1,11 @@
+.tabs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+Tab {
+  color: white;
+  font-family: "Montserrat";
+  font-size: 16px;
+  font-weight: 600;
+}
