@@ -67,7 +67,7 @@ h4 {
     color: #1da1f2;
 }
   
-@media (max-width: 800px) {
+@media (max-width: 975px) {
      .support, .policies, .social-media {
       flex: 1 1 100%; 
       text-align: center;
