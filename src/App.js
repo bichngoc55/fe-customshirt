@@ -7,7 +7,8 @@ import RegisterPage from "./pages/RegisterPage/registerPage";
 import LoginPage from "./pages/LoginPage/loginPage";
 import Footer from "./components/footer/footer";
 import { useSelector } from "react-redux";
-
+import UserPage from "./pages/UserPage/userPage";
+import DesignPage from "./pages/DesignPage/designPage";
 function App() {
   const { token } = useSelector((state) => state.auths);
   return (
@@ -20,6 +21,8 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/terms" element={<TermsAndCondition />} />
+            <Route path="/profile" element={<UserPage />} />
+            <Route path="/design" element={<DesignPage />} />
           </Routes>
         </main>
         <Footer />

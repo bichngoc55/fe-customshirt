@@ -45,7 +45,8 @@ export const NavBar = () => {
   const dropdownItems = [
     { text: "Profile", path: "/profile" },
     { text: "Contact", path: "/contact" },
-    { text: "My Design", path: "/my-design" },
+    { text: "My Design", path: "/design" },
+    { text: "My Order", path: "/my-order" },
   ];
 
   return (
@@ -57,7 +58,11 @@ export const NavBar = () => {
         </div>
         <div className="components desktop-menu">
           {navItems.map((item) => (
-            <Typography key={item.text} onClick={() => navigate(item.path)}>
+            <Typography
+              key={item.text}
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate(item.path)}
+            >
               {item.text}
             </Typography>
           ))}
