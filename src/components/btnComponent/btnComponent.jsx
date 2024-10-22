@@ -1,7 +1,7 @@
 import React from "react";
 import { Box } from "@mui/material";
 
-const BtnComponent = ({ handleClick, value, width, height }) => {
+const BtnComponent = ({ handleClick, value, width, height,icon }) => {
   return (
     <Box>
       <button
@@ -23,6 +23,7 @@ const BtnComponent = ({ handleClick, value, width, height }) => {
       >
         {value}
       </button>
+      <icon/>
     </Box>
   );
 };

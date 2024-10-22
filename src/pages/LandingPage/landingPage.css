@@ -20,37 +20,38 @@ cloud-container {
   left: 0;
   width: 100%;
   height: 100%;
+  opacity: 1;
 }
 
 .cloud {
   position: absolute;
-  opacity: 0.8;
+  opacity: 2;
+  mix-blend-mode: screen;
 }
 
-.cloud-1 {
-  top: 10%;
-  left: 10%;
-  width: 150px;
-}
-.cloud-2 {
-  top: 20%;
-  right: 15%;
-  width: 100px;
-}
-.cloud-3 {
-  top: 40%;
+/* .cloud-2 { top: 20%; left: 75%; width: 35%; } */
+.cloud-3 { top: 10%; left: 75%; width: 45%; }
+.cloud-4 { top: -15%; left: 65%; width: 40%; }
+.cloud-5 {  top: -5%; right: 74%; width: 45%;  }
+.cloud-6 { top: 25%; left: 70%; width: 45%; }
+.cloud-7 { top: 45%; right: 70%; width: 40%; }
+.cloud-8 { top: 15%; right: 80%; width: 32%; }
+
+.star_1 {
+  position: absolute;
+  top: 0%;
   left: 20%;
-  width: 120px;
+  z-index: -1;
+  width:60%;
+  height: 90%;
 }
-.cloud-4 {
-  top: 60%;
-  right: 25%;
-  width: 80px;
-}
-.cloud-5 {
-  top: 80%;
-  left: 30%;
-  width: 130px;
+.star_2 {
+  position: absolute;
+  top: 0%;
+  right: 10%;
+  z-index: -2;
+  width:100%;
+  height: 90%;
 }
 
 .moon {
@@ -63,6 +64,7 @@ cloud-container {
 
   /* box-shadow: 0 0 20px rgba(255, 255, 255, 0.5); */
 }
+
 
 /* h1 {
   font-size: 4rem;
@@ -82,48 +84,69 @@ cloud-container {
   color: transparent;
 }
 
+.text-container {
+  position: relative;
+  margin-top: 5%;
+  
+}
+.custom-text {
+  font-size: 5.5rem;
+  font-weight: 900;
+  text-align: center;
+  background: linear-gradient(to right, #ebd599, #d3b978, #a18034);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin: 0; /* Xóa bỏ khoảng cách margin mặc định */
+  line-height: 1.5; 
+}
+.o-container {
+  position: relative;
+  display: inline-block;
+}
+
+.firefly-img {
+  position: absolute;
+  width: 120px;
+  height: 100px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .hero p {
   font-size: 1.2rem;
   margin-bottom: 30px;
 }
 
-.cta-button {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  padding: 15px 30px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s;
-}
-
-.cta-button:hover {
-  background-color: #45a049;
-}
-
 .features {
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 40px;
+  background: radial-gradient(ellipse at top, #1a202f 0%, #08090f 100%);
+  padding: 50px;
   text-align: center;
-  margin-top: -50px;
-  border-radius: 10px;
+  margin-top: -35px;
+  border-radius: 30px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .features h2 {
   font-size: 2rem;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
+  margin-top: 0px;
 }
+.hehe {
+  display:flex;
 
+}
 .features p {
   font-size: 1rem;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .feature-list {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
+  gap: 30px;
 }
 
 .feature-list span {
@@ -131,6 +154,28 @@ cloud-container {
   font-size: 1rem;
 }
 
+.feature-list span::before {
+  content: '✓ ';
+  color: #00c767; 
+  margin-right: 5px;
+}
+
+.design-now-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease; 
+}
+
+.design-now-btn:hover {
+  background-color: #45a049; 
+  box-shadow: 0 0 20px rgba(0, 255, 0, 1);
+  transform: scale(1.5); 
+}
 /* h1,
 h2,
 h3 {
@@ -149,7 +194,7 @@ footer {
 /* ... (previous styles remain the same) */
 
 .best-selling {
-  background-color: #1a1a2e;
+  background-color: (--background-color);
   padding: 60px 20px;
 }
 
@@ -195,7 +240,7 @@ footer {
 }
 
 .t-shirt-item {
-  background-color: #252547;
+  background-color: #1b1f2d;
   border-radius: 10px;
   overflow: hidden;
   transition: transform 0.3s;
@@ -232,7 +277,7 @@ footer {
 /* about us */
 
 .about-us {
-  background-color: #1a1a2e;
+  background-color: (--background-color);
   padding: 60px 20px;
   text-align: center;
   position: relative;
@@ -317,21 +362,21 @@ footer {
 /* ... (previous styles remain the same) */
 
 .voucher-section {
-  background-color: #1a1a2e;
-  padding: 60px 20px;
+  background-color: (--background-color);
+  padding: 10px 20px;
   text-align: center;
 }
 
 .voucher-section h2 {
   font-size: 2.5rem;
   color: #ffffff;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 .voucher-description {
   font-size: 1rem;
   color: #a0a0a0;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .voucher-grid {
@@ -342,17 +387,30 @@ footer {
 }
 
 .voucher-item {
-  background-color: #252547;
-  border-radius: 10px;
-  padding: 20px;
+  background-color: #1b1b2f;
+  border-radius: 15px;
   text-align: left;
-  border: 1px solid #3a3a5e;
+  border: 1px solid #0029cd;
+}
+
+.voucher-item {
+  border-radius: 15px;
+  padding: 30px;
+  background: #151a27;
+  border: 1px solid rgb(58, 67, 113);
+  transition: all 0.3s ease-in-out;
+}
+
+.voucher-item:hover {
+  border-color: #ffffff; /* Highlight border on hover */
 }
 
 .voucher-item h3 {
-  font-size: 1.8rem;
+  font-size: 2rem;
+  font-weight: bold;
   color: #ffffff;
   margin-bottom: 5px;
+  margin-top: 0px;
 }
 
 .for-text {
@@ -377,7 +435,7 @@ footer {
 .apply-btn {
   background: none;
   border: none;
-  color: #4caf50;
+  color: #ffffff;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -387,6 +445,7 @@ footer {
 .copy-btn svg,
 .apply-btn svg {
   margin-right: 5px;
+  color: #37c25e; 
 }
 
 .validity,
@@ -404,18 +463,20 @@ footer {
   font-size: 1rem;
   cursor: pointer;
   border-radius: 5px;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, box-shadow 0.5s;
 }
 
 .see-more-btn:hover {
-  background-color: #45a049;
+  background-color: #4caf50;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 1);
+  transform: scale(1.05); 
 }
 
 /* guidance section */
 /* ... (previous styles remain the same) */
 
 .guidance-section {
-  background-color: #1a1a2e;
+  background-color: (--background-color);
   padding: 60px 20px;
   text-align: center;
 }
@@ -497,7 +558,7 @@ footer {
 /* ... (previous styles remain the same) */
 
 .faq-section {
-  background-color: #1a1a2e;
+  background-color: (--background-color);
   padding: 60px 20px;
   text-align: center;
 }
@@ -600,6 +661,59 @@ footer {
 }
 
 /* footer */
+/* Nature section at the bottom of the page */
+.nature-section {
+  position: relative;
+  width: 100%;
+  height: 200px; 
+  background-color: transparent; /* You can adjust this if needed */
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end; /* Align trees at the bottom */
+}
+
+.grass-container {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* height: 100px;  */
+  
+}
+
+.grass-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trees-container {
+  position: absolute;
+  bottom: 100px; /* Adjust so that trees appear just above the grass */
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+}
+
+.tree-img {
+  width: 15%; /* Adjust based on the size of your tree images */
+  object-fit: contain;
+  z-index: 10;
+}
+
+.tree1 {
+  left: 10%;
+}
+
+.tree2 {
+  left: 40%;
+}
+
+.tree-3 {
+  left: 70%;
+}
+
 .section-hidden {
   opacity: 0;
   transform: translateY(8rem);
@@ -609,4 +723,21 @@ footer {
 .section-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+.cta-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 30px;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s, box-shadow 0.5s;
+}
+
+.cta-button:hover {
+  background-color: #4caf50;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 1);
+  transform: scale(1.05); 
 }
