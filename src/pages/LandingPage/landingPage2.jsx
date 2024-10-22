@@ -3,6 +3,22 @@ import "./landingPage.css";
 // import { FaFire, FaPaintBrush } from "react-icons/fa";
 // import { SiNfc } from "react-icons/si";
 import AccessibleForwardIcon from "@mui/icons-material/AccessibleForward";
+import BtnComponent from "../../components/btnComponent/btnComponent";
+import BtnCloud from "../../components/btnCloud/btnCloud";
+import { Typography } from "@mui/material";
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import fireflyImage from '../../assets/images/firefly2.png';
+import cloud2Img from '../../assets/images/cloud2.png';
+import cloud3Img from '../../assets/images/cloud3.png';
+import cloud4Img from '../../assets/images/cloud4.png';
+import cloud5Img from '../../assets/images/cloud5.png';
+import cloud6Img from '../../assets/images/cloud6.png';
+import cloud7Img from '../../assets/images/cloud7.png';
+import cloud8Img from '../../assets/images/cloud8.png';
+import grass from '../../assets/images/vegetation-grass-silhouette-69788.png';
+import tree1 from '../../assets/images/tree-silhouette-2-3.png';
+import tree2 from '../../assets/images/tree-silhouette-2-10-153x300.png';
 
 const tShirts = [
   { id: 1, name: "UNDEFINED NAME", price: "₱ 1,400.00" },
@@ -148,14 +164,39 @@ const LandingPage = () => {
   return (
     <div className="landing-page">
       <header ref={addToRefs} className="hero section-hidden">
+        {/* <div className="cloud-container">
+          <BtnCloud top="10%" left="10%" imageUrl={cloud3Img} />
+          <BtnCloud top="20%" left="30%"  imageUrl={cloud3Img} />
+          <BtnCloud top="30%" left="80%"  imageUrl={cloud4Img} />
+          <BtnCloud top="50%" left="100%"  imageUrl={cloud5Img} />
+          <BtnCloud top="40%" left="50%"  imageUrl={cloud6Img} />
+          <BtnCloud top="80%" left="50%" imageUrl={cloud7Img} />
+        </div> */}
         <div className="cloud-container">
-          {/* <img
-            style={{ zIndex: 1 }}
-            src={require("../../assets/images/cloud3.png")}
-            alt="cloud"
-            className="cloud"
-          /> */}
+          {/* <img src={cloud2Img} alt="cloud" className="cloud cloud-2" /> */}
+          <img src={cloud3Img} alt="cloud" className="cloud cloud-3" />
+          <img src={cloud4Img} alt="cloud" className="cloud cloud-4" />
+          <img src={cloud5Img} alt="cloud" className="cloud cloud-5" />
+          <img src={cloud6Img} alt="cloud" className="cloud cloud-6" />
+          <img src={cloud7Img} alt="cloud" className="cloud cloud-7" />
+          <img src={cloud8Img} alt="cloud" className="cloud cloud-8" />
         </div>
+        <div className="star_1">
+          <img
+          style={{ width: "100%", height: "100%", mixBlendMode: "screen" }}
+              src={require("../../assets/images/star.png")}
+              alt="star"
+              className="star-img"
+            />
+        </div>
+        {/* <div className="star_2">
+          <img
+          style={{ width: "50%", height: "100%", mixBlendMode: "screen" }}
+              src={require("../../assets/images/star.png")}
+              alt="star"
+              className="star-img"
+            />
+        </div> */}
         <div className="moon">
           <img
             style={{ width: "34%", height: "34%", mixBlendMode: "screen" }}
@@ -164,10 +205,15 @@ const LandingPage = () => {
             className="moon-img"
           />
         </div>
-        <h1 className="DOMDOM">CUSTOM T-SHIRT </h1>
-        <h1 className="DOMDOM">DOMDOM</h1>
+        <div className="text-container">
+          <h1 className="custom-text">CUSTOM T-SHIRT</h1>
+          <h1 className="custom-text">
+            D<span className="o-container">O<img src={fireflyImage} alt="firefly" className="firefly-img" /></span>MDOM
+          </h1>
+        </div>
+        
         <p>You can design and buy your desired T-Shirt with AI from now on!</p>
-        <button className="cta-button">Design Now</button>
+        <button className="design-now-btn">Design Now</button>
       </header>
 
       <section ref={addToRefs} className="features section-hidden">
@@ -177,11 +223,11 @@ const LandingPage = () => {
           any T-Shirt ideas you have in mind.
         </p>
         <div className="feature-list">
-          <span>✓ Download</span>
-          <span>✓ Digital Payment</span>
-          <span>✓ Pain Tools</span>
-          <span>✓ AI</span>
-          <span>✓ NFT</span>
+          <span>Download</span>
+          <span>Digital Payment</span>
+          <span>Pain Tools</span>
+          <span>AI</span>
+          <span>NFT</span>
         </div>
       </section>
       {/* best selling section */}
@@ -191,7 +237,8 @@ const LandingPage = () => {
           <div>
             <h2>Best Selling T-Shirt</h2>
             <p>Start buying your favourite trending T-Shirt</p>
-            <button className="see-more-btn">See more</button>
+            {/* <button className="see-more-btn">See more</button> */}
+            <BtnComponent handleClick={()=>{}} value={"See more"} width={110} height={35} ></BtnComponent>
           </div>
         </div>
         <div className="t-shirt-grid">
@@ -232,13 +279,15 @@ const LandingPage = () => {
               <h3>{voucher.discount}</h3>
               <p className="for-text">{voucher.forText}</p>
               <div className="voucher-code">
-                <span>Code: {voucher.code}</span>
-                <button className="copy-btn">
-                  <AccessibleForwardIcon /> Copy
-                </button>
-                <button className="apply-btn">
-                  <AccessibleForwardIcon /> Apply
-                </button>
+                <span>Code: {voucher.code}</span>     
+                <div className="copy-btn">
+                  <ContentCopyIcon /> 
+                  <Typography>Copy</Typography>
+                </div>
+                <div className="apply-btn">
+                  <VerifiedIcon /> 
+                  <Typography>Apply</Typography>
+                </div>
               </div>
               <p className="validity">
                 • {voucher.validFrom} - {voucher.validTo}
@@ -315,6 +364,16 @@ const LandingPage = () => {
       <footer ref={addToRefs} className="section-hidden">
         <h2>ENJOY YOUR EXPERIENCE WITH OUR WEBSITE</h2>
         <button className="cta-button">Shop Now</button>
+        <section ref={addToRefs} className="nature-section section-hidden">
+        <div className="grass-container">
+          <img src={grass} alt="grass" className="grass-img" />
+        </div>
+        {/* <div className="trees-container">
+          <img src={require(tree1)} alt="tree1" className="tree-img tree1" />
+          <img src={require(tree2)} alt="tree2" className="tree-img tree2" />
+          <img src={require(tree1)} alt="tree1" className="tree-img tree1" />
+        </div> */}
+      </section>
       </footer>
     </div>
   );
