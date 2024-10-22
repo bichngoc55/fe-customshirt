@@ -1,12 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
+import { Canvas } from "@react-three/fiber";
+import {
+  OrbitControls,
+  Environment,
+  useGLTF,
+  PresentationControls,
+  Stage,
+} from "@react-three/drei";
+// import Shirt from "../../assets/Shirt";
 import {
   Box,
   Typography,
-  Grid,
-  Button,
   IconButton,
   Tabs,
   Tab,
+  Modal,
+  Switch,
 } from "@mui/material";
 import "./designPage.css";
 import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
@@ -24,8 +33,24 @@ import FormatColorFillIcon from "@mui/icons-material/FormatColorFill";
 import AutoFixNormalIcon from "@mui/icons-material/AutoFixNormal";
 import HorizontalRuleIcon from "@mui/icons-material/HorizontalRule";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
+
+//function load model
+function ModelWhite(props) {
+  const { scene } = useGLTF("/t_shirt.glb");
+  return <primitive {...props} object={scene} scale={0.005} />;
+}
+//function load model
+function ModelBlack(props) {
+  const { scene } = useGLTF("/t-shirt/source/base_footb2.glb");
+  return <primitive {...props} object={scene} scale={0.005} />;
+}
+
 const DesignPage = () => {
   const [selectedView, setSelectedView] = useState(0);
+  const [isOpen3Dview, setIsOpen3Dview] = useState(false);
+  const [stickers, setStickers] = useState([]);
+  const [selectedSticker, setSelectedSticker] = useState(null);
+  const [isWhiteModel, setIsWhiteModel] = useState(true);
 
   const handleChangeView = (event, newValue) => {
     setSelectedView(newValue);
@@ -43,6 +68,42 @@ const DesignPage = () => {
     { name: "Line", icon: <HorizontalRuleIcon /> },
     { name: "Shape", icon: <StarBorderIcon /> },
   ];
+  //sticker
+  // Fetch stickers from AI API
+  const fetchStickersFromAI = async () => {
+    try {
+      const response = await fetch("https://api.example.com/generate-sticker", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: "Generate stickers for my T-shirt",
+        }),
+      });
+      const data = await response.json();
+      setStickers(data.stickers); // Assuming API returns a 'stickers' array with image URLs
+    } catch (error) {
+      console.error("Error fetching AI-generated stickers:", error);
+    }
+  };
+
+  // Handle drag-and-drop
+  const handleDragStart = (sticker) => {
+    setSelectedSticker(sticker);
+  };
+
+  const handleDrop = (e) => {
+    if (selectedSticker) {
+      const newStickers = stickers.map((sticker) =>
+        sticker.id === selectedSticker.id
+          ? { ...sticker, x: e.clientX, y: e.clientY }
+          : sticker
+      );
+      setStickers(newStickers);
+      setSelectedSticker(null);
+    }
+  };
 
   return (
     <Box className="design-page">
@@ -69,7 +130,65 @@ const DesignPage = () => {
           />
           <div className="icons">
             <IconButton>
-              <ViewInArOutlinedIcon sx={{ color: "white" }} />
+              <ViewInArOutlinedIcon
+                sx={{ color: "white" }}
+                onClick={() => setIsOpen3Dview(!isOpen3Dview)}
+              />
+              {isOpen3Dview && (
+                <Modal
+                  open={isOpen3Dview}
+                  onClose={() => setIsOpen3Dview(false)}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "80vh",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: "60%",
+                      height: "95%",
+                      bgcolor: "#111111",
+                      borderRadius: "10px",
+                    }}
+                  >
+                    <Canvas dpr={[1, 2]} shadows camera={{ fov: 50 }}>
+                      <OrbitControls enableZoom={false} />
+
+                      <ambientLight intensity={0.5} />
+                      <pointLight position={[10, 10, 10]} intensity={1} />
+                      <PresentationControls
+                        speed={1.5}
+                        global
+                        zoom={1.2}
+                        polar={[-0.4, 0.2]}
+                      >
+                        <Stage environment={"studio"}>
+                          {isWhiteModel ? <ModelWhite /> : <ModelBlack />}{" "}
+                        </Stage>
+                      </PresentationControls>
+                    </Canvas>
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 10,
+                        right: 10,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Typography>Đen</Typography>
+                      <Switch
+                        checked={isWhiteModel}
+                        onChange={() => setIsWhiteModel(!isWhiteModel)}
+                        color="default"
+                      />
+                      <Typography>Trắng</Typography>
+                    </Box>
+                  </Box>
+                </Modal>
+              )}
             </IconButton>
             <IconButton>
               <ReplayOutlinedIcon sx={{ color: "white" }} />

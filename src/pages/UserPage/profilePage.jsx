@@ -1,6 +1,7 @@
 import React from "react";
-import { Avatar, styled, TextField } from "@mui/material";
+import { Avatar, styled, TextField, Box, Typography } from "@mui/material";
 import BtnComponent from "../../components/btnComponent/btnComponent";
+import noImg from "../../assets/images/no_img.jpeg";
 
 const StyledInputForm = styled(TextField)(({ theme }) => ({
   "& .MuiOutlinedInput-root": {
@@ -32,22 +33,38 @@ const Profile = () => {
   // Profile component logic here
   return (
     <>
-      <div
-        style={{
+      <Box
+        className="Avatar"
+        sx={{
           display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          gap: 2,
+          justifyContent: "center",
+          marginBottom: "20px",
           marginTop: "20px",
         }}
       >
-        <Avatar
-          src="/path-to-dog-image.jpg"
-          alt="Gấu Tối"
-          sx={{ width: 80, height: 80 }}
-        />
-        <h2>Gấu Toir</h2>
-        <p>gautoi@gmail.com</p>
-      </div>
+        <Avatar src={noImg} sx={{ width: 50, height: 50 }} />
+        <Box>
+          <Typography
+            sx={{
+              fontWeight: "bold",
+              fontFamily: "Montserrat",
+              fontSize: "20px",
+            }}
+          >
+            Gấu Tối
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: "16px",
+              fontFamily: "Montserrat",
+              color: "#808080",
+            }}
+          >
+            alexarawles@gmail.com
+          </Typography>
+        </Box>
+      </Box>
 
       <form
         style={{
