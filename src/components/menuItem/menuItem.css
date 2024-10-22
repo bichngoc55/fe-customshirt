@@ -1,0 +1,59 @@
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.selected {
+  background-color: #a8dfd8;
+}
+
+.unselected {
+  background-color: transparent;
+}
+
+.menu-item:hover:not(.selected) {
+  background-color: rgba(168, 223, 216, 0.2);
+  transform: translateX(5px);
+}
+
+.menu-item .MuiSvgIcon-root {
+  font-size: 20px;
+  transition: all 0.3s ease;
+}
+
+.selected .MuiSvgIcon-root {
+  color: #000000;
+}
+
+.unselected .MuiSvgIcon-root {
+  color: #6c6d73;
+}
+
+.menu-item:hover:not(.selected) .MuiSvgIcon-root {
+  transform: scale(1.2);
+}
+
+.menu-item .MuiTypography-root {
+  font-size: 14px;
+  font-weight: 400;
+  font-family: "Montserrat", sans-serif;
+  transition: all 0.3s ease;
+}
+
+.selected .MuiTypography-root {
+  color: #000000;
+}
+
+.unselected .MuiTypography-root {
+  color: #6c6d73;
+}
+
+.menu-item:hover:not(.selected) .MuiTypography-root {
+  color: #a8dfd8;
+}

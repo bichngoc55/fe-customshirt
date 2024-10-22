@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Typography, IconButton, Menu, MenuItem } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -12,12 +12,18 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import "./navBar.css";
 import { logoutUser } from "../../redux/authSlice";
 
-export const NavBar = () => {
+export const NavBar = ({ user }) => {
   const { token } = useSelector((state) => state.auths);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    setIsAdmin(user?.role === "admin");
+  }, [user]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -34,24 +40,33 @@ export const NavBar = () => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  const handleItemClick = (item) => {
+    setSelectedItem(item.text);
+    navigate(item.path);
+    handleClose();
+  };
 
   const navItems = [
     { text: "Home", path: "/" },
-    { text: "Our Product", path: "#" },
-    { text: "Design", path: "#" },
+    { text: "Design", path: "/design" },
     { text: "Terms&Conditions", path: "/terms" },
     { text: "Collection", path: "/collection" },
   ];
 
   const dropdownItems = [
-    { text: "Profile", path: "/profile" },
-    { text: "Contact", path: "/contact" },
-    { text: "My Design", path: "/design" },
-    { text: "My Order", path: "/my-order" },
+    { text: "Profile", path: `/${user?._id}/profile` },
+    { text: "Contact", path: `/${user?._id}/contact` },
+    { text: "My Design", path: `/${user?._id}/profile/design` },
+    { text: "My Order", path: `/${user?._id}/profile/order` },
   ];
-
+  const dropdownAdminItems = [
+    { text: "Dashboard", path: "/admin" },
+    { text: "User", path: "/admin/user" },
+    { text: "Order", path: "/admin/order" },
+    { text: "Message", path: "/admin/message" },
+    { text: "Settings", path: "/admin/settings" },
+  ];
   return (
- 
     <>
       <div className="container">
         <div className="name">
@@ -62,13 +77,15 @@ export const NavBar = () => {
           {navItems.map((item) => (
             <Typography
               key={item.text}
-              style={{ cursor: "pointer" }}
+              style={{
+                cursor: "pointer",
+                color: selectedItem === item.text ? "#a8dfd8" : "inherit",
+              }}
               onClick={() => navigate(item.path)}
             >
               {item.text}
             </Typography>
           ))}
- 
         </div>
         <div className="mobile-menu">
           <IconButton onClick={toggleMenu} sx={{ color: "white" }}>
@@ -90,39 +107,79 @@ export const NavBar = () => {
             <SearchOutlinedIcon sx={{ color: "white" }} />
             <img src={defaultAva} alt="" className="ava" />
             <div className="user" onClick={handleClick}>
-              USERNAME
+              {user?.username}
             </div>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-              sx={{ marginTop: "1%" }}
-            >
-              {dropdownItems.map((item) => (
+            {isAdmin === false && (
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
+                sx={{ marginTop: "1%" }}
+              >
+                {dropdownItems.map((item) => (
+                  <MenuItem
+                    sx={{
+                      fontFamily: "Montserrat",
+                      marginTop: "1%",
+                      fontSize: "0.8rem",
+                      // backgroundColor:
+                      //   selectedItem === item.text ? "#a8dfd8" : "transparent",
+                    }}
+                    key={item.text}
+                    onClick={() => handleItemClick(item)}
+                  >
+                    <ListItemText primary={item.text} />
+                  </MenuItem>
+                ))}
                 <MenuItem
-                  sx={{
-                    fontFamily: "Montserrat",
-                    marginTop: "1%",
-                    fontSize: "0.8rem",
-                  }}
-                  key={item.text}
-                  onClick={() => {
-                    navigate(item.path);
-                    handleClose();
-                  }}
+                  onClick={handleLogout}
+                  sx={{ color: "text.secondary" }}
                 >
-                  <ListItemText primary={item.text} />
+                  <Box sx={{ marginRight: "6%" }}>
+                    <ListItemText primary="Log out" />
+                  </Box>
+                  <ListItemIcon>
+                    <LogoutIcon fontSize="small" />
+                  </ListItemIcon>
                 </MenuItem>
-              ))}
-              <MenuItem onClick={handleLogout} sx={{ color: "text.secondary" }}>
-                <Box sx={{ marginRight: "6%" }}>
-                  <ListItemText primary="Log out" />
-                </Box>
-                <ListItemIcon>
-                  <LogoutIcon fontSize="small" />
-                </ListItemIcon>
-              </MenuItem>
-            </Menu>
+              </Menu>
+            )}
+            {isAdmin === true && (
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
+                sx={{
+                  marginTop: "1%",
+                  fontFamily: "Montserrat",
+                  fontSize: "0.8rem",
+                }}
+              >
+                {dropdownAdminItems.map((item) => (
+                  <MenuItem
+                    key={item.text}
+                    onClick={() => handleItemClick(item)}
+                    // sx={{
+                    //   backgroundColor:
+                    //     selectedItem === item.text ? "#a8dfd8" : "transparent",
+                    // }}
+                  >
+                    {item.text}
+                  </MenuItem>
+                ))}
+                <MenuItem
+                  onClick={handleLogout}
+                  sx={{ color: "text.secondary" }}
+                >
+                  <Box sx={{ marginRight: "6%" }}>
+                    <ListItemText primary="Log out" />
+                  </Box>
+                  <ListItemIcon>
+                    <LogoutIcon fontSize="small" />
+                  </ListItemIcon>
+                </MenuItem>
+              </Menu>
+            )}
           </div>
         )}
       </div>
@@ -134,7 +191,10 @@ export const NavBar = () => {
               navigate(item.path);
               setIsMenuOpen(false);
             }}
-            style={{ transitionDelay: `${index * 50}ms` }}
+            style={{
+              transitionDelay: `${index * 50}ms`,
+              // color: selectedItem === item.text ? "#a8dfd8" : "inherit",
+            }}
           >
             {item.text}
           </Typography>
@@ -156,7 +216,7 @@ export const NavBar = () => {
             />
             <img src={defaultAva} alt="" className="ava" />
             <div className="user" onClick={handleClick}>
-              USERNAME
+              {user?.username}
             </div>
           </div>
         )}
