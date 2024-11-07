@@ -27,7 +27,7 @@ const LoginPage = () => {
       } else {
         console.log(result.message);
         setLoginStatus(result.message);
-        navigate("/home");
+        navigate("/");
       }
     } catch (err) {
       console.error(err);
@@ -65,7 +65,7 @@ const LoginPage = () => {
       }}
     >
       <img
-        src={require("../../assets/images/image.png")}
+        src={require("../../assets/images/backgroundImg.png")}
         alt="Decorative"
         style={{
           position: "absolute",
@@ -156,7 +156,7 @@ const LoginPage = () => {
               marginBottom: "20px",
             }}
           >
-            SIGN IN
+            LOGIN
           </Typography>
           <form
             onSubmit={handleLoginClick}

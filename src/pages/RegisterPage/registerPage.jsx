@@ -17,13 +17,16 @@ function RegisterPage() {
     try {
       e.preventDefault();
       const newUser = { username: username, email: email, password: password };
-      const response = await fetch("http://localhost:3005/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newUser),
-      });
+      const response = await fetch(
+        `http://localhost:${process.env.PORT}/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newUser),
+        }
+      );
       const data = await response.json();
       console.log(JSON.stringify(data));
       if (data.error) {
@@ -51,7 +54,7 @@ function RegisterPage() {
       }}
     >
       <img
-        src={require("../../assets/images/image.png")}
+        src={require("../../assets/images/backgroundImg.png")}
         alt="Decorative"
         style={{
           position: "absolute",
@@ -63,6 +66,7 @@ function RegisterPage() {
           objectFit: "cover",
           zIndex: -1,
           borderRadius: "100px",
+          boxShadow: "0 4px 20px rgba(21, 26, 39, 0.9)",
         }}
       />
       <Box
@@ -142,7 +146,7 @@ function RegisterPage() {
               marginBottom: "20px",
             }}
           >
-            SIGN UP
+            Register
           </Typography>
           <form
             onSubmit={handleRegisterClick}
@@ -236,7 +240,7 @@ function RegisterPage() {
                 width="100"
                 height={40}
                 handleClick={handleRegisterClick}
-                value={"Sign up"}
+                value={"Register"}
               />
             </Box>
           </form>
