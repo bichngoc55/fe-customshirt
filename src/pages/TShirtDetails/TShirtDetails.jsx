@@ -14,6 +14,7 @@ import { useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { addToCart } from "../../redux/cartSlice";
 import RestartAltOutlinedIcon from "@mui/icons-material/RestartAltOutlined";
+import { FaPinterest } from "react-icons/fa";
 import {
   Remove as MinusIcon,
   Add as PlusIcon,
@@ -35,6 +36,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AutoFixHighOutlinedIcon from "@mui/icons-material/AutoFixHighOutlined";
 import ProductTabs from "../../components/ProductTabs/ProductTabs";
 import SizeGuideModal from "../../components/SizeGuideModal";
+import RecentViewedSlider from "../../components/RecentViewedSlider/RecentViewedSlider";
 // const TabContext = React.createContext();
 
 const TShirtDetails = () => {
@@ -62,7 +64,11 @@ const TShirtDetails = () => {
   const [copied, setCopied] = useState(null);
   const [selectedVoucher, setSelectedVoucher] = useState("");
   const [isModalSizeGuideOpen, setIsModalSizeGuideOpen] = useState(false);
-
+  const [shareData, setShareData] = useState({
+    url: "https://github.com/bichngoc55",
+    media: `${product.imageUrl[0]}`,
+    description: "Ao dep qua ne!",
+  });
   const handleCopyToClipboard = (voucherCode) => {
     navigator.clipboard
       .writeText(voucherCode)
@@ -87,34 +93,6 @@ const TShirtDetails = () => {
 
     fetchVoucherCode();
   }, []);
-  // fetch recent viewed products
-  useEffect(() => {
-    const addAndFetchRecentProducts = async () => {
-      try {
-        console.log("user Id , productId", user?._id, product?._id);
-        await fetch("http://localhost:3005/user/recentProduct", {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            // Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ userId: user?._id, productId: product?._id }),
-        });
-
-        const response = await fetch(
-          `http://localhost:3005/user/recentProduct/${user._id}`
-        );
-        const data = await response.json();
-        console.log("recent viewed: ", data);
-        // console.log("recent viewed: ", shirtId);
-        setRecentProducts(data.map((t) => t.shirtId));
-      } catch (e) {
-        console.error("Error:", e);
-      }
-    };
-
-    addAndFetchRecentProducts();
-  }, [user._id, product._id, token]);
   const handleOpenSizeGuideModal = async () => {
     // open modal
     setIsModalSizeGuideOpen(true);
@@ -218,6 +196,22 @@ const TShirtDetails = () => {
 
     return () => clearInterval(timer);
   }, [product.imageUrl.length]);
+  const handleShareToFacebook = () => {
+    const { url, title, description } = shareData;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+      url
+    )}&quote=${encodeURIComponent(description)}`;
+    window.open(facebookUrl, "_blank", "width=600,height=400");
+  };
+  const handleShareToPinterest = () => {
+    const { url, media, description } = shareData;
+    const pinterestUrl = `https://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(
+      url
+    )}&media=${encodeURIComponent(media)}&description=${encodeURIComponent(
+      description
+    )}`;
+    window.open(pinterestUrl, "_blank", "width=750,height=600");
+  };
 
   const handlePrevImage = () => {
     setCurrentImageIndex((prevIndex) =>
@@ -242,7 +236,7 @@ const TShirtDetails = () => {
     setIsOpenDeleteModal(true);
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!token) {
       showAuthenticationMessage();
       return;
@@ -259,17 +253,25 @@ const TShirtDetails = () => {
       setOpenSnackbar(true);
       return;
     }
-    const newItem = {
-      productId: product?._id,
-      quantity,
-      userId: user?._id,
-      selectedSize: selectedSize,
-      selectedColor: selectedColor,
-      salePrice,
-    };
-    console.log("newItem: ", newItem);
-    dispatch(addToCart(newItem));
-    setIsCartOpen(true);
+    try {
+      await dispatch(
+        addToCart({
+          userId: user?._id,
+          productId: product._id,
+          selectedSize,
+          selectedColor,
+          quantity: 1,
+        })
+      ).unwrap();
+
+      setSnackbarMessage(" Đã thêm vào giỏ hàng!");
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
+      setIsCartOpen(true);
+      return;
+    } catch (err) {
+      console.error("Failed to add to cart:", err);
+    }
   };
 
   const handleBuyNow = () => {
@@ -658,8 +660,11 @@ const TShirtDetails = () => {
                   Chia sẻ
                 </span>
                 <div className="social-buttons">
-                  <IconButton>
+                  <IconButton onClick={handleShareToFacebook}>
                     <FacebookIcon sx={{ color: "#5890FF" }} />
+                  </IconButton>
+                  <IconButton onClick={handleShareToPinterest}>
+                    <FaPinterest style={{ color: "#E60023" }} />
                   </IconButton>
                 </div>
               </Box>
@@ -672,66 +677,27 @@ const TShirtDetails = () => {
         <ProductTabs product={product} />
       </Box>
 
-      {/* Recently Viewed Products */}
-      <Box sx={{ mt: 4, mx: "10%" }}>
-        <div className="divider-line"></div>
-        <div className="recent-products-container">
-          <h2 className="recent-products-title">Recently Viewed Products</h2>
-          {recentProducts && recentProducts.length > 0 ? (
-            recentProducts.map((recentProduct) => (
-              <div key={recentProduct.id} className="products-grid">
-                <button className="nav-button nav-button-prev">
-                  <ChevronLeftIcon />
-                </button>
-                <div className="product-card">
-                  {renderBadges(recentProduct)}
-                  <div className="product-image-container">
-                    {recentProduct.imageUrl.map((image, index) => (
-                      <img
-                        key={index}
-                        src={recentProduct.imageUrl[0]}
-                        alt={`${recentProduct.name} image ${index + 1}`}
-                        className="product-image"
-                      />
-                    ))}
-                  </div>
-                  <div className="product-details">
-                    <h3 className="product-name">{recentProduct.name}</h3>
-                    <div className="product-price">
-                      {recentProduct.salePrice ? (
-                        <>
-                          <span className="original-price">
-                            ${recentProduct.price}
-                          </span>
-                          <span className="sale-price">
-                            ${recentProduct.salePrice}
-                          </span>
-                        </>
-                      ) : (
-                        <span>${recentProduct.price}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <button className="nav-button nav-button-next">
-                  <ChevronRightIcon />
-                </button>
-              </div>
-            ))
-          ) : (
-            <div style={{ color: "white", textAlign: "center" }}>
-              No recently viewed products
-            </div>
-          )}
-        </div>
-      </Box>
-
+      <RecentViewedSlider user={user} product={product} />
       <CartSidebar
         open={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cartItems={cartItems}
         setCartItems={setCartItems}
       />
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}

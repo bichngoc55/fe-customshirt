@@ -1,103 +1,86 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+// Async thunk for fetching cart
 export const fetchCart = createAsyncThunk(
   "cart/fetchCart",
-  async (id, { rejectWithValue }) => {
+  async (userId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`http://localhost:3005/cart/${id}`);
-      console.log("response in fetch cart", response.data);
+      const response = await axios.get(`http://localhost:3005/cart/${userId}`);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data.message);
+      return rejectWithValue(error.response.data);
     }
   }
 );
-
+// Add to cart thunk
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
-  async (item, { rejectWithValue, dispatch }) => {
+  async (
+    { userId, productId, selectedSize, selectedColor, quantity },
+    { rejectWithValue }
+  ) => {
     try {
-      console.log(item);
+      console.log(productId, selectedSize, selectedColor, quantity);
       const response = await axios.post(
-        `http://localhost:3005/cart/add/`,
-        item
-      );
-      dispatch(updateCart(response.data));
-      console.log(response.data);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data.message);
-    }
-  }
-);
-
-export const removeFromCart = createAsyncThunk(
-  "cart/removeFromCart",
-  async ({ id, newItem }, { rejectWithValue, dispatch }) => {
-    try {
-      const response = await axios.delete(
-        `http://localhost:3005/cart/remove/${id}`,
+        `http://localhost:3005/cart/${userId}`,
         {
-          data: newItem,
+          productId,
+          selectedSize,
+          selectedColor,
+          quantity,
         }
       );
-      dispatch(updateCart(response.data));
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to remove item"
-      );
+      return rejectWithValue(error.response.data);
     }
   }
 );
-
-export const increaseQuantity = createAsyncThunk(
-  "cart/increaseQuantity",
-  async ({ id, productId }, { rejectWithValue, dispatch }) => {
-    try {
-      const response = await axios.put(
-        `http://localhost:3005/cart/increase/${id}`,
-        { productId }
-      );
-      dispatch(updateCart(response.data));
-      console.log("increase quantity : ", response.data);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data.message);
-    }
-  }
-);
-
-export const decreaseQuantity = createAsyncThunk(
-  "cart/decreaseQuantity",
-  async ({ id, productId }, { rejectWithValue, dispatch }) => {
-    try {
-      const response = await axios.put(
-        `http://localhost:3005/cart/decrease/${id}`,
-        { productId }
-      );
-      dispatch(updateCart(response.data));
-      console.log("decrease quantity : ", response.data);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data.message);
-    }
-  }
-);
-
-export const clearCart = createAsyncThunk(
-  "cart/clearCart",
-  async (id, { rejectWithValue, dispatch }) => {
+// Async thunk for removing item from cart
+export const removeFromCart = createAsyncThunk(
+  "cart/removeFromCart",
+  async ({ userId, itemId }, { rejectWithValue }) => {
     try {
       const response = await axios.delete(
-        `http://localhost:3005/cart/clear/${id}`
+        `http://localhost:3005/cart/${userId}/items/${itemId}`
       );
-      dispatch(updateCart(response.data));
-      console.log("clear cart: ", response.data);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data.message);
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+// Async thunk for updating quantity
+export const updateQuantity = createAsyncThunk(
+  "cart/updateQuantity",
+  async ({ userId, itemId, quantity }, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch(
+        `http://localhost:3005/cart/${userId}/items/${itemId}`,
+        {
+          quantity,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+// Async thunk for clearing cart
+export const clearCart = createAsyncThunk(
+  "cart/clearCart",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:3005/cart/${userId}`
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
     }
   }
 );
@@ -111,40 +94,50 @@ const cartSlice = createSlice({
   },
   reducers: {
     updateCart: (state, action) => {
-      console.log("items inside update cart: ,", action.payload);
       state.items = action.payload.items;
     },
   },
   extraReducers: (builder) => {
-    // Existing cases for fetchCart, addToCart
     builder
+      .addCase(addToCart.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addToCart.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload.items;
+        state.error = null;
+      })
+      .addCase(addToCart.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Fetch cart
       .addCase(fetchCart.pending, (state) => {
         state.loading = true;
-        state.error = null;
       })
       .addCase(fetchCart.fulfilled, (state, action) => {
         state.loading = false;
-        console.log("action payload:", action.payload.items);
         state.items = action.payload.items;
+        state.error = null;
       })
       .addCase(fetchCart.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(addToCart.fulfilled, (state, action) => {
-        state.items = action.payload.items;
-      })
+      // Remove from cart
       .addCase(removeFromCart.fulfilled, (state, action) => {
         state.items = action.payload.items;
+        state.error = null;
       })
-      .addCase(increaseQuantity.fulfilled, (state, action) => {
+      // Update quantity
+      .addCase(updateQuantity.fulfilled, (state, action) => {
         state.items = action.payload.items;
+        state.error = null;
       })
-      .addCase(decreaseQuantity.fulfilled, (state, action) => {
-        state.items = action.payload.items;
-      })
-      .addCase(clearCart.fulfilled, (state, action) => {
-        state.items = action.payload.items;
+      // Clear cart
+      .addCase(clearCart.fulfilled, (state) => {
+        state.items = [];
+        state.error = null;
       });
   },
 });

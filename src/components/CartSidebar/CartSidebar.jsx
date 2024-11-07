@@ -22,67 +22,63 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   fetchCart,
   removeFromCart,
-  increaseQuantity,
-  decreaseQuantity,
+  updateQuantity,
   clearCart,
 } from "../../redux/cartSlice";
 const CartSidebar = ({ open, onClose, setCartItems }) => {
-  const { user } = useSelector((state) => state.auths);
   const dispatch = useDispatch();
-  const { items, loading, error } = useSelector((state) => state.cart);
-  //   const [latestItems, setLatestItems] = useState([]);
+  const { user } = useSelector((state) => state.auths);
+  const { items } = useSelector((state) => state.cart);
+
   useEffect(() => {
-    dispatch(fetchCart(user?._id));
-    console.log("items loaded: ", items);
-  }, [dispatch, , user?._id]);
+    if (user && open) {
+      dispatch(fetchCart(user._id));
+    }
+  }, [dispatch, user, open]);
 
   const handleRemoveFromCart = (item) => {
-    const newItem = {
-      productId: item?._id,
-      selectedColor: item?.selectedColor,
-      selectedSize: item?.selectedSize,
-    };
-    dispatch(
-      removeFromCart({
-        id: user?._id,
-        newItem,
-      })
-    ).then(() => {
-      dispatch(fetchCart(user?._id));
-    });
-    console.log("Cart items after loading: ", items);
-    // setLatestItems[]
+    dispatch(removeFromCart({ userId: user._id, itemId: item._id }));
   };
 
   const handleIncreaseQuantity = (item) => {
     dispatch(
-      increaseQuantity({ id: user?._id, productId: item?.product._id })
-    ).then(() => {
-      dispatch(fetchCart(user?._id));
-    });
-    console.log("Cart items after loading: ", items);
+      updateQuantity({
+        userId: user._id,
+        itemId: item._id,
+        quantity: item.quantity + 1,
+      })
+    );
   };
 
   const handleDecreaseQuantity = (item) => {
-    dispatch(
-      decreaseQuantity({ id: user?._id, productId: item?.product._id })
-    ).then(() => {
-      dispatch(fetchCart(user?._id));
-    });
-    console.log("Cart items after loading: ", items);
+    if (item.quantity > 1) {
+      dispatch(
+        updateQuantity({
+          userId: user._id,
+          itemId: item._id,
+          quantity: item.quantity - 1,
+        })
+      );
+    }
   };
 
   const handleClearCart = () => {
-    dispatch(clearCart({ id: user?._id })).then(() => {
-      dispatch(fetchCart(user?._id));
-    });
-    console.log("Cart items after loading: ", items);
+    dispatch(clearCart(user._id));
   };
+
   const calculateTotal = () => {
     return items.reduce((total, item) => {
-      const itemPrice = item.salePrice || item.price;
-      return total + itemPrice * item.quantity;
+      const price = item.product.salePercent
+        ? calculateSalePrice(item.product)
+        : item.product.price;
+      return total + price * item.quantity;
     }, 0);
+  };
+  const calculateSalePrice = (product) => {
+    if (product.isSale) {
+      return product.price * (1 - product.salePercent / 100);
+    }
+    return product.price;
   };
 
   return (
@@ -164,7 +160,10 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
                             {item.product.salePercent ? (
                               <>
                                 <span className="sale-price">
-                                  {item.product.salePercent}đ
+                                  {calculateSalePrice(
+                                    item.product
+                                  ).toLocaleString()}
+                                  đ
                                 </span>
                                 <span className="original-price">
                                   {item.product.price}đ
@@ -214,13 +213,13 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
             <div className="cart-footer">
               <div className="cart-summary">
                 <div className="summary-row">
-                  <Typography>Tạm tính:</Typography>
+                  <Typography>Temporary charge:</Typography>
                   <Typography>{calculateTotal().toLocaleString()}đ</Typography>
                 </div>
-                <div className="summary-row">
-                  <Typography>Phí vận chuyển:</Typography>
+                {/* <div className="summary-row">
+                  <Typography>Shipping fee:</Typography>
                   <Typography>Miễn phí</Typography>
-                </div>
+                </div> */}
                 <Divider className="summary-divider" />
                 <div className="summary-row total">
                   <Typography variant="h6">Tổng cộng:</Typography>
@@ -229,13 +228,8 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
                   </Typography>
                 </div>
               </div>
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                className="checkout-button"
-              >
-                Thanh toán ngay
+              <Button fullWidth className="checkout-button">
+                Pay now
               </Button>
             </div>
           </>
