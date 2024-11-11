@@ -148,10 +148,9 @@ const ModalAddProduct = ({
 }) => {
   const [selectedSizes, setSelectedSizes] = React.useState([]);
   const [selectedColors, setSelectedColors] = React.useState([]);
-  const [isNewProduct, setIsNewProduct] = React.useState(false);
+  const [isNewProduct, setIsNewProduct] = React.useState(true);
   const [isSaleProduct, setIsSaleProduct] = React.useState(false);
   const [files2, setFiles] = React.useState([]);
-  //   const [selectedImages, setSelectedImages] = React.useState([]);
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -173,6 +172,14 @@ const ModalAddProduct = ({
     setSize(value);
   };
 
+  const handleSalePercentChange = (e) => {
+    const value = parseFloat(e.target.value);
+    setSalePercent(value);
+    // Automatically check/uncheck sale checkbox based on sale percent
+    const shouldBeSale = value > 0;
+    setIsSaleProduct(shouldBeSale);
+    setIsSale(shouldBeSale);
+  };
   const handleColorChange = (event) => {
     const value = event.target.value;
     setSelectedColors(value);
@@ -192,6 +199,9 @@ const ModalAddProduct = ({
   const handleSaleChange = (event) => {
     setIsSaleProduct(event.target.checked);
     setIsSale(event.target.checked);
+    if (!event.target.checked) {
+      setSalePercent(0);
+    }
   };
 
   const sizes = ["S", "M", "L", "XL", "XXL"];
@@ -391,7 +401,7 @@ const ModalAddProduct = ({
               variant="outlined"
               type="number"
               placeholder="Enter sale percent..."
-              onChange={(e) => setSalePercent(e.target.value)}
+              onChange={handleSalePercentChange}
             />
           </Box>
           <Box sx={{ mb: 4 }}>
@@ -406,7 +416,9 @@ const ModalAddProduct = ({
               variant="outlined"
               type="number"
               placeholder="Enter product quantity..."
-              onChange={(e) => setQuantity(e.target.value)}
+              onChange={(e) => {
+                setQuantity(e.target.value);
+              }}
             />
           </Box>
           <Box sx={{ mb: 4 }}>

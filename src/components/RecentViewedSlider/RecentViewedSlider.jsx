@@ -93,6 +93,7 @@ const RecentViewedSlider = ({ user, product }) => {
 
       try {
         setIsLoading(true);
+        console.log("recent viewed,111 ", user?._id, product?._id);
 
         // Add to recent products
         const addResponse = await fetch(

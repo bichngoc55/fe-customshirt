@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Drawer,
   Box,
@@ -25,10 +25,14 @@ import {
   updateQuantity,
   clearCart,
 } from "../../redux/cartSlice";
+import { useNavigate } from "react-router-dom";
+import { FontWeight } from "@cloudinary/url-gen/qualifiers";
 const CartSidebar = ({ open, onClose, setCartItems }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auths);
   const { items } = useSelector((state) => state.cart);
+  const navigate = useNavigate();
+  const [cartTotalItems, setCartTotalItems] = useState(0);
 
   useEffect(() => {
     if (user && open) {
@@ -65,7 +69,10 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
   const handleClearCart = () => {
     dispatch(clearCart(user._id));
   };
-
+  useEffect(() => {
+    const totalItems = items.reduce((total, item) => total + item.quantity, 0);
+    setCartTotalItems(totalItems);
+  }, [items]);
   const calculateTotal = () => {
     return items.reduce((total, item) => {
       const price = item.product.salePercent
@@ -80,7 +87,18 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
     }
     return product.price;
   };
-
+  const handleBuyNow = async () => {
+    if (items[0]?._id) {
+      navigate(`/checkout/${items[0]?._id}/shipping`);
+      onClose();
+    } else {
+      console.error("Cart item ID is missing");
+    }
+  };
+  const handleShopNow = () => {
+    navigate("/collection");
+    onClose();
+  };
   return (
     <Drawer
       anchor="right"
@@ -90,8 +108,9 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
     >
       <Box className="cart-container">
         <div className="cart-header">
-          <Typography variant="h6">
-            Giỏ hàng của bạn ({items.length})
+          <Typography sx={{ fontSize: "20px" }}>
+            {" "}
+            Giỏ hàng của bạn ({cartTotalItems})
           </Typography>
           <div className="cart-header-actions">
             {items.length > 0 && (
@@ -111,19 +130,18 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
           <div className="empty-cart">
             <Typography variant="body1">Giỏ hàng của bạn đang trống</Typography>
             <Button
-              variant="contained"
-              color="primary"
-              onClick={onClose}
+              sx={{ backgroundColor: "#131720", color: "white" }}
+              onClick={handleShopNow}
               className="continue-shopping-button"
             >
-              Tiếp tục mua sắm
+              Shop Now
             </Button>
           </div>
         ) : (
           <>
-            <List className="cart-items">
+            <div className="cart-items">
               {items.map((item) => (
-                <ListItem key={item.id} className="cart-item">
+                <div key={item._id} className="cart-item">
                   <img
                     src={
                       item.product.imageUrl && item.product.imageUrl.length > 1
@@ -137,46 +155,48 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
                   />
 
                   <div className="cart-item-details">
-                    <ListItemText
-                      primary={item.name}
-                      secondary={
-                        <React.Fragment>
-                          <Typography
-                            component="span"
-                            className="cart-item-size"
-                          >
-                            Size: {item.selectedSize}
-                          </Typography>
-                          <Typography
-                            component="span"
-                            className="cart-item-size"
-                          >
-                            Colors: {item.selectedColor}
-                          </Typography>
-                          <Typography
-                            component="span"
-                            className="cart-item-price"
-                          >
-                            {item.product.salePercent ? (
-                              <>
-                                <span className="sale-price">
-                                  {calculateSalePrice(
-                                    item.product
-                                  ).toLocaleString()}
-                                  đ
-                                </span>
-                                <span className="original-price">
-                                  {item.product.price}đ
-                                </span>
-                              </>
-                            ) : (
-                              <span>{item.product.price}đ</span>
-                            )}
-                          </Typography>
-                        </React.Fragment>
-                      }
-                    />
-
+                    <div className="item-info">
+                      <Typography
+                        className="item-name"
+                        sx={{ fontFamily: "Montserrat", fontWeight: "bold" }}
+                      >
+                        {item.product.name}
+                      </Typography>
+                      <Typography
+                        className="cart-item-size"
+                        sx={{ fontFamily: "Montserrat" }}
+                      >
+                        {item.selectedSize} | {item.selectedColor}
+                      </Typography>
+                      <div className="price-container">
+                        {item.product.salePercent ? (
+                          <>
+                            <span className="original-price">
+                              {item.product.price}đ
+                            </span>
+                            <span
+                              style={{
+                                color: "#ef4444",
+                                fontSize: "20px",
+                                FontWeight: "500",
+                                marginRight: "0.5rem",
+                              }}
+                              className=""
+                            >
+                              {calculateSalePrice(
+                                item.product
+                              ).toLocaleString()}
+                              đ
+                            </span>
+                          </>
+                        ) : (
+                          <span>{item.product.price}đ</span>
+                        )}
+                      </div>
+                      <span className="discount">
+                        ({item.product.salePercent}% Off)
+                      </span>
+                    </div>
                     <div className="cart-item-actions">
                       <div className="quantity-controls">
                         <IconButton
@@ -198,7 +218,6 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
                       </div>
 
                       <IconButton
-                        edge="end"
                         className="delete-button"
                         onClick={() => handleRemoveFromCart(item)}
                       >
@@ -206,9 +225,9 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
                       </IconButton>
                     </div>
                   </div>
-                </ListItem>
+                </div>
               ))}
-            </List>
+            </div>
 
             <div className="cart-footer">
               <div className="cart-summary">
@@ -228,7 +247,11 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
                   </Typography>
                 </div>
               </div>
-              <Button fullWidth className="checkout-button">
+              <Button
+                onClick={handleBuyNow}
+                fullWidth
+                className="checkout-button"
+              >
                 Pay now
               </Button>
             </div>

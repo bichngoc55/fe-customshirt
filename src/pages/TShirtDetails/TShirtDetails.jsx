@@ -60,7 +60,6 @@ const TShirtDetails = () => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
   const [voucherCode, setVoucherCode] = useState([]);
-  const [recentProducts, setRecentProducts] = useState([]);
   const [copied, setCopied] = useState(null);
   const [selectedVoucher, setSelectedVoucher] = useState("");
   const [isModalSizeGuideOpen, setIsModalSizeGuideOpen] = useState(false);
@@ -282,14 +281,6 @@ const TShirtDetails = () => {
     handleAddToCart();
   };
 
-  const renderBadges = (product) => {
-    return (
-      <div className="product-badge-container">
-        {product.isSale && <div className="product-badge badge-sale">Sale</div>}
-        {product.isNew && <div className="product-badge badge-new">New</div>}
-      </div>
-    );
-  };
   return (
     <div className="body">
       <div className="path-container">

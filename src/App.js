@@ -17,6 +17,7 @@ import MyDesign from "./pages/UserPage/mydesign";
 import MyOrder from "./pages/UserPage/myOrder";
 import AdminPage from "./pages/adminPage/adminPage";
 import TShirtDetails from "./pages/TShirtDetails/TShirtDetails";
+import ShippingPage from "./pages/ShippingPage/ShippingPage";
 function App() {
   const { token, user } = useSelector((state) => state.auths);
   const isAdmin = user?.role === "admin";
@@ -36,6 +37,7 @@ function App() {
             <Route path="/admin/*" element={<AdminPage />} />
             <Route path="/design" element={<DesignPage />} />
             <Route path="/collection/:id" element={<TShirtDetails />} />
+            <Route path="/checkout/:id/*" element={<ShippingPage />} />
           </Routes>
         </main>
         <Footer />

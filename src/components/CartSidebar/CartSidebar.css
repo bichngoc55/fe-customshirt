@@ -1,3 +1,10 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap");
+
+.body {
+  width: 95%;
+  font-family: "Montserrat", sans-serif;
+}
+
 .cart-container {
   width: 400px;
   height: 100%;
@@ -70,14 +77,23 @@
   gap: 0.5rem;
 }
 
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.item-name {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
 .cart-item-size {
-  display: block;
   color: #6b7280;
   font-size: 0.875rem;
 }
 
-.cart-item-price {
-  display: block;
+.price-container {
   margin: 0.25rem 0;
 }
 
@@ -104,7 +120,8 @@
 
 .sale-price {
   color: #ef4444;
-  font-weight: 600;
+  font-size: "25px";
+  font-weight: 500;
   margin-right: 0.5rem;
 }
 
@@ -112,8 +129,13 @@
   color: #9ca3af;
   text-decoration: line-through;
   font-size: 0.875rem;
+  margin-right: 0.5rem;
 }
 
+.discount {
+  color: #ef4444;
+  font-size: 0.875rem;
+}
 .cart-footer {
   padding: 1rem;
   border-top: 1px solid #e5e7eb;

@@ -88,9 +88,9 @@ export const NavBar = ({ user }) => {
 
   const dropdownItems = [
     { text: "Profile", path: `/${user?._id}/profile` },
-    { text: "Contact", path: `/${user?._id}/contact` },
     { text: "My Design", path: `/${user?._id}/profile/design` },
     { text: "My Order", path: `/${user?._id}/profile/order` },
+    { text: "NFT Collections", path: `/${user?._id}/collection` },
   ];
   const dropdownAdminItems = [
     { text: "Dashboard", path: "/admin" },
