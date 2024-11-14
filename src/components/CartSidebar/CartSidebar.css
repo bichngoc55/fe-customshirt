@@ -58,14 +58,19 @@
 
 .cart-item {
   display: flex;
-  gap: 1rem;
+  /* gap: 1rem; */
+  align-items: center;
+  width: auto;
+  margin-right: 1rem;
   padding: 1rem 0;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .cart-item-image {
-  width: 80px;
+  width: 90px;
+  margin-right: 20px;
   height: 80px;
+
   object-fit: cover;
   border-radius: 4px;
 }
@@ -178,6 +183,9 @@
 
 .delete-button {
   color: #ef4444 !important;
+  /* margin-top: 30px; */
+
+  transition: background-color 0.2s;
 }
 
 .delete-button:hover {

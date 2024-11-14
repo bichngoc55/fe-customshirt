@@ -4,11 +4,10 @@ import {
   Box,
   Typography,
   IconButton,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
+  Checkbox,
   Button,
+  FormControl,
+  FormControlLabel,
   Divider,
 } from "@mui/material";
 import {
@@ -26,11 +25,13 @@ import {
   clearCart,
 } from "../../redux/cartSlice";
 import { useNavigate } from "react-router-dom";
-import { FontWeight } from "@cloudinary/url-gen/qualifiers";
+import { setOrderDetailsData } from "../../redux/orderDetailSlice";
+
 const CartSidebar = ({ open, onClose, setCartItems }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auths);
   const { items } = useSelector((state) => state.cart);
+  const [selectedItems, setSelectedItems] = useState([]);
   const navigate = useNavigate();
   const [cartTotalItems, setCartTotalItems] = useState(0);
 
@@ -42,6 +43,38 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
 
   const handleRemoveFromCart = (item) => {
     dispatch(removeFromCart({ userId: user._id, itemId: item._id }));
+  };
+  // const handleCheckboxChange = (item) => {
+  //   setSelectedItems((prev) => {
+  //     if (prev.some((selectedItem) => selectedItem._id === item._id)) {
+  //       return prev.filter((selectedItem) => selectedItem._id !== item._id);
+  //     } else {
+  //       return [...prev, item];
+  //     }
+  //   });
+  // };
+  const handleCheckboxChange = (item) => {
+    if (!item) return;
+
+    setSelectedItems((prev) => {
+      if (
+        prev.some(
+          (selectedItem) => selectedItem && selectedItem._id === item._id
+        )
+      ) {
+        return prev.filter((selectedItem) => selectedItem._id !== item._id);
+      } else {
+        return [...prev, item];
+      }
+    });
+  };
+
+  const handleSelectAll = (event) => {
+    if (event.target.checked) {
+      setSelectedItems(items);
+    } else {
+      setSelectedItems([]);
+    }
   };
 
   const handleIncreaseQuantity = (item) => {
@@ -73,8 +106,20 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
     const totalItems = items.reduce((total, item) => total + item.quantity, 0);
     setCartTotalItems(totalItems);
   }, [items]);
-  const calculateTotal = () => {
-    return items.reduce((total, item) => {
+  // const calculateTotal = () => {
+  //   return items.reduce((total, item) => {
+  //     const price = item.product.salePercent
+  //       ? calculateSalePrice(item.product)
+  //       : item.product.price;
+  //     return total + price * item.quantity;
+  //   }, 0);
+  // };
+  const calculateSelectedTotal = () => {
+    if (!selectedItems || selectedItems.length === 0) return 0;
+
+    return selectedItems.reduce((total, item) => {
+      if (!item || !item.product) return total;
+
       const price = item.product.salePercent
         ? calculateSalePrice(item.product)
         : item.product.price;
@@ -87,12 +132,37 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
     }
     return product.price;
   };
+  // const handleBuyNow = async () => {
+  //   if (selectedItems.length > 0) {
+  //     dispatch(setOrderDetailsData(selectedItems));
+  //     console.log("selectedItem: ", selectedItems);
+  //     navigate(`/checkout/${selectedItems[0]?._id}/shipping`);
+
+  //     onClose();
+  //   } else {
+  //     console.error("Cart item ID is missing");
+  //   }
+  // };
   const handleBuyNow = async () => {
-    if (items[0]?._id) {
-      navigate(`/checkout/${items[0]?._id}/shipping`);
+    if (selectedItems.length > 0) {
+      const orderDetails = {
+        userId: user._id,
+        items: selectedItems.map((item) => ({
+          product: item.product,
+          selectedSize: item.selectedSize,
+          selectedColor: item.selectedColor,
+          quantity: item.quantity,
+        })),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      console.log("selectedItem: ", orderDetails);
+      dispatch(setOrderDetailsData(orderDetails));
+
+      navigate(`/checkout/${selectedItems[0]._id}/shipping`);
       onClose();
     } else {
-      console.error("Cart item ID is missing");
+      console.error("Please select items to proceed");
     }
   };
   const handleShopNow = () => {
@@ -114,9 +184,24 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
           </Typography>
           <div className="cart-header-actions">
             {items.length > 0 && (
-              <Button onClick={handleClearCart} className="clear-cart-button">
-                Xóa tất cả
-              </Button>
+              <>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={selectedItems.length === items.length}
+                      indeterminate={
+                        selectedItems.length > 0 &&
+                        selectedItems.length < items.length
+                      }
+                      onChange={handleSelectAll}
+                    />
+                  }
+                  label="Select All"
+                />
+                <Button onClick={handleClearCart} className="clear-cart-button">
+                  Xóa tất cả
+                </Button>
+              </>
             )}
             <IconButton onClick={onClose}>
               <CloseIcon />
@@ -140,100 +225,119 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
         ) : (
           <>
             <div className="cart-items">
-              {items.map((item) => (
-                <div key={item._id} className="cart-item">
-                  <img
-                    src={
-                      item.product.imageUrl && item.product.imageUrl.length > 1
-                        ? item.selectedColor === "white"
-                          ? item.product.imageUrl[1]
-                          : item.product.imageUrl[0]
-                        : ".jpg"
-                    }
-                    alt={item.product.name}
-                    className="cart-item-image"
-                  />
+              <FormControl component="fieldset">
+                {items.map((item) => (
+                  <div key={item._id} className="cart-item">
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={selectedItems.some(
+                            (selectedItem) => selectedItem._id === item._id
+                          )}
+                          onChange={() => handleCheckboxChange(item)}
+                        />
+                      }
+                      label=""
+                      sx={{ margin: 0, marginRight: 1 }}
+                    />
+                    <img
+                      src={
+                        item.product.imageUrl &&
+                        item.product.imageUrl.length > 1
+                          ? item.selectedColor === "white"
+                            ? item.product.imageUrl[1]
+                            : item.product.imageUrl[0]
+                          : ".jpg"
+                      }
+                      alt={item.product.name}
+                      className="cart-item-image"
+                    />
 
-                  <div className="cart-item-details">
-                    <div className="item-info">
-                      <Typography
-                        className="item-name"
-                        sx={{ fontFamily: "Montserrat", fontWeight: "bold" }}
-                      >
-                        {item.product.name}
-                      </Typography>
-                      <Typography
-                        className="cart-item-size"
-                        sx={{ fontFamily: "Montserrat" }}
-                      >
-                        {item.selectedSize} | {item.selectedColor}
-                      </Typography>
-                      <div className="price-container">
-                        {item.product.salePercent ? (
-                          <>
-                            <span className="original-price">
-                              {item.product.price}đ
-                            </span>
-                            <span
-                              style={{
-                                color: "#ef4444",
-                                fontSize: "20px",
-                                FontWeight: "500",
-                                marginRight: "0.5rem",
-                              }}
-                              className=""
-                            >
-                              {calculateSalePrice(
-                                item.product
-                              ).toLocaleString()}
-                              đ
-                            </span>
-                          </>
-                        ) : (
-                          <span>{item.product.price}đ</span>
-                        )}
-                      </div>
-                      <span className="discount">
-                        ({item.product.salePercent}% Off)
-                      </span>
-                    </div>
-                    <div className="cart-item-actions">
-                      <div className="quantity-controls">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDecreaseQuantity(item)}
-                          disabled={item.quantity <= 1}
+                    <div className="cart-item-details">
+                      <div className="item-info">
+                        <Typography
+                          className="item-name"
+                          sx={{ fontFamily: "Montserrat", fontWeight: "bold" }}
                         >
-                          <RemoveIcon fontSize="small" />
-                        </IconButton>
-                        <span className="quantity-display">
-                          {item.quantity}
+                          {item.product.name}
+                        </Typography>
+                        <Typography
+                          className="cart-item-size"
+                          sx={{ fontFamily: "Montserrat" }}
+                        >
+                          {item.selectedSize} | {item.selectedColor}
+                        </Typography>
+                        <div className="price-container">
+                          {item.product.salePercent ? (
+                            <>
+                              <span className="original-price">
+                                {item.product.price}đ
+                              </span>
+                              <span
+                                style={{
+                                  color: "#ef4444",
+                                  fontSize: "20px",
+                                  FontWeight: "500",
+                                  marginRight: "0.5rem",
+                                }}
+                                className=""
+                              >
+                                {(
+                                  calculateSalePrice(item.product) *
+                                  item.quantity
+                                ).toLocaleString()}
+                                đ
+                              </span>
+                            </>
+                          ) : (
+                            <span>{item.product.price}đ</span>
+                          )}
+                        </div>
+                        <span className="discount">
+                          ({item.product.salePercent}% Off)
                         </span>
+                      </div>
+                      <div className="cart-item-actions">
+                        <div className="quantity-controls">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDecreaseQuantity(item)}
+                            disabled={item.quantity <= 1}
+                          >
+                            <RemoveIcon fontSize="small" />
+                          </IconButton>
+                          <span className="quantity-display">
+                            {item.quantity}
+                          </span>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleIncreaseQuantity(item)}
+                          >
+                            <AddIcon fontSize="small" />
+                          </IconButton>
+                        </div>
+
                         <IconButton
-                          size="small"
-                          onClick={() => handleIncreaseQuantity(item)}
+                          className="delete-button"
+                          // style={}
+                          onClick={() => handleRemoveFromCart(item)}
                         >
-                          <AddIcon fontSize="small" />
+                          <DeleteIcon />
                         </IconButton>
                       </div>
-
-                      <IconButton
-                        className="delete-button"
-                        onClick={() => handleRemoveFromCart(item)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </FormControl>
             </div>
 
             <div className="cart-footer">
               <div className="cart-summary">
                 <div className="summary-row">
                   <Typography>Temporary charge:</Typography>
-                  <Typography>{calculateTotal().toLocaleString()}đ</Typography>
+                  <Typography>
+                    {calculateSelectedTotal().toLocaleString()}đ
+                  </Typography>
                 </div>
                 {/* <div className="summary-row">
                   <Typography>Shipping fee:</Typography>
@@ -243,7 +347,7 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
                 <div className="summary-row total">
                   <Typography variant="h6">Tổng cộng:</Typography>
                   <Typography variant="h6" color="primary">
-                    {calculateTotal().toLocaleString()}đ
+                    {calculateSelectedTotal().toLocaleString()}đ
                   </Typography>
                 </div>
               </div>

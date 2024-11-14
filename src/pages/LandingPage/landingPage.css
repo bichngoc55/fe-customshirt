@@ -570,7 +570,7 @@ footer {
 /* ... (previous styles remain the same) */
 
 .voucher-section {
-  background-color: (--background-color);
+  /* background-color: (--background-color); */
   padding: 10px 20px;
   display: flex;
   flex-direction: column;

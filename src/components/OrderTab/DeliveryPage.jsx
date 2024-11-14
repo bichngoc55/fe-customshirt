@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -6,13 +6,27 @@ import {
   RadioGroup,
   FormControlLabel,
   Button,
+  Snackbar,
+  Alert,
   Container,
 } from "@mui/material";
 import CheckoutStepper from "./CheckoutStepper";
+import { useDispatch, useSelector } from "react-redux";
+import { setDeliveryData } from "../../redux/shippingSlice";
 
-const DeliveryPage = ({ onNextStep }) => {
-  const [selectedDelivery, setSelectedDelivery] = useState("standard");
-
+const DeliveryPage = ({ onPreviousStep, onNextStep }) => {
+  const { deliveryData } = useSelector((state) => state.shipping);
+  const [selectedDelivery, setSelectedDelivery] = useState(deliveryData);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("info");
+  const dispatch = useDispatch();
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
   const deliveryOptions = [
     {
       id: "standard",
@@ -80,6 +94,7 @@ const DeliveryPage = ({ onNextStep }) => {
       padding: "12px 32px",
       fontSize: "16px",
       borderRadius: "8px",
+      marginRight: "16px",
       "&:hover": {
         backgroundColor: "#3FCC73",
       },
@@ -93,8 +108,15 @@ const DeliveryPage = ({ onNextStep }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Save delivery option to localStorage or state management
+
+    if (!selectedDelivery) {
+      setSnackbarMessage("Please select a delivery");
+      setSnackbarSeverity("warning");
+      setOpenSnackbar(true);
+      return;
+    }
     localStorage.setItem("deliveryOption", selectedDelivery);
+    dispatch(setDeliveryData(selectedDelivery));
     onNextStep();
   };
 
@@ -136,12 +158,34 @@ const DeliveryPage = ({ onNextStep }) => {
           </RadioGroup>
 
           <Box sx={styles.buttonContainer}>
+            <Button
+              onClick={onPreviousStep}
+              type="submit"
+              variant="contained"
+              sx={styles.button}
+            >
+              Back
+            </Button>
             <Button type="submit" variant="contained" sx={styles.button}>
               Continue
             </Button>
           </Box>
         </form>
       </Box>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

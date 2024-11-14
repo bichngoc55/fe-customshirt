@@ -15,8 +15,8 @@ import {
 } from "@mui/material";
 import { provinces, districts } from "./vietnamLocations";
 import CheckoutStepper from "./CheckoutStepper";
-import { useDispatch } from "react-redux";
-import { setShippingData } from "../../redux/shippingSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { setShippingData, setTotalFee } from "../../redux/shippingSlice";
 const StyledTextField = styled(TextField)(() => ({
   "& .MuiOutlinedInput-root": {
     color: "white",
@@ -78,16 +78,27 @@ const ShippingInfo = ({ onNextStep }) => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
+  const { shippingData } = useSelector((state) => state.shipping);
+
   const [availableDistricts, setAvailableDistricts] = useState([]);
   const dispatch = useDispatch();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    province: "",
-    district: "",
-    address: "",
-  });
+  //   const [formData, setFormData] = useState({
+  //     name: "",
+  //     email: "",
+  //     phone: "",
+  //     province: "",
+  //     district: "",
+  //     address: "",
+  //   });
+  const [formData, setFormData] = useState(shippingData);
+  const getLocationNames = (provinceId, districtId) => {
+    const province = provinces.find((p) => p.idProvince === provinceId);
+    const district = districts.find((d) => d.idDistrict === districtId);
+    return {
+      provinceName: province ? province.name : "",
+      districtName: district ? district.name : "",
+    };
+  };
 
   const handleCloseSnackbar = (event, reason) => {
     if (reason === "clickaway") {
@@ -156,8 +167,19 @@ const ShippingInfo = ({ onNextStep }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
+      const { provinceName, districtName } = getLocationNames(
+        formData.province,
+        formData.district
+      );
+      const formattedData = {
+        ...formData,
+        provinceId: formData.province,
+        districtId: formData.district,
+        province: provinceName,
+        district: districtName,
+      };
       localStorage.setItem("shippingData", JSON.stringify(formData));
-      dispatch(setShippingData(formData));
+      dispatch(setShippingData(formattedData));
       onNextStep();
     }
   };

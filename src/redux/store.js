@@ -2,7 +2,9 @@ import { configureStore } from "@reduxjs/toolkit";
 import cartReducer from "./cartSlice";
 import authReducer from "./authSlice";
 import shippingReducer from "./shippingSlice";
+import orderReducer from "./orderSlice";
 import voucherReducer from "./voucherSlice";
+import orderDetailsReducer from "./orderDetailSlice";
 import { combineReducers } from "redux";
 import storage from "redux-persist/lib/storage";
 import {
@@ -21,6 +23,8 @@ const rootReducer = combineReducers({
   cart: cartReducer,
   voucher: voucherReducer,
   shipping: shippingReducer,
+  orderDetails: orderDetailsReducer,
+  orders: orderReducer,
 });
 
 const persistConfig = {

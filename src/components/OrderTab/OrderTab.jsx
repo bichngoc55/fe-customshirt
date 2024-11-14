@@ -3,8 +3,7 @@ import React, { useState } from "react";
 import DeliveryPage from "./DeliveryPage"; // You'll need to create this
 import PaymentPage from "./PaymentPage";
 import ShippingInfo from "./ShippingInfo";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
+import Confirm from "./Confirm";
 import { useNavigate } from "react-router-dom";
 
 const OrderTab = ({ checkoutId }) => {
@@ -27,27 +26,32 @@ const OrderTab = ({ checkoutId }) => {
       navigate(nextRoute);
     }
   };
+  const handlePreviousStep = () => {
+    const prevStep = currentStep - 1;
+
+    setCurrentStep((prev) => prev - 1);
+    setCurrentStep(prevStep);
+
+    const prevRoute = steps.find((step) => step.id === prevStep)?.path;
+    if (prevRoute) {
+      navigate(prevRoute);
+    }
+  };
   return (
     <div style={{ width: "100%" }}>
       {currentStep === 1 && <ShippingInfo onNextStep={handleNextStep} />}
-      {currentStep === 2 && <DeliveryPage onNextStep={handleNextStep} />}
-      {currentStep === 3 && <PaymentPage onNextStep={handleNextStep} />}
-      {/* <Box sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}>
-        <Button
-          variant="contained"
-          onClick={handleNextStep}
-          color="success"
-          type="submit"
-          sx={{
-            minWidth: "150px",
-            height: "48px",
-            textTransform: "none",
-            fontSize: "16px",
-          }}
-        >
-          Continue
-        </Button>
-      </Box> */}
+      {currentStep === 2 && (
+        <DeliveryPage
+          onPreviousStep={handlePreviousStep}
+          onNextStep={handleNextStep}
+        />
+      )}
+      {currentStep === 3 && (
+        <PaymentPage
+          onPreviousStep={handlePreviousStep}
+          onNextStep={handleNextStep}
+        />
+      )}
     </div>
   );
 };

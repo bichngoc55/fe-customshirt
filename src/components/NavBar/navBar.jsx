@@ -41,7 +41,6 @@ export const NavBar = ({ user }) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartTotalItems, setCartTotalItems] = useState(0);
   const { items } = useSelector((state) => state.cart);
-  const [count, setCount] = React.useState(1);
   const [invisible, setInvisible] = React.useState(false);
   const handleBadgeVisibility = () => {
     setInvisible(!invisible);
@@ -64,6 +63,9 @@ export const NavBar = ({ user }) => {
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
+  };
+  const handleNavigateToMessage = () => {
+    navigate(`/message${user?._id}`);
   };
   const handleLogout = async () => {
     handleClose();
@@ -148,7 +150,10 @@ export const NavBar = ({ user }) => {
               onClose={() => setIsCartOpen(false)}
             />
             <Badge color="secondary" variant="dot" invisible={invisible}>
-              <MailIcon sx={{ color: "white" }} />
+              <MailIcon
+                sx={{ color: "white" }}
+                onClick={handleNavigateToMessage}
+              />
             </Badge>
             <img src={defaultAva} alt="" className="ava" />
             <div className="user" onClick={handleClick}>

@@ -28,7 +28,6 @@ import {
 import CartSidebar from "../../components/CartSidebar/CartSidebar";
 import "./TShirtDetails.css";
 
-import NotifyMessage from "../../components/NotifyMessage";
 import ModalUpdateProduct from "../../components/ModalUpdateProduct/ModalUpdateProduct";
 import ModalDeleteConfirm from "../../components/ModalDeleteConfirm/ModalDeleteConfirm";
 import { useNavigate } from "react-router-dom";
@@ -45,7 +44,6 @@ const TShirtDetails = () => {
   const [product, setProduct] = useState(initialProduct);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  // const [image, setImage] = useState(product.imageUrl);
   const [selectedSize, setSelectedSize] = useState("S");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
@@ -589,9 +587,6 @@ const TShirtDetails = () => {
               >
                 Add to cart
               </Button>
-              {/* <Button className="" sx={{ backgroundColor: "white", color: "black" }}>
-                Sửa
-              </Button> */}
             </div>
 
             <Button
@@ -665,7 +660,7 @@ const TShirtDetails = () => {
       </Box>
       {/* description and review display tab */}
       <Box sx={{ g: 2, ml: "10%", mr: "10%" }}>
-        <ProductTabs product={product} />
+        <ProductTabs product={product} onReviewUpdate={setProduct} />
       </Box>
 
       <RecentViewedSlider user={user} product={product} />

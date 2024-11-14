@@ -6,7 +6,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { Box, Typography, IconButton } from "@mui/material";
 import ModalAddProduct from "../../components/ModalAddProduct/ModalAddProduct";
 import { useNavigate } from "react-router-dom";
-
+import CenterFocusWeakIcon from "@mui/icons-material/CenterFocusWeak";
 const CollectionPage = () => {
   const [price, setPrice] = useState(0);
   const [products, setProducts] = useState([]);
@@ -28,6 +28,7 @@ const CollectionPage = () => {
   const [sortOption, setSortOption] = useState("default");
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [salePercent, setSalePercent] = useState(0);
+  const [selectedColor, setSelectedColor] = useState("");
 
   // handleFetch
   const handleFetch = async () => {
@@ -41,6 +42,7 @@ const CollectionPage = () => {
 
       if (response.ok) {
         const data = await response.json();
+        // console.log(data);
         setProducts(data);
         setFilteredProducts(data);
       } else {
@@ -58,12 +60,8 @@ const CollectionPage = () => {
   };
 
   const handleModalOpenClick = () => {
-    // setImageUrl([]);
     setIsOpenModal(true);
   };
-  // const handleRangeChange = (event) => {
-  //   setPrice(event.target.value);
-  // };
 
   const formatPrice = (value) => {
     return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -132,10 +130,20 @@ const CollectionPage = () => {
     setSearchTerm(term);
     filterProducts(term, selectedSizes, price, selectedStockStatus, sortOption);
   };
-
-  // Price range filter handler
+  const handleColorFilter = (color) => {
+    const newColor = selectedColor === color ? "" : color;
+    setSelectedColor(newColor);
+    filterProducts(
+      searchTerm,
+      selectedSizes,
+      price,
+      selectedStockStatus,
+      sortOption,
+      newColor
+    );
+  };
   const handleRangeChange = (event) => {
-    const newPrice = event.target.value;
+    const newPrice = parseInt(event.target.value);
     setPrice(newPrice);
     filterProducts(
       searchTerm,
@@ -146,12 +154,10 @@ const CollectionPage = () => {
     );
   };
 
-  // Size filter handler
   const handleSizeFilter = (size) => {
     const newSelectedSizes = selectedSizes.includes(size)
       ? selectedSizes.filter((s) => s !== size)
       : [...selectedSizes, size];
-
     setSelectedSizes(newSelectedSizes);
     filterProducts(
       searchTerm,
@@ -162,13 +168,12 @@ const CollectionPage = () => {
     );
   };
 
-  // Stock status handler
   const handleStockStatusFilter = (status) => {
-    setSelectedStockStatus(status === selectedStockStatus ? "" : status);
-    filterProducts(searchTerm, selectedSizes, price, status, sortOption);
+    const newStatus = selectedStockStatus === status ? "" : status;
+    setSelectedStockStatus(newStatus);
+    filterProducts(searchTerm, selectedSizes, price, newStatus, sortOption);
   };
 
-  // Sort handler
   const handleSort = (option) => {
     setSortOption(option);
     filterProducts(
@@ -180,60 +185,92 @@ const CollectionPage = () => {
     );
   };
 
-  // Comprehensive filter function
   const filterProducts = (
-    searchTerm,
-    selectedSizes,
+    search,
+    sizes,
     maxPrice,
     stockStatus,
-    sortOption
+    sort,
+    color
   ) => {
-    let result = [...products];
+    let filtered = [...products];
 
-    // Search filter
-    if (searchTerm) {
-      console.log(searchTerm);
-      result = result.filter((product) =>
-        product.name.toLowerCase().includes(searchTerm)
+    // Apply search filter
+    if (search) {
+      filtered = filtered.filter((product) =>
+        product.name.toLowerCase().includes(search.toLowerCase())
       );
     }
 
-    // Size filter
-    if (selectedSizes.length > 0) {
-      result = result.filter((product) =>
-        selectedSizes.some((size) => product.size.includes(size))
+    // Apply size filter
+    if (sizes.length > 0) {
+      filtered = filtered.filter((product) =>
+        sizes.some((size) => product.size.includes(size))
       );
     }
-
-    // Price filter
-    result = result.filter((product) => product.price2 <= maxPrice);
-
-    // Stock status filter
-    if (stockStatus === "On sale") {
-      result = result.filter((product) => product.isSale);
-    } else if (stockStatus === "In stock") {
-      result = result.filter((product) => product.quantity > 0);
-    } else if (stockStatus === "Out of stock") {
-      result = result.filter((product) => product.quantity === 0);
+    if (color) {
+      filtered = filtered.filter((product) => product.color.includes(color));
     }
 
-    // Sorting
-    switch (sortOption) {
+    // Apply price filter
+    if (maxPrice > 0) {
+      filtered = filtered.filter((product) => product.price <= maxPrice);
+    }
+
+    // Apply stock status filter
+    if (stockStatus) {
+      switch (stockStatus) {
+        case "On sale":
+          filtered = filtered.filter((product) => product.isSale);
+          break;
+        case "In stock":
+          filtered = filtered.filter((product) => product.quantity > 0);
+          break;
+        case "Out of stock":
+          filtered = filtered.filter((product) => product.quantity === 0);
+          break;
+        default:
+          break;
+      }
+    }
+    switch (sort) {
       case "Price: low to high":
-        result.sort((a, b) => a.price2 - b.price2);
+        filtered.sort((a, b) => a.price - b.price);
         break;
       case "Price: high to low":
-        result.sort((a, b) => b.price2 - a.price2);
+        filtered.sort((a, b) => b.price - a.price);
         break;
       case "Latest":
-        result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         break;
       default:
         break;
     }
 
-    setFilteredProducts(result);
+    setFilteredProducts(filtered);
   };
+  const handleFindProductWithImage = () => {};
+  const ColorFilterSection = () => (
+    <div className="filter-section">
+      <h2>Filter by Color</h2>
+      <div className="color-options">
+        {["black", "white"].map((color) => (
+          <label key={color} className="color-radio-label">
+            <input
+              type="radio"
+              name="color"
+              value={color}
+              checked={selectedColor === color}
+              onChange={() => handleColorFilter(color)}
+            />
+            <span className="radio-label-text">
+              {color.charAt(0).toUpperCase() + color.slice(1)}
+            </span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <div className="collection">
@@ -265,20 +302,11 @@ const CollectionPage = () => {
           <button className="filter-button">Filter</button>
         </div>
 
-        <div className="filter-section">
-          <h2>Filter by Color</h2>
-          <div className="color-options">
-            <label>
-              <span className="color-circle black"></span>Black
-              <span className="count">14</span>
-            </label>
-            <label>
-              <span className="color-circle white"></span>White
-              <span className="count">13</span>
-            </label>
-          </div>
-        </div>
-
+        {/* <div className="filter-section">
+        <h2>Filter by Color</h2>
+        
+      </div> */}
+        <ColorFilterSection />
         <div className="filter-section">
           <h2>Filter by Size</h2>
           {["XXL", "XL", "L", "M", "S"].map((sizeOption) => (
@@ -334,9 +362,10 @@ const CollectionPage = () => {
           <p>
             Showing {filteredProducts.length} of {products.length} results
           </p>
-          <select>
-            <option>Default sorting</option>
-          </select>
+
+          <IconButton onClick={handleFindProductWithImage}>
+            <CenterFocusWeakIcon sx={{ color: "white" }} />
+          </IconButton>
         </div>
         <Box
           className="button"
@@ -379,26 +408,11 @@ const CollectionPage = () => {
               setSalePercent={setSalePercent}
               setIsNew={setIsNewShirt}
               setIsSale={setIsSale}
-              // onSubmit={handleAddProducts}
               handleImageUpload={handleImageUpload}
             />
           )}
         </Box>
         <div className="products">
-          {/* {products.map((product) => (
-            <div key={product.id} className="product">
-              <div className="product-labels">
-                {product.labels.map((label) => (
-                  <span key={label} className={`label-${label.toLowerCase()}`}>
-                    {label}
-                  </span>
-                ))}
-              </div>
-              <img src={product.img} alt={product.name} />
-              <h3>{product.name}</h3>
-              <p>{product.price}</p>
-            </div>
-          ))} */}
           {filteredProducts.map((product) => (
             <div
               key={product._id}

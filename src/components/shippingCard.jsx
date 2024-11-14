@@ -1,40 +1,12 @@
 import React, { useState } from "react";
 import Card from "@mui/material/Card";
-import { Remove as MinusIcon, Add as PlusIcon } from "@mui/icons-material";
-import { Button, IconButton } from "@mui/material";
 import CardContent from "@mui/material/CardContent";
-import { Delete as DeleteIcon } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
-import { removeFromCart, updateQuantity } from "../redux/cartSlice";
 const ShippingCard = ({ items }) => {
-  const [quantity, setQuantity] = useState(1);
-  const { user } = useSelector((state) => state.auths);
-  const dispatch = useDispatch();
-  const handleRemoveFromCart = (item) => {
-    dispatch(removeFromCart({ userId: user._id, itemId: item._id }));
-  };
+  // const [quantity, setQuantity] = useState(1);
+  // const { user } = useSelector((state) => state.auths);
+  // const dispatch = useDispatch();
 
-  const handleIncreaseQuantity = (item) => {
-    dispatch(
-      updateQuantity({
-        userId: user._id,
-        itemId: item._id,
-        quantity: item.quantity + 1,
-      })
-    );
-  };
-
-  const handleDecreaseQuantity = (item) => {
-    if (item.quantity > 1) {
-      dispatch(
-        updateQuantity({
-          userId: user._id,
-          itemId: item._id,
-          quantity: item.quantity - 1,
-        })
-      );
-    }
-  };
   const calculateSalePrice = (product) => {
     if (product.isSale) {
       return product.price * (1 - product.salePercent / 100);
@@ -76,30 +48,16 @@ const ShippingCard = ({ items }) => {
               />
               <div>
                 <h3 style={{ marginLeft: "10px" }}>{item.product.name}</h3>
-                <div className=" " style={{ marginLeft: "-15px" }}>
-                  <Button
-                    className="quantity-button"
-                    sx={{
-                      color: "white",
-                    }}
-                    onClick={() => handleDecreaseQuantity(item)}
-                  >
-                    <MinusIcon />
-                  </Button>
-                  <span
-                    style={{ color: "white", fontSize: "1rem" }}
-                    className="quantity-display"
-                  >
-                    {item.quantity}
-                  </span>
-                  <Button
-                    className="quantity-button"
-                    sx={{ color: "white" }}
-                    onClick={() => handleIncreaseQuantity(item)}
-                  >
-                    <PlusIcon />
-                  </Button>
-                </div>
+                <span
+                  style={{
+                    color: "white",
+                    fontSize: "1rem",
+                    marginLeft: "15px",
+                  }}
+                  className="quantity-display"
+                >
+                  x{item.quantity}
+                </span>
               </div>
             </div>
             <div
@@ -119,19 +77,16 @@ const ShippingCard = ({ items }) => {
                       fontWeight: "bold",
                     }}
                   >
-                    {calculateSalePrice(item.product).toLocaleString()}đ
+                    {(
+                      calculateSalePrice(item.product) * item.productQuantity
+                    ).toLocaleString()}
+                    đ
                   </span>
                   <span className="original-price">{item.product.price}đ</span>
                 </>
               ) : (
                 <span>{item.product.price}đ</span>
               )}
-              <IconButton>
-                <DeleteIcon
-                  sx={{ color: "white" }}
-                  onClick={() => handleRemoveFromCart(item)}
-                />
-              </IconButton>
             </div>
           </div>
         ))}

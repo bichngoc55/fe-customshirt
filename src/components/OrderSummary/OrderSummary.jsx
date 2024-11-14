@@ -13,6 +13,11 @@ import ShippingCard from "../shippingCard";
 import "./OrderSummary.css";
 import { useDispatch, useSelector } from "react-redux";
 import { getVouchers, validateVoucher } from "../../redux/voucherSlice";
+import {
+  setTotalFee,
+  setShippingFee,
+  setVoucherData,
+} from "../../redux/shippingSlice";
 
 const CustomSelect = styled(Select)({
   width: "100%",
@@ -36,13 +41,15 @@ const OrderSummary = ({ items }) => {
   const dispatch = useDispatch();
   const { vouchers, loading, error } = useSelector((state) => state.voucher);
   const [selectedVoucher, setSelectedVoucher] = useState(null);
-  const [selectedVoucherApplied, setSelectedVoucherApplied] = useState(null);
+  // const [selectedVoucherApplied, setSelectedVoucherApplied] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
-  const { shippingData } = useSelector((state) => state.shipping);
+  const { shippingData, deliveryData } = useSelector((state) => state.shipping);
+
   // const [shippingData, setShippingData] = useState(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
+  const { voucherData } = useSelector((state) => state.shipping);
   useEffect(() => {
     dispatch(getVouchers());
     console.log("shippingData", shippingData);
@@ -62,11 +69,16 @@ const OrderSummary = ({ items }) => {
         : item.product.price;
       return total + price * item.quantity;
     }, 0);
-    if (selectedVoucherApplied) {
-      total = total * (1 - selectedVoucherApplied.discount / 100);
-    } else {
+
+    if (voucherData) {
+      total = total * (1 - voucherData.discount / 100);
     }
 
+    return total;
+  };
+  const handleTotalFee = () => {
+    const total = calculateTotal() + calculateShippingFee();
+    dispatch(setTotalFee(total));
     return total;
   };
   const handleCloseSnackbar = (event, reason) => {
@@ -81,11 +93,23 @@ const OrderSummary = ({ items }) => {
     }
 
     const majorCities = ["79"];
-    return majorCities.includes(shippingData.province) ? 15000 : 35000;
+
+    let shippingFee = majorCities.includes(shippingData.province)
+      ? 15000
+      : 35000;
+    if (deliveryData === "standard") {
+      shippingFee += 0;
+    } else if (deliveryData === "express") {
+      shippingFee += 15000;
+    } else if (deliveryData === "same-day") {
+      shippingFee += 75000;
+    }
+    dispatch(setShippingFee(shippingFee));
+    return shippingFee;
   };
 
   const calculateDiscountValue = () => {
-    if (selectedVoucherApplied) {
+    if (voucherData) {
       const originalTotal = items.reduce((total, item) => {
         const price = item.product.salePercent
           ? calculateSalePrice(item.product)
@@ -96,26 +120,24 @@ const OrderSummary = ({ items }) => {
     }
     return 0;
   };
-
-  const handleVoucherApply = () => {
-    dispatch(validateVoucher(selectedVoucher))
-      .then((action) => {
-        if (action.payload.success) {
-          setSelectedVoucherApplied(action.payload.data);
-          setSnackbarMessage("This voucher is applied successfully");
-          setSnackbarSeverity("success");
-          setOpenSnackbar(true);
-        } else {
-          setSnackbarMessage("This voucher is not valid at this moment");
-          setSnackbarSeverity("warning");
-          setOpenSnackbar(true);
-          return false;
-        }
-      })
-      .catch((error) => {
-        setSnackbarMessage("Error occurred while applying voucher");
+  const handleVoucherApply = async () => {
+    try {
+      const action = await dispatch(validateVoucher(selectedVoucher));
+      if (action.payload.success) {
+        dispatch(setVoucherData(action.payload.data));
+        setSnackbarMessage("This voucher is applied successfully");
+        setSnackbarSeverity("success");
+      } else {
+        setSnackbarMessage("This voucher is not valid at this moment");
         setSnackbarSeverity("warning");
-      });
+        dispatch(setVoucherData(null));
+      }
+    } catch (error) {
+      setSnackbarMessage("Error occurred while applying voucher");
+      setSnackbarSeverity("error");
+      dispatch(setVoucherData(null));
+    }
+    setOpenSnackbar(true);
   };
 
   return (
@@ -191,7 +213,7 @@ const OrderSummary = ({ items }) => {
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <h3>Total due:</h3>
             <Typography sx={{ color: "#C8FFF6" }}>
-              {(calculateTotal() + calculateShippingFee()).toLocaleString()}đ
+              {handleTotalFee().toLocaleString()}đ{" "}
             </Typography>
           </div>
         </div>

@@ -11,13 +11,11 @@ import CollectionPage from "./pages/CollectionPage/collectionPage";
 import { useSelector } from "react-redux";
 import UserPage from "./pages/UserPage/userPage";
 import DesignPage from "./pages/DesignPage/designPage";
-import Profile from "./pages/UserPage/profilePage";
-// import Contact from "./pages/UserPage/contact";
-import MyDesign from "./pages/UserPage/mydesign";
-import MyOrder from "./pages/UserPage/myOrder";
 import AdminPage from "./pages/adminPage/adminPage";
 import TShirtDetails from "./pages/TShirtDetails/TShirtDetails";
 import ShippingPage from "./pages/ShippingPage/ShippingPage";
+import Message from "./pages/Message/Message";
+import Confirm from "./components/OrderTab/Confirm";
 function App() {
   const { token, user } = useSelector((state) => state.auths);
   const isAdmin = user?.role === "admin";
@@ -33,11 +31,17 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/terms" element={<TermsAndCondition />} />
             <Route path="/collection" element={<CollectionPage />} />
-            <Route path="/:id/profile/*" element={<UserPage />} />
-            <Route path="/admin/*" element={<AdminPage />} />
+            {token && <Route path="/:id/profile/*" element={<UserPage />} />}
+            {token && <Route path="/admin/*" element={<AdminPage />} />}
             <Route path="/design" element={<DesignPage />} />
             <Route path="/collection/:id" element={<TShirtDetails />} />
-            <Route path="/checkout/:id/*" element={<ShippingPage />} />
+            {token && (
+              <Route path="/checkout/:id/*" element={<ShippingPage />} />
+            )}
+            {token && (
+              <Route path="/checkout/:id/confirmation" element={<Confirm />} />
+            )}
+            {token && <Route path="/message/:id" element={<Message />} />}
           </Routes>
         </main>
         <Footer />

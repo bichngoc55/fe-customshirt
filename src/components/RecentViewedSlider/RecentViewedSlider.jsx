@@ -249,7 +249,7 @@ const RecentViewedSlider = ({ user, product }) => {
             <Typography
               sx={{ color: "white", textAlign: "center", width: "100%" }}
             >
-              No recently viewed products
+              You have to login to view this section
             </Typography>
           )}
         </ProductsContainer>
