@@ -28,7 +28,6 @@ import {
 import CartSidebar from "../../components/CartSidebar/CartSidebar";
 import "./TShirtDetails.css";
 
-import NotifyMessage from "../../components/NotifyMessage";
 import ModalUpdateProduct from "../../components/ModalUpdateProduct/ModalUpdateProduct";
 import ModalDeleteConfirm from "../../components/ModalDeleteConfirm/ModalDeleteConfirm";
 import { useNavigate } from "react-router-dom";
@@ -45,7 +44,6 @@ const TShirtDetails = () => {
   const [product, setProduct] = useState(initialProduct);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  // const [image, setImage] = useState(product.imageUrl);
   const [selectedSize, setSelectedSize] = useState("S");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
@@ -60,7 +58,6 @@ const TShirtDetails = () => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
   const [voucherCode, setVoucherCode] = useState([]);
-  const [recentProducts, setRecentProducts] = useState([]);
   const [copied, setCopied] = useState(null);
   const [selectedVoucher, setSelectedVoucher] = useState("");
   const [isModalSizeGuideOpen, setIsModalSizeGuideOpen] = useState(false);
@@ -282,14 +279,6 @@ const TShirtDetails = () => {
     handleAddToCart();
   };
 
-  const renderBadges = (product) => {
-    return (
-      <div className="product-badge-container">
-        {product.isSale && <div className="product-badge badge-sale">Sale</div>}
-        {product.isNew && <div className="product-badge badge-new">New</div>}
-      </div>
-    );
-  };
   return (
     <div className="body">
       <div className="path-container">
@@ -598,9 +587,6 @@ const TShirtDetails = () => {
               >
                 Add to cart
               </Button>
-              {/* <Button className="" sx={{ backgroundColor: "white", color: "black" }}>
-                Sửa
-              </Button> */}
             </div>
 
             <Button
@@ -674,7 +660,7 @@ const TShirtDetails = () => {
       </Box>
       {/* description and review display tab */}
       <Box sx={{ g: 2, ml: "10%", mr: "10%" }}>
-        <ProductTabs product={product} />
+        <ProductTabs product={product} onReviewUpdate={setProduct} />
       </Box>
 
       <RecentViewedSlider user={user} product={product} />

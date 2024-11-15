@@ -93,6 +93,7 @@ const RecentViewedSlider = ({ user, product }) => {
 
       try {
         setIsLoading(true);
+        console.log("recent viewed,111 ", user?._id, product?._id);
 
         // Add to recent products
         const addResponse = await fetch(
@@ -248,7 +249,7 @@ const RecentViewedSlider = ({ user, product }) => {
             <Typography
               sx={{ color: "white", textAlign: "center", width: "100%" }}
             >
-              No recently viewed products
+              You have to login to view this section
             </Typography>
           )}
         </ProductsContainer>

@@ -24,6 +24,7 @@ import tree4 from "../../assets/images/tree4.png";
 import tree5 from "../../assets/images/tree5.png";
 import cloud12Img from "../../assets/images/more-cloud.png";
 import cloud13Img from "../../assets/images/cloud-new10.png";
+import { useNavigate } from "react-router-dom";
 
 const tShirts = [
   { id: 1, name: "UNDEFINED NAME", price: "₱ 1,400.00" },
@@ -99,21 +100,24 @@ const steps = [
 
 const faqs = [
   {
-    question: "How does product customization work?",
+    question: "How can I return my newly bought T-shirt?",
     answer:
-      "To make a T-shirt design, your first need to install specific graphic design software. Once you've done that, start your creation your final design is at least 220 PPI so it won't be pixelated when printed... To design your own T-shirt, you can upload your design to the front of your tee and add custom elements like text. For some of our T-shirts, reverse side printing is also available.",
+      "To return a T-shirt, please initiate a return within 30 days of purchase. Log in to your account, navigate to 'Orders,' select the item, and choose the 'Return' option. We will provide a shipping label and instructions for completing your return.",
   },
   {
-    question: "What products can I customize?",
-    answer: "Answer for what products can be customized...",
+    question: "Tell me steps to order a product?",
+    answer:
+      "To order a product, simply browse our catalog and select the T-shirt you want. Choose your size, color, and any customizations, then click 'Add to Cart.' Proceed to checkout, enter your shipping information, and complete the payment process. You’ll receive a confirmation email shortly.",
   },
   {
     question: "How are your T-shirts printed?",
-    answer: "Answer for how T-shirts are printed...",
+    answer:
+      "Our T-shirts are printed using high-quality, eco-friendly inks and advanced digital printing technology, which ensures vibrant colors and durability. Each T-shirt is printed on demand, allowing us to focus on quality and reduce waste.",
   },
   {
-    question: "What is the best T-shirt material?",
-    answer: "Answer for the best T-shirt material...",
+    question: "What is your T-shirt material?",
+    answer:
+      "We use premium, 100% organic cotton for our T-shirts, ensuring softness, breathability, and durability. Our material is sustainably sourced and designed to provide comfort while being gentle on the environment.",
   },
 ];
 
@@ -125,6 +129,7 @@ const LandingPage = () => {
   const [moonPosition, setMoonPosition] = useState(-30);
   const fireflyWrapperRef = useRef(null);
   const footerRef = useRef(null);
+  const navigate = useNavigate();
 
   const toggleQuestion = (index) => {
     setOpenQuestion(openQuestion === index ? null : index);
@@ -356,7 +361,14 @@ const LandingPage = () => {
           <h1 className="custom-text">DOMDOM</h1>
         </div>
         <p>You can design and buy your desired T-Shirt with AI from now on!</p>
-        <button className="design-now-btn">Design Now</button>
+        <button
+          onClick={() => {
+            navigate("/design");
+          }}
+          className="design-now-btn"
+        >
+          Design Now
+        </button>
       </header>
 
       <section ref={addToRefs} className="features">
@@ -530,7 +542,9 @@ const LandingPage = () => {
         <div className="footer-content2">
           <h2>ENJOY YOUR EXPERIENCE WITH OUR WEBSITE</h2>
           <BtnComponent
-            handleClick={() => {}}
+            handleClick={() => {
+              navigate("/collection");
+            }}
             value={"Shop Now"}
             width={120}
             height={35}

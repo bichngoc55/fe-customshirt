@@ -172,7 +172,8 @@
 }
 .voucher-section {
   display: flex;
-  margin-top: -20px;
+  flex-direction: row;
+  margin-top: -25px;
 }
 
 .size-header {

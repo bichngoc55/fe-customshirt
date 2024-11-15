@@ -1,0 +1,98 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap");
+
+.body {
+  width: 95%;
+  font-family: "Montserrat", sans-serif;
+}
+.order-items {
+  display: flex;
+  flex-direction: column;
+  /* gap: 1rem; */
+  margin-bottom: 1rem;
+}
+
+.order-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: #2c2c32;
+  padding: 1rem;
+  border-radius: 4px;
+  /* margin-bottom: "10px"; */
+}
+
+.order-item img {
+  width: 50px;
+  height: 50px;
+}
+
+.order-item h3 {
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.order-item p {
+  color: #fff;
+  font-size: 0.875rem;
+}
+
+.gift-card-section {
+  margin-bottom: 1rem;
+}
+
+.gift-card-section label {
+  color: #fff;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.input-container {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input-container select {
+  flex-grow: 1;
+  background-color: #2c2c32;
+  border: none;
+  color: #fff;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.order-summary-details h3 {
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.contact-details,
+.shipping-details {
+  margin-bottom: 1.5rem;
+  border: 1px solid #759af9;
+  border-radius: 15px;
+  padding: "20px";
+  margin: "20px";
+}
+
+.input-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.input-row .MuiTextField-root {
+  flex-grow: 1;
+}
+
+.input-row span {
+  /* background-color: #2c2c32; */
+  color: #fff;
+  padding: 0.5rem;
+  border-radius: 4px 0 0 4px;
+}
+
+.continue-btn {
+  width: 100%;
+}
