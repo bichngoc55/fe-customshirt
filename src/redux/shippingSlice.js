@@ -20,7 +20,10 @@ const initialState = {
   },
   totalFee: null,
   shippingFee: null,
-  voucherData: null,
+  voucherData: {
+    code: null,
+    discount: 0,
+  },
   orderDetails: [],
 };
 const shippingSlice = createSlice({
@@ -57,12 +60,14 @@ const shippingSlice = createSlice({
       state.shippingFee = action.payload;
     },
     setVoucherData: (state, action) => {
+      console.log("action voucher data: ", action.payload);
       state.voucherData = action.payload
         ? {
             ...action.payload,
             appliedAt: new Date().toISOString(),
           }
         : null;
+      console.log("action voucher data: ", state.voucherData);
     },
     resetShippingState: (state) => {
       state.shippingData = initialState.shippingData;
@@ -72,6 +77,18 @@ const shippingSlice = createSlice({
       state.shippingFee = initialState.shippingFee;
       state.voucherData = initialState.voucherData;
       state.orderDetails = initialState.orderDetails;
+      //   console.log(
+      //     "action voucher data: ",
+      //     state.voucherData,
+      //     "delivery data: ",
+      //     state.deliveryData,
+      //     "payment data:",
+      //     state.paymentData,
+      //     "shipping data" + state.setShippingData
+      //   );
+    },
+    resetVoucherState: (state) => {
+      state.voucherData = initialState.voucherData;
     },
   },
 });
@@ -83,5 +100,6 @@ export const {
   setShippingFee,
   resetShippingState,
   setVoucherData,
+  resetVoucherState,
 } = shippingSlice.actions;
 export default shippingSlice.reducer;

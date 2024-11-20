@@ -78,7 +78,7 @@ const ShippingCard = ({ items }) => {
                     }}
                   >
                     {(
-                      calculateSalePrice(item.product) * item.productQuantity
+                      calculateSalePrice(item.product) * item.quantity
                     ).toLocaleString()}
                     đ
                   </span>

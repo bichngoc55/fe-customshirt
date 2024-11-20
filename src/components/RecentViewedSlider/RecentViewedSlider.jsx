@@ -173,24 +173,6 @@ const RecentViewedSlider = ({ user, product }) => {
       </Typography>
 
       <CarouselContainer>
-        {/* {recentProducts.length > 1 && (
-          <>
-            <NavigationButton
-              position="left"
-              onClick={() => handleScroll("left")}
-              disabled={scrollPosition <= 0}
-            >
-              <ChevronLeftIcon />
-            </NavigationButton>
-            <NavigationButton
-              position="right"
-              onClick={() => handleScroll("right")}
-            >
-              <ChevronRightIcon />
-            </NavigationButton>
-          </>
-        )} */}
-
         <ProductsContainer id="products-container">
           {isLoading ? (
             <Typography

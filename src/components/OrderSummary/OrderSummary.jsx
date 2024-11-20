@@ -39,7 +39,7 @@ const CustomSelect = styled(Select)({
 
 const OrderSummary = ({ items }) => {
   const dispatch = useDispatch();
-  const { vouchers, loading, error } = useSelector((state) => state.voucher);
+  const { vouchers } = useSelector((state) => state.voucher);
   const [selectedVoucher, setSelectedVoucher] = useState(null);
   // const [selectedVoucherApplied, setSelectedVoucherApplied] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -53,6 +53,7 @@ const OrderSummary = ({ items }) => {
   useEffect(() => {
     dispatch(getVouchers());
     console.log("shippingData", shippingData);
+    console.log("items inside order summary", items);
   }, [dispatch]);
 
   const calculateSalePrice = (product) => {
@@ -125,6 +126,7 @@ const OrderSummary = ({ items }) => {
       const action = await dispatch(validateVoucher(selectedVoucher));
       if (action.payload.success) {
         dispatch(setVoucherData(action.payload.data));
+
         setSnackbarMessage("This voucher is applied successfully");
         setSnackbarSeverity("success");
       } else {

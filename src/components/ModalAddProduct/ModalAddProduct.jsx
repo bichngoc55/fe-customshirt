@@ -175,7 +175,6 @@ const ModalAddProduct = ({
   const handleSalePercentChange = (e) => {
     const value = parseFloat(e.target.value);
     setSalePercent(value);
-    // Automatically check/uncheck sale checkbox based on sale percent
     const shouldBeSale = value > 0;
     setIsSaleProduct(shouldBeSale);
     setIsSale(shouldBeSale);

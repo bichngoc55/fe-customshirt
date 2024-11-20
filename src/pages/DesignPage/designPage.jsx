@@ -194,7 +194,7 @@ const DesignPage = () => {
     { name: "Position", icon: <ControlCameraIcon /> },
 
     { name: "Eraser", icon: <AutoFixNormalIcon /> },
-    { name: "Line", icon: <HorizontalRuleIcon /> },
+    // { name: "Line", icon: <HorizontalRuleIcon /> },
     { name: "Shape", icon: <StarBorderIcon /> },
   ];
   //sticker
@@ -688,7 +688,7 @@ const DesignPage = () => {
               AI
             </Typography>
           </div>
-          <div className="ai-option">
+          {/* <div className="ai-option">
             <IconButton className="ai-button">
               <ImageOutlinedIcon sx={{ color: "#B388FF" }} />
             </IconButton>
@@ -702,7 +702,7 @@ const DesignPage = () => {
             >
               Album
             </Typography>
-          </div>
+          </div> */}
         </Box>
       </Box>
       <AIGeneratorModal

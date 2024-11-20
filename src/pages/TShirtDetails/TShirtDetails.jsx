@@ -15,6 +15,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { addToCart } from "../../redux/cartSlice";
 import RestartAltOutlinedIcon from "@mui/icons-material/RestartAltOutlined";
 import { FaPinterest } from "react-icons/fa";
+import sizeguide from "../../assets/images/sizeguide.png";
 import {
   Remove as MinusIcon,
   Add as PlusIcon,
@@ -36,6 +37,7 @@ import AutoFixHighOutlinedIcon from "@mui/icons-material/AutoFixHighOutlined";
 import ProductTabs from "../../components/ProductTabs/ProductTabs";
 import SizeGuideModal from "../../components/SizeGuideModal";
 import RecentViewedSlider from "../../components/RecentViewedSlider/RecentViewedSlider";
+import { setVoucherData } from "../../redux/shippingSlice";
 // const TabContext = React.createContext();
 
 const TShirtDetails = () => {
@@ -48,6 +50,7 @@ const TShirtDetails = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
   const [isOpenUpdateModal, setIsOpenUpdateModal] = useState(false);
+  const { voucherData } = useSelector((state) => state.shipping);
   const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
   const [updatedProduct, setUpdateProduct] = useState(null);
   const { token, user } = useSelector((state) => state.auths);
@@ -59,22 +62,22 @@ const TShirtDetails = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
   const [voucherCode, setVoucherCode] = useState([]);
   const [copied, setCopied] = useState(null);
-  const [selectedVoucher, setSelectedVoucher] = useState("");
+  const [selectedVoucher, setSelectedVoucher] = useState(voucherData);
   const [isModalSizeGuideOpen, setIsModalSizeGuideOpen] = useState(false);
   const [shareData, setShareData] = useState({
     url: "https://github.com/bichngoc55",
     media: `${product.imageUrl[0]}`,
     description: "Ao dep qua ne!",
   });
-  const handleCopyToClipboard = (voucherCode) => {
-    navigator.clipboard
-      .writeText(voucherCode)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      })
-      .catch((err) => console.error("Failed to copy text: ", err));
-  };
+  // const handleCopyToClipboard = (voucherCode) => {
+  //   navigator.clipboard
+  //     .writeText(voucherCode)
+  //     .then(() => {
+  //       setCopied(true);
+  //       setTimeout(() => setCopied(false), 2000);
+  //     })
+  //     .catch((err) => console.error("Failed to copy text: ", err));
+  // };
   // fetch voucher
   useEffect(() => {
     const fetchVoucherCode = async () => {
@@ -84,7 +87,7 @@ const TShirtDetails = () => {
         // console.log("voucher code:", data);
         setVoucherCode(data);
       } catch (e) {
-        console.error("Error:", e);
+        // console.error("Error:", e);
       }
     };
 
@@ -133,10 +136,10 @@ const TShirtDetails = () => {
         setOpenSnackbar(true);
         navigate("/collection/");
       } else {
-        console.error("Failed to delete a product");
+        // console.error("Failed to delete a product");
       }
     } catch (e) {
-      console.error("Error deleting product:", e);
+      // console.error("Error deleting product:", e);
     }
   };
   const handleClearSelection = async () => {
@@ -147,7 +150,7 @@ const TShirtDetails = () => {
   // Handle Update
   const handleUpdateProduct = async (updatedProduct) => {
     try {
-      console.log(updatedProduct);
+      // console.log(updatedProduct);
       const response = await fetch(
         `http://localhost:3005/shirt/${product._id}`,
         {
@@ -251,6 +254,8 @@ const TShirtDetails = () => {
       return;
     }
     try {
+      // await dispatch(setVoucherData(selectedVoucher));
+      console.log(selectedVoucher);
       await dispatch(
         addToCart({
           userId: user?._id,
@@ -261,13 +266,19 @@ const TShirtDetails = () => {
         })
       ).unwrap();
 
-      setSnackbarMessage(" Đã thêm vào giỏ hàng!");
+      setSnackbarMessage("Add to cart successfully!");
       setSnackbarSeverity("success");
       setOpenSnackbar(true);
       setIsCartOpen(true);
+
       return;
     } catch (err) {
-      console.error("Failed to add to cart:", err);
+      // console.error("Failed to add to cart:", err);
+      setSnackbarMessage("Failed to add to cart!");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+      setIsCartOpen(true);
+      return;
     }
   };
 
@@ -462,7 +473,7 @@ const TShirtDetails = () => {
               </RadioGroup>
             </div>
             {/* voucher code */}
-            <div className="voucher-section">
+            {/* <div className="voucher-section">
               <span
                 style={{
                   color: "#C8FFF6",
@@ -475,7 +486,7 @@ const TShirtDetails = () => {
               <span
                 style={{ color: "white", fontSize: "1rem", marginLeft: "10px" }}
               >
-                {selectedVoucher}
+                {selectedVoucher.code}
               </span>
             </div>
             <div className="voucher-input">
@@ -493,20 +504,15 @@ const TShirtDetails = () => {
                   }}
                   onClick={() => {
                     handleCopyToClipboard(voucher.code);
-                    setSelectedVoucher(voucher.code);
+                    setSelectedVoucher(voucher);
                   }}
                 >
                   {voucher.code}
                 </Button>
               ))}
               {copied && <p style={{ color: "green" }}>Voucher code copied!</p>}
-            </div>
-            <div className="clear-section">
-              <IconButton onClick={handleClearSelection}>
-                <RestartAltOutlinedIcon sx={{ color: "#C8FFF6" }} />
-              </IconButton>
-              <p style={{ color: "#C8FFF6" }}>Clear selection</p>
-            </div>
+            </div> */}
+
             {/* Size Selection */}
             <div className="size-section">
               <div className="size-header">
@@ -530,6 +536,7 @@ const TShirtDetails = () => {
                   Hướng dẫn chọn size
                 </div>
                 <SizeGuideModal
+                  image={sizeguide}
                   isOpen={isModalSizeGuideOpen}
                   onClose={handleCloseSizeGuideModal}
                 />
@@ -553,7 +560,12 @@ const TShirtDetails = () => {
                 ))}
               </div>
             </div>
-
+            <div className="clear-section">
+              <IconButton onClick={handleClearSelection}>
+                <RestartAltOutlinedIcon sx={{ color: "#C8FFF6" }} />
+              </IconButton>
+              <p style={{ color: "#C8FFF6" }}>Clear selection</p>
+            </div>
             {/* Quantity and Add to Cart */}
             <div className="quantity-section">
               {/* <p>Số lượng:</p> */}

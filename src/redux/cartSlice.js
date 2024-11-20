@@ -89,12 +89,22 @@ const cartSlice = createSlice({
   name: "cart",
   initialState: {
     items: [],
+    selectedItems: [],
     error: null,
     loading: false,
   },
   reducers: {
     updateCart: (state, action) => {
       state.items = action.payload.items;
+    },
+    setSelectedItems: (state, action) => {
+      state.selectedItems = action.payload;
+    },
+    selectAllItems: (state) => {
+      state.selectedItems = state.items;
+    },
+    clearSelectedItems: (state) => {
+      state.selectedItems = [];
     },
   },
   extraReducers: (builder) => {
@@ -141,6 +151,11 @@ const cartSlice = createSlice({
       });
   },
 });
+export const {
+  updateCart,
+  setSelectedItems,
+  selectAllItems,
+  clearSelectedItems,
+} = cartSlice.actions;
 
-export const { updateCart } = cartSlice.actions;
 export default cartSlice.reducer;
