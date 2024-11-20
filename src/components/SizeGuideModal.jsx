@@ -1,7 +1,6 @@
 import React from "react";
-import sizeguide from "../assets/images/sizeguide.png";
 
-const SizeGuideModal = ({ isOpen, onClose }) => {
+const SizeGuideModal = ({ image, isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
@@ -31,11 +30,11 @@ const SizeGuideModal = ({ isOpen, onClose }) => {
         }}
       >
         <img
-          src={sizeguide}
+          src={image}
           alt="Size Guide"
           style={{ maxWidth: "100%", maxHeight: "100vh" }}
         />
-        <button
+        {/* <button
           onClick={onClose}
           style={{
             position: "absolute",
@@ -50,7 +49,7 @@ const SizeGuideModal = ({ isOpen, onClose }) => {
           }}
         >
           Close
-        </button>
+        </button> */}
       </div>
     </div>
   );

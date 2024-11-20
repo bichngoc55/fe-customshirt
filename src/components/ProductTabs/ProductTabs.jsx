@@ -9,6 +9,7 @@ import {
   Alert,
   styled,
   Button,
+  Pagination,
   CircularProgress,
 } from "@mui/material";
 import "./ProductTabs.css";
@@ -20,6 +21,8 @@ import InputForm from "../inputForm/inputForm";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CancelIcon from "@mui/icons-material/Cancel";
 import axios from "axios";
+import SizeGuideModal from "../SizeGuideModal";
+import ImageSliderModal from "../ImageSliderModal/ImageSliderModal";
 const TabPanel = ({ children, value, index }) => {
   return (
     <div className="tab-panel" hidden={value !== index}>
@@ -41,12 +44,16 @@ const VisuallyHiddenInput = styled("input")({
 const ProductTabs = ({ product, onReviewUpdate }) => {
   const { user } = useSelector((state) => state.auths);
   const [openReview, setOpenReview] = useState(false);
+  const [page, setPage] = useState(1);
+  const reviewsPerPage = 3;
   const [reviewText, setReviewText] = useState("");
   const [isUploading, setIsUploading] = useState(false);
-
+  const [isModalSizeGuideOpen, setIsModalSizeGuideOpen] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  // const [selectedImages, setSelectedImages] = useState([]);
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
   const [files, setFiles] = useState([]);
   const navigate = useNavigate();
@@ -79,6 +86,10 @@ const ProductTabs = ({ product, onReviewUpdate }) => {
     // setIsUploading(false);
 
     return uploadedUrls;
+  };
+
+  const handleCloseSizeGuideModal = () => {
+    setIsModalSizeGuideOpen(false);
   };
   const handleCloseSnackbar = (event, reason) => {
     if (reason === "clickaway") {
@@ -167,6 +178,16 @@ const ProductTabs = ({ product, onReviewUpdate }) => {
     } else {
       setFiles((prev) => prev.filter((_, i) => i !== index));
     }
+  };
+  // page
+  const indexOfLastReview = page * reviewsPerPage;
+  const indexOfFirstReview = indexOfLastReview - reviewsPerPage;
+  const currentReviews =
+    product.reviews?.slice(indexOfFirstReview, indexOfLastReview) || [];
+  const totalPages = Math.ceil((product.reviews?.length || 0) / reviewsPerPage);
+
+  const handlePageChange = (event, value) => {
+    setPage(value);
   };
   return (
     <div className="product-tabs">
@@ -374,63 +395,100 @@ const ProductTabs = ({ product, onReviewUpdate }) => {
         )}
         <div className="reviews-container">
           {product.reviews?.length > 0 ? (
-            product.reviews.map((review, index) => (
-              <div key={index} className="review-item">
-                <div className="review-header">
-                  <Avatar className="review-avatar">
-                    {review.reviewCustomerID?.avaURL || "?"}
-                  </Avatar>
-                  <div className="review-user-info">
-                    <p className="review-username">
-                      {review.reviewCustomerID?.name || "Anonymous"}
-                    </p>
-                    <div className="review-rating">
-                      <Rating value={review.stars} readOnly size="small" />
-                      <span className="rating-text">{review.stars}/5</span>
+            <>
+              {currentReviews.map((review, index) => (
+                <div key={index} className="review-item">
+                  <div className="review-header">
+                    <Avatar className="review-avatar">
+                      {review.reviewCustomerID?.avaURL || "?"}
+                    </Avatar>
+                    <div className="review-user-info">
+                      <p className="review-username">
+                        {review.reviewCustomerID?.name || "Anonymous"}
+                      </p>
+                      <div className="review-rating">
+                        <Rating value={review.stars} readOnly size="small" />
+                        <span className="rating-text">{review.stars}/5</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <p className="review-comment">{review.comment}</p>
+                  <p className="review-comment">{review.comment}</p>
 
-                {review.reviewImage && review.reviewImage.$each && (
-                  <div
-                    style={{
-                      marginTop: "10px",
-                      display: "flex",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    {review.reviewImage.$each.map((imageUrl, imageIndex) => (
-                      <div
-                        key={imageIndex}
-                        style={{
-                          position: "relative",
-                          display: "inline-block",
-                          margin: "10px",
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            width: "100px",
-                            height: "100px",
-                            overflow: "hidden",
-                            borderRadius: 1,
-                            border: "1px solid rgba(255, 255, 255, 0.12)",
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                            backgroundImage: `url(${imageUrl})`,
+                  {review.reviewImage && review.reviewImage.$each && (
+                    <div
+                      style={{
+                        marginTop: "10px",
+                        display: "flex",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      {review.reviewImage.$each.map((imageUrl, imageIndex) => (
+                        <div
+                          key={imageIndex}
+                          style={{
+                            position: "relative",
+                            display: "inline-block",
+                            margin: "10px",
                           }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {index < product.reviews.length - 1 && (
-                  <div className="review-divider" />
-                )}
-              </div>
-            ))
+                        >
+                          <Box
+                            onClick={() => {
+                              setSelectedImageIndex(imageIndex);
+                              setIsModalSizeGuideOpen(true);
+                            }}
+                            sx={{
+                              display: "flex",
+                              width: "100px",
+                              height: "100px",
+                              overflow: "hidden",
+                              borderRadius: 1,
+                              border: "1px solid rgba(255, 255, 255, 0.12)",
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                              backgroundImage: `url(${imageUrl})`,
+                            }}
+                          />
+                        </div>
+                      ))}
+                      <ImageSliderModal
+                        images={review.reviewImage.$each}
+                        isOpen={isModalSizeGuideOpen}
+                        onClose={handleCloseSizeGuideModal}
+                        initialIndex={selectedImageIndex}
+                      />
+                    </div>
+                  )}
+
+                  {index < product.reviews.length - 1 && (
+                    <div className="review-divider" />
+                  )}
+                </div>
+              ))}
+              {/* Pagination */}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  mt: 3,
+                  mb: 2,
+                }}
+              >
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={handlePageChange}
+                  color="primary"
+                  sx={{
+                    "& .MuiPaginationItem-root": {
+                      color: "white",
+                    },
+                    "& .Mui-selected": {
+                      backgroundColor: "rgba(140, 255, 179, 0.2) !important",
+                    },
+                  }}
+                />
+              </Box>
+            </>
           ) : (
             <div className="no-reviews">
               <p>No reviews yet.</p>

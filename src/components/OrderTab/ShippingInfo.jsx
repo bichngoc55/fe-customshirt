@@ -160,7 +160,6 @@ const ShippingInfo = ({ onNextStep }) => {
       setOpenSnackbar(true);
       return false;
     }
-
     return true;
   };
 
@@ -173,30 +172,28 @@ const ShippingInfo = ({ onNextStep }) => {
       );
       const formattedData = {
         ...formData,
-        provinceId: formData.province,
-        districtId: formData.district,
         province: provinceName,
         district: districtName,
       };
-      localStorage.setItem("shippingData", JSON.stringify(formData));
+      //   localStorage.setItem("shippingData", JSON.stringify(formData));
       dispatch(setShippingData(formattedData));
       onNextStep();
     }
   };
 
-  useEffect(() => {
-    const savedData = localStorage.getItem("shippingData");
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      setFormData(parsedData);
-      if (parsedData.province) {
-        const filteredDistricts = districts.filter(
-          (district) => district.idProvince === parsedData.province
-        );
-        setAvailableDistricts(filteredDistricts);
-      }
-    }
-  }, []);
+  //   useEffect(() => {
+  //     const savedData = localStorage.getItem("shippingData");
+  //     if (savedData) {
+  //       const parsedData = JSON.parse(savedData);
+  //       setFormData(parsedData);
+  //       if (parsedData.province) {
+  //         const filteredDistricts = districts.filter(
+  //           (district) => district.idProvince === parsedData.province
+  //         );
+  //         setAvailableDistricts(filteredDistricts);
+  //       }
+  //     }
+  //   }, []);
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>

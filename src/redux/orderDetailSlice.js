@@ -9,28 +9,16 @@ const initialState = {
   },
 };
 
-const orderDetailsSlice = createSlice({
+export const orderDetailSlice = createSlice({
   name: "orderDetails",
   initialState,
   reducers: {
     setOrderDetailsData: (state, action) => {
-      console.log("items", action.payload.items);
-      console.log("action payload", action.payload);
-      state.orderDetails = {
-        userId: action.payload.userId,
-        items: action.payload.items.map((item) => ({
-          product: item.product,
-          selectedSize: item.selectedSize,
-
-          selectedColor: item.selectedColor,
-          quantity: item.quantity,
-        })),
-        createdAt: action.payload.createdAt,
-        updatedAt: action.payload.updatedAt,
-      };
+      state.orderDetails = { ...action.payload };
     },
   },
 });
 
-export const { setOrderDetailsData } = orderDetailsSlice.actions;
-export default orderDetailsSlice.reducer;
+export const { setOrderDetailsData } = orderDetailSlice.actions;
+
+export default orderDetailSlice.reducer;

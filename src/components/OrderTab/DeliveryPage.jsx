@@ -115,7 +115,7 @@ const DeliveryPage = ({ onPreviousStep, onNextStep }) => {
       setOpenSnackbar(true);
       return;
     }
-    localStorage.setItem("deliveryOption", selectedDelivery);
+    // localStorage.setItem("deliveryOption", selectedDelivery);
     dispatch(setDeliveryData(selectedDelivery));
     onNextStep();
   };

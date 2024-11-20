@@ -13,7 +13,9 @@ import BtnComponent from "../../components/btnComponent/btnComponent";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { useSelector } from "react-redux";
 import noImg from "../../assets/images/no_img.jpeg";
+import { useSDK } from "@metamask/sdk-react";
 import axios from "axios";
+
 const StyledCard = styled(Card)(({ theme }) => ({
   backgroundColor: "transparent",
   boxShadow: "none",
@@ -31,34 +33,17 @@ const MyDesign = () => {
     { id: 3, image: "../../assets/images/no-img.jpeg" },
   ];
 
-  useEffect(() => {
-    const checkWalletConnection = async () => {
-      if (window.ethereum) {
-        const accounts = await window.ethereum.request({
-          method: "eth_accounts",
-        });
-        if (accounts.length > 0) {
-          setAccount(accounts[0]);
-          setIsAuthenticated(true);
-        }
-      }
-    };
-    checkWalletConnection();
-  }, []);
+  // const [account, setAccount] = useState<string>();
+  const { sdk, connected, connecting, provider, chainId } = useSDK();
 
-  const handleConnect = async () => {
-    if (window.ethereum) {
-      try {
-        const accounts = await window.ethereum.request({
-          method: "eth_requestAccounts",
-        });
-        setAccount(accounts[0]);
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error("Error connecting wallet:", error);
-      }
-    } else {
-      alert("Please install MetaMask!");
+  const connect = async () => {
+    try {
+      const accounts = await sdk?.connect();
+      console.log(accounts);
+      setAccount(accounts?.[0]);
+      setIsAuthenticated(true);
+    } catch (err) {
+      console.warn("failed to connect..", err);
     }
   };
 
@@ -177,13 +162,23 @@ const MyDesign = () => {
             </Grid>
           </Grid>
         </Box>
-        <Box sx={{ display: "flex", justifyContent: "center" }}>
-          <BtnComponent
-            value={isAuthenticated ? "Mint NFT" : "Connect Wallet"}
-            width={"100%"}
-            height={"50px"}
-            onClick={isAuthenticated ? mintNFT : handleConnect}
-          />
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+          {!connected ? (
+            <Button
+              onClick={connect}
+              sx={{
+                color: "white",
+                border: "1px solid white",
+                "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.1)" },
+              }}
+            >
+              Connect Wallet
+            </Button>
+          ) : (
+            <Typography>
+              Connected: {account.slice(0, 6)}...{account.slice(-4)}
+            </Typography>
+          )}
         </Box>
       </Box>
     </Box>
