@@ -11,19 +11,61 @@ function RegisterPage() {
   const [username, setUsername] = useState("");
   const [registerStatus, setRegisterStatus] = useState(null);
   const isMobile = useMediaQuery("(max-width:768px)");
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+    general: "",
+  });
   const dispatch = useDispatch();
+  const validateForm = () => {
+    let tempErrors = {
+      username: "",
+      email: "",
+      password: "",
+      general: "",
+    };
+    let isValid = true;
+
+    if (!email) {
+      tempErrors.email = "Email is required";
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      tempErrors.email = "Please enter a valid email address";
+      isValid = false;
+    }
+    if (!username) {
+      tempErrors.username = "Username is required";
+      isValid = false;
+    }
+    if (!password) {
+      tempErrors.password = "Password is required";
+      isValid = false;
+    } else if (password.length < 6) {
+      tempErrors.password = "Password must be at least 6 characters";
+      isValid = false;
+    }
+
+    setErrors(tempErrors);
+    return isValid;
+  };
 
   const handleRegisterClick = async (e) => {
     try {
       e.preventDefault();
+      if (!validateForm()) {
+        return;
+      }
       const newUser = { username: username, email: email, password: password };
-      const response = await fetch("http://localhost:3005/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newUser),
-      });
+      const response = await fetch(
+        `http://localhost:${process.env.PORT}/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newUser),
+        }
+      );
       const data = await response.json();
       console.log(JSON.stringify(data));
       if (data.error) {
@@ -51,7 +93,7 @@ function RegisterPage() {
       }}
     >
       <img
-        src={require("../../assets/images/image.png")}
+        src={require("../../assets/images/backgroundImg.png")}
         alt="Decorative"
         style={{
           position: "absolute",
@@ -63,6 +105,7 @@ function RegisterPage() {
           objectFit: "cover",
           zIndex: -1,
           borderRadius: "100px",
+          boxShadow: "0 4px 20px rgba(21, 26, 39, 0.9)",
         }}
       />
       <Box
@@ -142,7 +185,7 @@ function RegisterPage() {
               marginBottom: "20px",
             }}
           >
-            SIGN UP
+            Register
           </Typography>
           <form
             onSubmit={handleRegisterClick}
@@ -155,74 +198,118 @@ function RegisterPage() {
               marginBottom: "60px",
             }}
           >
-            <Typography
-              sx={{
-                color: "white",
-                fontFamily: "Montserrat",
-                fontSize: "clamp(14px, 2vw, 16px)",
-                marginLeft: "4%",
-              }}
-            >
-              Username
-            </Typography>
-            <Box sx={{ marginBottom: "15%", marginTop: "5%" }}>
+            <Box sx={{ marginTop: "5%", marginBottom: "20px" }}>
+              <Typography
+                sx={{
+                  color: "white",
+                  fontFamily: "Montserrat",
+                  fontSize: "clamp(14px, 2vw, 16px)",
+                  marginLeft: "4%",
+                  marginBottom: "10px",
+                }}
+              >
+                Username
+              </Typography>
               <InputForm
                 placeholder="Username"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  if (errors.username) {
+                    setErrors({ ...errors, username: "" });
+                  }
+                }}
                 width="100%"
                 height="35px"
               />
             </Box>
-            <Typography
-              sx={{
-                color: "white",
-                fontFamily: "Montserrat",
-                fontSize: "clamp(14px, 2vw, 16px)",
-                marginLeft: "4%",
-              }}
-            >
-              Email
-            </Typography>
-            <Box sx={{ marginBottom: "15%", marginTop: "5%" }}>
+            {errors.username && (
+              <Typography
+                sx={{
+                  color: "#cc0000",
+                  fontSize: "12px",
+                  marginTop: "4px",
+                  marginLeft: "4%",
+                }}
+              >
+                {errors.username}
+              </Typography>
+            )}
+
+            <Box sx={{ marginTop: "15px", marginBottom: "20px" }}>
+              <Typography
+                sx={{
+                  color: "white",
+                  fontFamily: "Montserrat",
+                  fontSize: "clamp(14px, 2vw, 16px)",
+                  marginLeft: "4%",
+                  marginBottom: "10px",
+                }}
+              >
+                Email
+              </Typography>
               <InputForm
                 placeholder="Email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.email) {
+                    setErrors({ ...errors, email: "" });
+                  }
+                }}
                 width="100%"
                 height="35px"
               />
             </Box>
-            <Typography
-              sx={{
-                color: "white",
-                fontFamily: "Montserrat",
-                fontSize: "clamp(14px, 2vw, 16px)",
-                marginLeft: "4%",
-              }}
-            >
-              Password
-            </Typography>
-            <Box sx={{ marginBottom: "15%", marginTop: "5%" }}>
+            {errors.email && (
+              <Typography
+                sx={{
+                  color: "#cc0000",
+                  fontSize: "12px",
+                  marginTop: "4px",
+                  marginLeft: "4%",
+                }}
+              >
+                {errors.email}
+              </Typography>
+            )}
+
+            <Box sx={{ marginTop: "", marginBottom: "20px" }}>
+              <Typography
+                sx={{
+                  color: "white",
+                  fontFamily: "Montserrat",
+                  fontSize: "clamp(14px, 2vw, 16px)",
+                  marginLeft: "4%",
+                  marginBottom: "10px",
+                }}
+              >
+                Password
+              </Typography>
               <InputForm
                 placeholder="Password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errors.password) {
+                    setErrors({ ...errors, password: "" });
+                  }
+                }}
                 width="100%"
                 height="35px"
               />
             </Box>
-            {registerStatus && (
+            {errors.password && (
               <Typography
                 sx={{
-                  color: registerStatus.success ? "green" : "red",
-                  textAlign: "center",
-                  marginTop: "10px",
-                  fontSize: "clamp(12px, 1.5vw, 14px)",
+                  color: "#cc0000",
+                  fontSize: "12px",
+                  marginTop: "4px",
+                  marginLeft: "4%",
                 }}
               >
-                {registerStatus.message}
+                {errors.password}
               </Typography>
             )}
             <Box
@@ -236,7 +323,7 @@ function RegisterPage() {
                 width="100"
                 height={40}
                 handleClick={handleRegisterClick}
-                value={"Sign up"}
+                value={"Register"}
               />
             </Box>
           </form>

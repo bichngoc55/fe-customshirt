@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -14,6 +14,8 @@ import {
   IconButton,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import CancelIcon from "@mui/icons-material/Cancel";
+import AutorenewIcon from "@mui/icons-material/Autorenew";
 import PaypalIcon from "@mui/icons-material/Payment";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
@@ -23,6 +25,9 @@ import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import noImg from "../../assets/images/no_img.jpeg";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteOrder, fetchOrders, updateOrder } from "../../redux/orderSlice";
+import { format, parseISO } from "date-fns";
 
 const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
   backgroundColor: "var(--background-color)",
@@ -33,7 +38,44 @@ const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
     color: "white",
   },
 }));
+const InfoContainer = styled(Box)(({ theme }) => ({
+  padding: "20px",
+  marginTop: "20px",
+  border: "0.2px solid #FA8B01",
+  borderRadius: "8px",
+  backgroundColor: "rgba(255, 255, 255, 0.05)",
+}));
 
+const InfoSection = styled(Box)(({ theme }) => ({
+  marginBottom: "20px",
+}));
+
+const InfoTitle = styled(Typography)(({ theme }) => ({
+  fontFamily: "Montserrat",
+  fontSize: "18px",
+  fontWeight: "bold",
+  color: "white",
+  marginBottom: "16px",
+}));
+
+const InfoGrid = styled(Box)(({ theme }) => ({
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: "12px",
+}));
+
+const InfoLabel = styled(Typography)(({ theme }) => ({
+  fontFamily: "Montserrat",
+  fontSize: "14px",
+  color: "white",
+}));
+
+const InfoValue = styled(Typography)(({ theme }) => ({
+  fontFamily: "Montserrat",
+  fontSize: "14px",
+  color: "white",
+  textAlign: "right",
+}));
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
   "&:hover": {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
@@ -64,14 +106,6 @@ const DetailCell = styled(TableCell)(({ theme }) => ({
   paddingTop: 0,
 }));
 
-// const DetailTable = styled(Table)(({ theme }) => ({
-//   "& .MuiTableCell-root": {
-//     borderRight: "1px solid rgba(255, 255, 255, 0.1)", // Light grey vertical line
-//     "&:last-child": {
-//       borderRight: "none", // Remove right border for last cell
-//     },
-//   },
-// }));
 const DetailTable = styled(Table)(({ theme }) => ({
   "& .MuiTableCell-root": {
     borderRight: "1px solid #333",
@@ -101,66 +135,42 @@ const DetailTableCellHead = styled(TableCell)(({ theme }) => ({
 
 const MyOrder = () => {
   const [openRows, setOpenRows] = useState({});
+  const { user } = useSelector((state) => state.auths);
 
   const handleRowClick = (id) => {
     setOpenRows((prev) => ({ ...prev, [id]: !prev[id] }));
   };
+  const dispatch = useDispatch();
+  const { orders, status, error } = useSelector((state) => state.orders);
+  useEffect(() => {
+    dispatch(fetchOrders());
+    // console.log("Orders fetched", orders);
+  }, [dispatch]);
+  const handleUpdateOrder = (id, orderData) => {
+    dispatch(updateOrder({ id, orderData }));
+  };
 
-  const orders = [
-    {
-      id: 1,
-      orderId: 1234567890,
-      date: "FRI, 23 DEC 2022",
-      time: "15:00",
-      paymentMethod: "Paypal",
-      price: "€86.00",
-      status: "On delivery",
-      voucher: "10%",
-      details: [
-        {
-          name: "Capybara T-shirt",
-          size: "M",
-          color: "White",
-          quantity: 1,
-          price: "€43.00",
-        },
-        {
-          name: "Capybara T-shirt",
-          size: "L",
-          color: "Black",
-          quantity: 1,
-          price: "€43.00",
-        },
-      ],
-    },
-    {
-      id: 2,
-      orderId: 1234567891,
-      date: "FRI, 23 DEC 2022",
-      time: "15:00",
-      paymentMethod: "Credit Card",
-      price: "€86.00",
-      status: "Received",
-      voucher: "10%",
-      details: [
-        {
-          name: "Capybara T-shirt",
-          size: "M",
-          color: "White",
-          quantity: 1,
-          price: "€43.00",
-        },
-        {
-          name: "Capybara T-shirt",
-          size: "L",
-          color: "Black",
-          quantity: 1,
-          price: "€43.00",
-        },
-      ],
-    },
-  ];
-
+  const formattedDate = (date) => {
+    return format(parseISO(date), "dd/MM/yy");
+  };
+  const handleCancelOrder = (id) => {
+    const updatedOrderData = {
+      deliveryStatus: "Cancelled",
+    };
+    dispatch(updateOrder({ id, orderData: updatedOrderData }));
+  };
+  const handleReceiveOrder = (id) => {
+    const updatedOrderData = {
+      deliveryStatus: "Received",
+    };
+    dispatch(updateOrder({ id, orderData: updatedOrderData }));
+  };
+  const formatPrice = (price) => {
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
+  const formattedTime = (date) => {
+    return format(parseISO(date), "HH:mm");
+  };
   return (
     <Box sx={{ marginTop: "20px", marginLeft: "10%", marginRight: "10%" }}>
       <Box
@@ -182,7 +192,7 @@ const MyOrder = () => {
               fontSize: "20px",
             }}
           >
-            Gấu Tối
+            {user.name ? user.name : "Anonymous"}
           </Typography>
           <Typography
             sx={{
@@ -191,7 +201,7 @@ const MyOrder = () => {
               color: "#808080",
             }}
           >
-            alexarawles@gmail.com
+            {user.email}
           </Typography>
         </Box>
       </Box>
@@ -214,16 +224,17 @@ const MyOrder = () => {
                 <StyledTableCell>Your order</StyledTableCell>
                 <StyledTableCell>Payment Method</StyledTableCell>
                 <StyledTableCell>Price</StyledTableCell>
-                <StyledTableCell>Status</StyledTableCell>
+                <StyledTableCell>Delivery Status</StyledTableCell>
                 <StyledTableCell>Voucher</StyledTableCell>
+                <StyledTableCell>Order Status</StyledTableCell>
                 <StyledTableCell />
               </TableRow>
             </TableHead>
             <TableBody>
               {orders.map((order) => (
-                <React.Fragment key={order.id}>
+                <React.Fragment key={order._id}>
                   <StyledTableRow>
-                    <StyledTableCell onClick={() => handleRowClick(order.id)}>
+                    <StyledTableCell onClick={() => handleRowClick(order._id)}>
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 2 }}
                       >
@@ -244,7 +255,7 @@ const MyOrder = () => {
                               marginLeft: "10px",
                             }}
                           >
-                            {order.orderId}
+                            {order._id}
                           </Typography>
                           <Box
                             sx={{
@@ -258,7 +269,7 @@ const MyOrder = () => {
                               sx={{ color: "#FA8B02" }}
                             />
                             <Typography variant="body2" sx={{ color: "white" }}>
-                              {order.date}
+                              {formattedDate(order.deliveryDate)}
                             </Typography>
                           </Box>
                           <Box
@@ -270,18 +281,18 @@ const MyOrder = () => {
                           >
                             <AccessTimeOutlinedIcon sx={{ color: "#FA8B02" }} />
                             <Typography sx={{ color: "white" }} variant="body2">
-                              {order.time}
+                              {formattedTime(order.deliveryDate)}
                             </Typography>
                           </Box>
                         </Box>
                       </Box>
                     </StyledTableCell>
                     <StyledTableCell sx={{ color: "#C8FFF6" }}>
-                      {order.paymentMethod === "Paypal" ? (
+                      {order.paymentDetails.method === "Cash" ? (
                         <Box
                           sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
-                          <PaypalIcon /> Paypal
+                          <PaypalIcon /> Cash
                         </Box>
                       ) : (
                         <Box
@@ -291,18 +302,42 @@ const MyOrder = () => {
                         </Box>
                       )}
                     </StyledTableCell>
-                    <StyledTableCell>{order.price}</StyledTableCell>
                     <StyledTableCell>
-                      {order.status === "On delivery" ? (
+                      {formatPrice(order.total)}
+                    </StyledTableCell>
+                    <StyledTableCell>
+                      {order.deliveryStatus === "On delivery" ? (
                         <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                          }}
                         >
                           <LocalShippingIcon sx={{ color: "orange" }} />
                           On delivery
                         </Box>
-                      ) : (
+                      ) : order.deliveryStatus === "Cancelled" ? (
                         <Box
                           sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <CancelIcon sx={{ color: "red" }} />
+                          Cancelled
+                        </Box>
+                      ) : order.deliveryStatus === "Pending" ? (
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <AutorenewIcon sx={{ color: "red" }} />
+                          Pending
+                        </Box>
+                      ) : (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                          }}
                         >
                           <CheckCircleIcon sx={{ color: "green" }} />
                           Received
@@ -311,15 +346,18 @@ const MyOrder = () => {
                     </StyledTableCell>
 
                     <StyledTableCell>
-                      {order.voucher ? order.voucher : "No voucher"}
+                      {order.voucherCode ? order.voucherCode : "No voucher"}
+                    </StyledTableCell>
+                    <StyledTableCell>
+                      {order.orderStatus ? order.orderStatus : "processing"}
                     </StyledTableCell>
                     <StyledTableCell>
                       <IconButton
                         aria-label="expand row"
                         size="small"
-                        onClick={() => handleRowClick(order.id)}
+                        onClick={() => handleRowClick(order._id)}
                       >
-                        {openRows[order.id] ? (
+                        {openRows[order._id] ? (
                           <KeyboardArrowUpIcon />
                         ) : (
                           <KeyboardArrowDownIcon />
@@ -330,7 +368,7 @@ const MyOrder = () => {
                   <DetailRow>
                     <DetailCell colSpan={6}>
                       <Collapse
-                        in={openRows[order.id]}
+                        in={openRows[order._id]}
                         timeout="auto"
                         unmountOnExit
                       >
@@ -393,27 +431,27 @@ const MyOrder = () => {
                                     }}
                                     align="right"
                                   >
-                                    Price
+                                    Price/Shirt
                                   </DetailTableCellHead>
                                 </TableRow>
                               </TableHead>
                               <TableBody>
-                                {order.details.map((detail, index) => (
+                                {order.items.map((detail, index) => (
                                   <TableRow key={index}>
                                     <DetailTableCell component="th" scope="row">
-                                      {detail.name}
+                                      {detail.product.name}
                                     </DetailTableCell>
                                     <DetailTableCell>
-                                      {detail.size}
+                                      {detail.productSize}
                                     </DetailTableCell>
                                     <DetailTableCell>
-                                      {detail.color}
+                                      {detail.productColor}
                                     </DetailTableCell>
                                     <DetailTableCell align="right">
-                                      {detail.quantity}
+                                      {detail.productQuantity}
                                     </DetailTableCell>
                                     <DetailTableCell align="right">
-                                      {detail.price}
+                                      {formatPrice(detail.product.price)}
                                     </DetailTableCell>
                                   </TableRow>
                                 ))}
@@ -422,12 +460,69 @@ const MyOrder = () => {
                                     Total
                                   </DetailTableCell>
                                   <DetailTableCell align="right">
-                                    {order.price}
+                                    {formatPrice(order.total)}
                                   </DetailTableCell>
                                 </TableRow>
                               </TableBody>
                             </Table>
                           </DetailTable>
+                          <InfoContainer>
+                            <InfoSection>
+                              <InfoTitle>Billing Information</InfoTitle>
+                              <InfoGrid>
+                                <InfoLabel>Address</InfoLabel>
+                                <InfoValue>
+                                  {order.billingAddress.details}
+                                </InfoValue>
+                                <InfoLabel>District</InfoLabel>
+                                <InfoValue>
+                                  {order.billingAddress.district}
+                                </InfoValue>
+                                <InfoLabel>Province</InfoLabel>
+                                <InfoValue>
+                                  {order.billingAddress.province}
+                                </InfoValue>
+                              </InfoGrid>
+                            </InfoSection>
+
+                            <InfoSection>
+                              <InfoTitle>User Information</InfoTitle>
+                              <InfoGrid>
+                                <InfoLabel>Name</InfoLabel>
+                                <InfoValue>{order.userInfo.name}</InfoValue>
+                                <InfoLabel>Email</InfoLabel>
+                                <InfoValue>{order.userInfo.email}</InfoValue>
+                                <InfoLabel>Phone Number</InfoLabel>
+                                <InfoValue>{order.userInfo.phone}</InfoValue>
+                              </InfoGrid>
+                            </InfoSection>
+
+                            <InfoSection>
+                              <InfoTitle>Order Summary</InfoTitle>
+                              <InfoGrid>
+                                <InfoLabel>Subtotal</InfoLabel>
+                                <InfoValue>
+                                  {formatPrice(order.total) -
+                                    formatPrice(order.shippingFee)}{" "}
+                                  VND
+                                </InfoValue>
+                                <InfoLabel>Shipping</InfoLabel>
+                                <InfoValue>
+                                  {formatPrice(order.shippingFee)}
+                                </InfoValue>
+                                <InfoLabel
+                                  sx={{ fontWeight: "bold", color: "#FA8B02" }}
+                                >
+                                  Total
+                                </InfoLabel>
+                                <InfoValue
+                                  sx={{ fontWeight: "bold", color: "#FA8B02" }}
+                                >
+                                  {formatPrice(order.total)} VND
+                                </InfoValue>
+                              </InfoGrid>
+                            </InfoSection>
+                          </InfoContainer>
                         </Box>
                       </Collapse>
                     </DetailCell>

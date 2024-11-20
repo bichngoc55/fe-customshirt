@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, IconButton, Menu, MenuItem } from "@mui/material";
+import {
+  Box,
+  Typography,
+  IconButton,
+  Menu,
+  MenuItem,
+  styled,
+  Badge,
+} from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
+import MailIcon from "@mui/icons-material/Mail";
 import { useNavigate } from "react-router-dom";
 import logo from "./logo.png";
 import defaultAva from "../../assets/images/no_img.jpeg";
@@ -11,7 +20,16 @@ import { ListItemIcon, ListItemText } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import "./navBar.css";
 import { logoutUser } from "../../redux/authSlice";
-
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import CartSidebar from "../CartSidebar/CartSidebar";
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  "& .MuiBadge-badge": {
+    right: -3,
+    top: 17,
+    // border: `2px solid ${theme.palette.background.paper}`,
+    padding: "0 0px",
+  },
+}));
 export const NavBar = ({ user }) => {
   const { token } = useSelector((state) => state.auths);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -20,6 +38,17 @@ export const NavBar = ({ user }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cartTotalItems, setCartTotalItems] = useState(0);
+  const { items } = useSelector((state) => state.cart);
+  const [invisible, setInvisible] = React.useState(false);
+  const handleBadgeVisibility = () => {
+    setInvisible(!invisible);
+  };
+  useEffect(() => {
+    const totalItems = items.reduce((total, item) => total + item.quantity, 0);
+    setCartTotalItems(totalItems);
+  }, [items]);
 
   useEffect(() => {
     setIsAdmin(user?.role === "admin");
@@ -28,9 +57,15 @@ export const NavBar = ({ user }) => {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+  const handleOpenCart = () => {
+    setIsCartOpen(true);
+  };
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
+  };
+  const handleNavigateToMessage = () => {
+    navigate(`/message${user?._id}`);
   };
   const handleLogout = async () => {
     handleClose();
@@ -55,9 +90,9 @@ export const NavBar = ({ user }) => {
 
   const dropdownItems = [
     { text: "Profile", path: `/${user?._id}/profile` },
-    { text: "Contact", path: `/${user?._id}/contact` },
     { text: "My Design", path: `/${user?._id}/profile/design` },
     { text: "My Order", path: `/${user?._id}/profile/order` },
+    { text: "NFT Collections", path: `/${user?._id}/collection` },
   ];
   const dropdownAdminItems = [
     { text: "Dashboard", path: "/admin" },
@@ -107,6 +142,21 @@ export const NavBar = ({ user }) => {
         {token && (
           <div className="service">
             <SearchOutlinedIcon sx={{ color: "white" }} />
+            <IconButton onClick={handleOpenCart} sx={{ color: "white" }}>
+              <StyledBadge badgeContent={cartTotalItems} color="primary">
+                <ShoppingCartIcon />
+              </StyledBadge>
+            </IconButton>
+            <CartSidebar
+              open={isCartOpen}
+              onClose={() => setIsCartOpen(false)}
+            />
+            <Badge color="secondary" variant="dot" invisible={invisible}>
+              <MailIcon
+                sx={{ color: "white" }}
+                onClick={handleNavigateToMessage}
+              />
+            </Badge>
             <img src={defaultAva} alt="" className="ava" />
             <div className="user" onClick={handleClick}>
               {user?.username}

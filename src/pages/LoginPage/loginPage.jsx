@@ -14,43 +14,106 @@ const LoginPage = () => {
   const [loginStatus, setLoginStatus] = useState(null);
   const isMobile = useMediaQuery("(max-width:768px)");
   const dispatch = useDispatch();
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+    general: "",
+  });
+  const validateForm = () => {
+    let tempErrors = {
+      email: "",
+      password: "",
+      general: "",
+    };
+    let isValid = true;
+
+    if (!email) {
+      tempErrors.email = "Email is required";
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      tempErrors.email = "Please enter a valid email address";
+      isValid = false;
+    }
+
+    if (!password) {
+      tempErrors.password = "Password is required";
+      isValid = false;
+    } else if (password.length < 6) {
+      tempErrors.password = "Password must be at least 6 characters";
+      isValid = false;
+    }
+
+    setErrors(tempErrors);
+    return isValid;
+  };
 
   const handleLoginClick = async (e) => {
     e.preventDefault();
+    if (!validateForm()) {
+      return;
+    }
+
     const newUser = { email: email, password: password };
     try {
       const result = await dispatch(loginUser(newUser));
       console.log("result trong login : ", result);
       if (result.error) {
         console.log(result.error.message);
+        setErrors({
+          ...errors,
+          general: result.error.message || "Login failed. Please try again.",
+        });
         setLoginStatus(result.error.message);
       } else {
         console.log(result.message);
         setLoginStatus(result.message);
-        navigate("/home");
+        navigate("/");
       }
     } catch (err) {
       console.error(err);
+      setErrors({
+        ...errors,
+        general: "An unexpected error occurred. Please try again later.",
+      });
     }
   };
   const forgotPassword = async (e) => {
     e.preventDefault();
-    console.log(email);
-    fetch("http://localhost:3000/auth/forgotPassword", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email: email }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data, "userRegister");
-        alert(data.status);
-      })
-      .catch((error) => {
-        console.error(error);
+    if (!email) {
+      setErrors({
+        ...errors,
+        email: "Please enter your email to reset password",
       });
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "http://localhost:3000/auth/forgotPassword",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: email.trim() }),
+        }
+      );
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Password reset instructions have been sent to your email");
+      } else {
+        setErrors({
+          ...errors,
+          general: data.message || "Failed to process password reset",
+        });
+      }
+    } catch (error) {
+      setErrors({
+        ...errors,
+        general: "Failed to connect to the server. Please try again later.",
+      });
+    }
   };
   return (
     <Box
@@ -65,7 +128,7 @@ const LoginPage = () => {
       }}
     >
       <img
-        src={require("../../assets/images/image.png")}
+        src={require("../../assets/images/backgroundImg.png")}
         alt="Decorative"
         style={{
           position: "absolute",
@@ -156,7 +219,7 @@ const LoginPage = () => {
               marginBottom: "20px",
             }}
           >
-            SIGN IN
+            LOGIN
           </Typography>
           <form
             onSubmit={handleLoginClick}
@@ -183,11 +246,28 @@ const LoginPage = () => {
               <InputForm
                 placeholder="Enter your email here..."
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.email) {
+                    setErrors({ ...errors, email: "" });
+                  }
+                }}
                 width="300px"
                 height="35px"
               />
             </Box>
+            {errors.email && (
+              <Typography
+                sx={{
+                  color: "#cc0000",
+                  fontSize: "12px",
+                  marginTop: "4px",
+                  marginLeft: "4%",
+                }}
+              >
+                {errors.email}
+              </Typography>
+            )}
             <Typography
               sx={{
                 color: "white",
@@ -203,21 +283,26 @@ const LoginPage = () => {
                 placeholder="Enter your password here..."
                 value={password}
                 type="password"
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errors.password) {
+                    setErrors({ ...errors, password: "" });
+                  }
+                }}
                 width="300px"
                 height="35px"
               />
             </Box>
-            {loginStatus && (
+            {errors.password && (
               <Typography
                 sx={{
-                  color: loginStatus.success ? "green" : "red",
-                  textAlign: "center",
-                  marginTop: "10px",
-                  fontSize: "clamp(12px, 1.5vw, 14px)",
+                  color: "#cc0000",
+                  fontSize: "12px",
+                  marginTop: "4px",
+                  marginLeft: "4%",
                 }}
               >
-                {loginStatus.message}
+                {errors.password}
               </Typography>
             )}
             <Box

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Avatar,
   styled,
@@ -11,8 +11,9 @@ import {
 } from "@mui/material";
 import BtnComponent from "../../components/btnComponent/btnComponent";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { useSelector } from "react-redux";
 import noImg from "../../assets/images/no_img.jpeg";
-
+import axios from "axios";
 const StyledCard = styled(Card)(({ theme }) => ({
   backgroundColor: "transparent",
   boxShadow: "none",
@@ -20,12 +21,68 @@ const StyledCard = styled(Card)(({ theme }) => ({
   borderRadius: "8px",
   overflow: "hidden",
 }));
-const mydesign = () => {
+const MyDesign = () => {
+  const user = useSelector((state) => state.auths);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [account, setAccount] = useState("");
   const designs = [
     { id: 1, image: "../../assets/images/no-img.jpeg" },
     { id: 2, image: "../../assets/images/no-img.jpeg" },
     { id: 3, image: "../../assets/images/no-img.jpeg" },
   ];
+
+  useEffect(() => {
+    const checkWalletConnection = async () => {
+      if (window.ethereum) {
+        const accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
+        if (accounts.length > 0) {
+          setAccount(accounts[0]);
+          setIsAuthenticated(true);
+        }
+      }
+    };
+    checkWalletConnection();
+  }, []);
+
+  const handleConnect = async () => {
+    if (window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
+        setAccount(accounts[0]);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error("Error connecting wallet:", error);
+      }
+    } else {
+      alert("Please install MetaMask!");
+    }
+  };
+
+  const mintNFT = async () => {
+    if (isAuthenticated && account) {
+      try {
+        const response = await axios.post(
+          "http://localhost:3000/api/mint-nft",
+          {
+            userAddress: account, // Use connected wallet address
+            tokenURI: "https://your-metadata-url.com/metadata.json",
+          }
+        );
+
+        if (response.data.success) {
+          alert("NFT Minted Successfully!");
+        } else {
+          alert("Minting failed.");
+        }
+      } catch (error) {
+        console.error("Error minting NFT:", error);
+      }
+    }
+  };
   return (
     <Box>
       <Box
@@ -47,7 +104,7 @@ const mydesign = () => {
               fontSize: "20px",
             }}
           >
-            Gấu Tối
+            {user.name}
           </Typography>
           <Typography
             sx={{
@@ -56,10 +113,11 @@ const mydesign = () => {
               color: "#808080",
             }}
           >
-            alexarawles@gmail.com
+            {user.email}
           </Typography>
         </Box>
       </Box>
+      <div></div>
       <Box sx={{ padding: "20px", color: "white" }}>
         <Typography
           sx={{
@@ -121,9 +179,10 @@ const mydesign = () => {
         </Box>
         <Box sx={{ display: "flex", justifyContent: "center" }}>
           <BtnComponent
-            value={"Collect Wallet And Mint"}
+            value={isAuthenticated ? "Mint NFT" : "Connect Wallet"}
             width={"100%"}
             height={"50px"}
+            onClick={isAuthenticated ? mintNFT : handleConnect}
           />
         </Box>
       </Box>
@@ -131,4 +190,4 @@ const mydesign = () => {
   );
 };
 
-export default mydesign;
+export default MyDesign;
