@@ -63,7 +63,9 @@ export const NavBar = ({ user }) => {
     { text: "Dashboard", path: "/admin" },
     { text: "User", path: "/admin/user" },
     { text: "Order", path: "/admin/order" },
+
     { text: "Message", path: "/admin/message" },
+    { text: "Voucher", path: "/admin/voucher" },
     { text: "Settings", path: "/admin/settings" },
   ];
   return (

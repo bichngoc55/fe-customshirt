@@ -29,6 +29,7 @@ const DashBoard = () => {
     },
     { key: "user", path: "/admin/user", Icon: UserIcon, label: "User" },
     { key: "order", path: "/admin/order", Icon: OrderIcon, label: "Order" },
+    { key: "voucher", path: "/admin/voucher", Icon: OrderIcon, label: "Voucher" },
     {
       key: "message",
       path: "/admin/message",

@@ -1,0 +1,108 @@
+.order-container {
+    padding: 20px;
+    background-color: #131720;
+    color: #C8FFF6;
+    border-radius: 10px;
+    border: 1px solid #C8FFF6;
+    margin-left: -50px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-size:13px;
+  }
+  
+  .order-header {
+    margin-bottom: 10px;
+  }
+  
+  .action-btn {
+    padding: 10px 12px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #37C25E;
+    color: #ffffff;
+    font-weight: 700;
+  }
+  
+  .action-btn.delete-all {
+    background-color: #FF0004;
+  }
+  
+  .order-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .order-table th,
+  .order-table td {
+    padding: 15px;
+    text-align: center;
+    border: 1px solid #adb9b8;
+  }
+  
+  .order-table th {
+    background-color: #151A27;
+  }
+  
+  .order-table tr:nth-child(even) {
+    background-color: #151A27;
+  }
+  
+  .order-table tr:nth-child(odd) {
+    background-color: #151A27;
+  }
+  
+  .status-badge {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-family: "Montserrat", sans-serif;
+    font-size: 12px;
+  }
+  
+  .status-badge.pending {
+    background-color: #FF4949;
+    color: #fff;
+  }
+  
+  .status-badge.confirmed {
+    background-color: #2EBB77;
+    color: #fff;
+  }
+  
+  .status-badge.paid {
+    background-color: #F7D87A;
+    color: #000000;
+  }
+  
+  .status-badge.unpaid {
+    background-color: #F5F5F5;
+    color: #000000;
+  }
+  
+  .icon-btn {
+    cursor: pointer;
+    font-size: 20px;
+    margin: 0 5px;
+  }
+  
+  .icon-btn.edit-btn {
+    color: #C8FFF6;
+  }
+  
+  .icon-btn.delete-btn {
+    color: #C8FFF6;
+  }
+  
+  .icon-btn:hover {
+    opacity: 0.8;
+  }
+  td.action-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+  }

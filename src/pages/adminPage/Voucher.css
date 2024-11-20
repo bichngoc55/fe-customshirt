@@ -1,0 +1,102 @@
+.voucher-section {
+    background-color: #151a27;
+    padding: 30px;
+    text-align: center;
+    color: #ffffff;
+    margin-left: -150px;
+  }
+  
+  .voucher-section h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+  }
+  
+  .add-voucher-btn {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background-color 0.3s, box-shadow 0.3s;
+  }
+  
+  .add-voucher-btn:hover {
+    background-color: #37a048;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+  }
+  
+  .voucher-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Hiển thị 3 voucher trên 1 hàng */
+    gap: 20px;
+    justify-items: center; /* Canh giữa các phần tử */
+  }
+  
+  .voucher-item {
+    background-color: #1b1b2f;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%; /* Đảm bảo các phần tử có cùng kích thước */
+    max-width: 300px; /* Giới hạn chiều rộng */
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  
+  .voucher-item:hover {
+    transform: scale(1.02);
+    border: 1px solid #4caf50;
+  }
+  
+  .voucher-item h3 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+  }
+  
+  .for-text {
+    font-size: 1rem;
+    color: #a0a0a0;
+    margin-bottom: 10px;
+  }
+  
+  .voucher-code {
+    font-size: 0.9rem;
+    color: #ffffff;
+    margin-bottom: 20px;
+  }
+  
+  .voucher-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+  }
+  
+  .action-btn {
+    display: flex;
+    align-items: center;
+    background: none;
+    justify-content: center;
+    border: none;
+    color: #a0a0a0;
+    margin:auto;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+  }
+  
+  .action-btn:hover {
+    color: #ffffff;
+  }
+  
+  .action-btn svg {
+    margin-right: 5px;
+  }
+  
+  .validity,
+  .for-products {
+    font-size: 0.8rem;
+    color: #a0a0a0;
+  }
+  

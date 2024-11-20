@@ -1,59 +1,94 @@
 .terms-container {
   background-color: #1e2130;
   color: #ffffff;
-  padding: 20px;
-  margin: 2% 10%;
-  border-radius: 10px;
+  padding: 2rem;
+  margin: 2% auto;
+  max-width: 1000px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   font-family: "Montserrat", sans-serif;
 }
 
-.terms-title {
-  font-size: 24px;
-  margin-bottom: 20px;
-  cursor: pointer;
+.container {
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  cursor: pointer;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
 }
 
-.terms-title::after {
-  content: "▼";
-  font-size: 16px;
-  margin-left: 10px;
+.container:hover {
+  opacity: 0.9;
+}
+
+.terms-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.icon i {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.icon i.fa-chevron-up {
+  transform: rotate(0deg);
+}
+
+.icon i.fa-chevron-down {
+  transform: rotate(180deg);
 }
 
 .terms-content {
-  max-height: none;
+  max-height: 2000px;
   overflow: hidden;
-  transition: max-height 0.3s ease-out;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 1;
+  padding-top: 1.5rem;
 }
 
 .terms-content.closed {
   max-height: 0;
+  opacity: 0;
+  padding-top: 0;
 }
-.domdom {
-  font-weight: bold;
-  transition: text-shadow 0.3s ease;
-}
-.domdom:hover {
-  text-shadow: 0 0 3px rgba(255, 255, 0, 0.5), 0 0 5px rgba(255, 255, 0, 0.5),
-    0 0 8px rgba(255, 165, 0, 0.5);
-}
+
 .terms-section {
-  margin-bottom: 20px;
+  margin-bottom: 2rem;
 }
 
 .section-title {
-  font-size: 18px;
-  margin-bottom: 10px;
-}
-.section-title:hover {
-  text-shadow: 0 0 3px rgba(103, 113, 101, 0.5), 0 0 5px rgba(54, 57, 63, 0.5),
-    0 0 8px rgba(96, 113, 97, 0.5);
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  color: #e0e0e0;
 }
 
 .terms-paragraph {
-  font-size: 14px;
-  line-height: 1.5;
-  font-family: Montserrat;
-  margin-bottom: 10px;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .terms-container {
+    margin: 2% 5%;
+    padding: 1.5rem;
+  }
+
+  .terms-title {
+    font-size: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+  }
+
+  .terms-paragraph {
+    font-size: 0.9rem;
+  }
 }

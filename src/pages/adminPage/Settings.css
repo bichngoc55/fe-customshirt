@@ -1,0 +1,110 @@
+/* Container for the profile section */
+.profile-container {
+    background-color: #131720;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 550px; /* Reduced width slightly */
+    margin: 20px auto;
+    padding: 25px 15px; /* Adjusted padding */
+    border: 1px solid #759AF9;
+    color: white;
+    margin-left: 120px;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.profile-header {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px; /* Adjusted spacing */
+    color: #C8FFF6;
+    text-align: left;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #759AF9;
+}
+
+.profile-picture {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-picture p {
+    color: white; /* Changed text color */
+    font-size: 12px;
+    margin-top: 15px; /* Adjusted spacing */
+    text-align: center;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column; /* Align label and input in the same row */
+    align-items: flex-start;
+    margin-bottom: 25px;
+    width: 100%;
+}
+
+.form-group label {
+    width: 70%;
+    display: block;
+    font-size: 13px;
+    margin-bottom: 10px;
+    color: #C8FFF6;
+    text-align: left;
+    margin-left: 13%;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 70%;
+    padding: 14px; /* Adjusted padding */
+    border: 1px solid #759AF9;
+    border-radius: 20px;
+    background-color: #1e2230;
+    color: white;
+    outline: none;
+    font-size: 14px;
+    /* justify-content: center; */
+    text-align: left;
+    margin: 0 auto;
+}
+
+.save-button {
+    display: flex;
+    justify-content: center;
+    margin-top: -5px; /* Adjusted spacing */
+}
+
+.save-button button {
+    background-color: #C8FFF6;
+    color: black;
+    padding: 8px 16px; /* Adjusted padding */
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px; /* Reduced font size */
+    margin-top: 15px;
+}
+
+.save-button button:hover {
+    background-color: #2EBB77;
+}
+
+.notice {
+    color: white;
+    font-size: 12px;
+    text-align: center;
+    margin-top: 20px;
+}
