@@ -35,6 +35,7 @@ import {
   updateDeliveryStatus,
 } from "../../redux/orderSlice";
 import { format, parseISO } from "date-fns";
+import CancelOrderDialog from "../../components/ModalCancelOrder/ModalCancelOrder";
 
 const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
   backgroundColor: "var(--background-color)",
@@ -45,7 +46,7 @@ const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
     color: "white",
   },
   "& table": {
-    tableLayout: "fixed", // Add this to ensure fixed column widths
+    tableLayout: "fixed",
     width: "100%",
   },
 }));
@@ -165,6 +166,7 @@ const DetailTableCellHead = styled(TableCell)(({ theme, width }) => ({
 const MyOrder = () => {
   const [openRows, setOpenRows] = useState({});
   const { user } = useSelector((state) => state.auths);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -174,6 +176,8 @@ const MyOrder = () => {
     setOpenRows((prev) => ({ ...prev, [id]: !prev[id] }));
   };
   const [cancelingOrders, setCancelingOrders] = useState({});
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+
   const dispatch = useDispatch();
   const { orders, status, error, cancelStatus, updateStatus } = useSelector(
     (state) => state.orders
@@ -215,9 +219,26 @@ const MyOrder = () => {
   const formattedDate = (date) => {
     return format(parseISO(date), "dd/MM/yy");
   };
-  const handleCancelOrder = async (orderId) => {
-    if (window.confirm("Are you sure you want to cancel this order?")) {
-      dispatch(cancelOrder(orderId));
+  // const handleCancelOrder = async (orderId) => {
+  //   if (window.confirm("Are you sure you want to cancel this order?")) {
+  //     dispatch(cancelOrder(orderId));
+  //     if (cancelStatus === "succeeded") {
+  //       setSnackbar({
+  //         open: true,
+  //         message: "Order cancelled successfully",
+  //         severity: "success",
+  //       });
+  //       dispatch(fetchOrders());
+  //     }
+  //   }
+  // };
+  const handleCancelOrder = (orderId) => {
+    setSelectedOrderId(orderId);
+    setCancelDialogOpen(true);
+  };
+  const handleConfirmCancel = () => {
+    if (selectedOrderId) {
+      dispatch(cancelOrder(selectedOrderId));
       if (cancelStatus === "succeeded") {
         setSnackbar({
           open: true,
@@ -226,7 +247,13 @@ const MyOrder = () => {
         });
         dispatch(fetchOrders());
       }
+      setCancelDialogOpen(false);
+      setSelectedOrderId(null);
     }
+  };
+  const handleCloseDialog = () => {
+    setCancelDialogOpen(false);
+    setSelectedOrderId(null);
   };
 
   const handleCloseSnackbar = (event, reason) => {
@@ -267,6 +294,7 @@ const MyOrder = () => {
   //   dispatch(updateOrder({ id, orderData: updatedOrderData }));
   // };
   const formatPrice = (price) => {
+    if (price == null) return "0";
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
   const formattedTime = (date) => {
@@ -334,16 +362,18 @@ const MyOrder = () => {
             <TableBody>
               {orders.map((order) => (
                 <React.Fragment key={order._id}>
-                  <StyledTableRow onClick={() => handleRowClick(order._id)}>
+                  <StyledTableRow>
                     <StyledTableCell>
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 2 }}
                       >
                         <Box>
                           <Typography
+                            onClick={() => handleRowClick(order._id)}
                             sx={{
                               fontFamily: "Montserrat",
                               fontSize: "16px",
+
                               fontWeight: "bold",
                               // marginLeft: "10px",
                             }}
@@ -542,7 +572,7 @@ const MyOrder = () => {
                                 {order.items.map((detail, index) => (
                                   <TableRow key={index}>
                                     <DetailTableCell component="th" scope="row">
-                                      {detail.product.name}
+                                      {detail.product?.name}
                                     </DetailTableCell>
                                     <DetailTableCell>
                                       {detail.productSize}
@@ -554,7 +584,7 @@ const MyOrder = () => {
                                       {detail.productQuantity}
                                     </DetailTableCell>
                                     <DetailTableCell align="right">
-                                      {formatPrice(detail.product.price)}
+                                      {formatPrice(detail.product?.price)}
                                     </DetailTableCell>
                                   </TableRow>
                                 ))}
@@ -639,7 +669,11 @@ const MyOrder = () => {
           </Table>
         </StyledTableContainer>
       </Box>
-
+      <CancelOrderDialog
+        open={cancelDialogOpen}
+        onClose={handleCloseDialog}
+        onConfirm={handleConfirmCancel}
+      />
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}

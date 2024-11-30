@@ -8,13 +8,15 @@ import {
   IconButton,
   styled,
 } from "@mui/material";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 const StyledCard = styled(Card)(({ theme }) => ({
   backgroundColor: "#1a1a1a",
-  width: 480,
+  // width: 480,
   margin: "0 7px",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "center",
   height: "auto",
   position: "relative",
   transition: "transform 0.2s ease",
@@ -32,6 +34,8 @@ const CarouselContainer = styled(Box)({
 const ProductsContainer = styled(Box)({
   display: "flex",
   overflowX: "auto",
+  // width: "50%",
+  height: "auto",
   scrollBehavior: "smooth",
   padding: "20px 0",
   "&::-webkit-scrollbar": {
@@ -41,22 +45,10 @@ const ProductsContainer = styled(Box)({
   "scrollbar-width": "none",
 });
 
-const NavigationButton = styled(IconButton)(({ position }) => ({
-  position: "absolute",
-  top: "50%",
-  transform: "translateY(-50%)",
-  backgroundColor: "rgba(0, 0, 0, 0.5)",
-  color: "white",
-  zIndex: 2,
-  "&:hover": {
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-  },
-  ...(position === "left" ? { left: 0 } : { right: 0 }),
-}));
-
 const ProductImage = styled(CardMedia)({
-  height: 200,
+  height: 280,
   objectFit: "cover",
+  borderRadius: "5px",
 });
 
 const ProductInfo = styled(CardContent)({
@@ -229,7 +221,12 @@ const RecentViewedSlider = ({ user, product }) => {
             ))
           ) : (
             <Typography
-              sx={{ color: "white", textAlign: "center", width: "100%" }}
+              sx={{
+                color: "white",
+                textAlign: "center",
+                width: "100%",
+                marginLeft: "-20px",
+              }}
             >
               You have to login to view this section
             </Typography>

@@ -1,14 +1,37 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Async Thunks
-export const createVoucher = createAsyncThunk(
-  "vouchers/createVoucher",
-  async (voucherData, { rejectWithValue }) => {
+// Modified getVouchers to handle user and order total
+export const getVouchers = createAsyncThunk(
+  "vouchers/getVouchers",
+  async ({ userId, orderTotal } = {}, { rejectWithValue }) => {
+    try {
+      let url = "http://localhost:3005/voucher";
+      const params = new URLSearchParams();
+
+      if (orderTotal) params.append("orderTotal", orderTotal);
+      if (userId) params.append("userId", userId);
+
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+
+      const response = await axios.get(url);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data.message);
+    }
+  }
+);
+
+// New thunk for creating birthday voucher
+export const createBirthdayVoucher = createAsyncThunk(
+  "vouchers/createBirthdayVoucher",
+  async (userId, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        "http://localhost:3005/voucher",
-        voucherData
+        "http://localhost:3005/voucher/birthday",
+        { userId }
       );
       return response.data;
     } catch (error) {
@@ -17,13 +40,33 @@ export const createVoucher = createAsyncThunk(
   }
 );
 
-export const getVouchers = createAsyncThunk(
-  "vouchers/getVouchers",
-  async (_, { rejectWithValue }) => {
+// Modified validateVoucher to include user info
+export const validateVoucher = createAsyncThunk(
+  "vouchers/validateVoucher",
+  async ({ code, userId }, { rejectWithValue }) => {
     try {
-      console.log("Fetching vouchers");
-      const response = await axios.get("http://localhost:3005/voucher");
-      //   console.log("Fetched vouchers", response.data);
+      const response = await axios.get(
+        `http://localhost:3005/voucher/validate/${code}`,
+        {
+          params: { userId },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data.message);
+    }
+  }
+);
+
+// Keep other existing thunks...
+export const createVoucher = createAsyncThunk(
+  "vouchers/createVoucher",
+  async (voucherData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:3005/voucher",
+        voucherData
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data.message);
@@ -70,20 +113,6 @@ export const deleteVoucher = createAsyncThunk(
   }
 );
 
-export const validateVoucher = createAsyncThunk(
-  "vouchers/validateVoucher",
-  async (code, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(
-        `http://localhost:3005/voucher/validate/${code}`
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data.message);
-    }
-  }
-);
-
 export const getVoucherStats = createAsyncThunk(
   "vouchers/getVoucherStats",
   async (_, { rejectWithValue }) => {
@@ -96,7 +125,7 @@ export const getVoucherStats = createAsyncThunk(
   }
 );
 
-// Slice
+// Updated Slice
 const voucherSlice = createSlice({
   name: "vouchers",
   initialState: {
@@ -105,14 +134,76 @@ const voucherSlice = createSlice({
     voucherStats: null,
     loading: false,
     error: null,
+    birthdayVoucher: null,
+    totalValueVoucher: null,
   },
   reducers: {
     clearError: (state) => {
       state.error = null;
     },
+    clearVoucher: (state) => {
+      state.voucher = null;
+    },
   },
   extraReducers: (builder) => {
     builder
+      // Handle getVouchers
+      .addCase(getVouchers.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getVouchers.fulfilled, (state, action) => {
+        state.loading = false;
+        state.vouchers = action.payload.data.map((voucher) => ({
+          ...voucher,
+          isApplicable: voucher.hasOwnProperty("isApplicable")
+            ? voucher.isApplicable
+            : true,
+        }));
+
+        // Handle special vouchers
+        const birthdayVoucher = state.vouchers.find((v) =>
+          v.code?.startsWith("BDAY-")
+        );
+        const totalValueVoucher = state.vouchers.find(
+          (v) => v.code === "TOTAL30"
+        );
+
+        if (birthdayVoucher) state.birthdayVoucher = birthdayVoucher;
+        if (totalValueVoucher) state.totalValueVoucher = totalValueVoucher;
+      })
+      .addCase(getVouchers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Handle createBirthdayVoucher
+      .addCase(createBirthdayVoucher.fulfilled, (state, action) => {
+        state.loading = false;
+        state.birthdayVoucher = action.payload.data;
+        state.vouchers.push(action.payload.data);
+      })
+
+      // Handle validateVoucher
+      .addCase(validateVoucher.fulfilled, (state, action) => {
+        state.loading = false;
+        state.voucher = action.payload.data;
+
+        // Update voucher applicability in the list
+        if (action.payload.data) {
+          const index = state.vouchers.findIndex(
+            (v) => v.code === action.payload.data.code
+          );
+          if (index !== -1) {
+            state.vouchers[index] = {
+              ...state.vouchers[index],
+              ...action.payload.data,
+            };
+          }
+        }
+      })
+
+      // Keep other existing cases...
       .addCase(createVoucher.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -122,19 +213,6 @@ const voucherSlice = createSlice({
         state.vouchers.push(action.payload.data);
       })
       .addCase(createVoucher.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(getVouchers.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(getVouchers.fulfilled, (state, action) => {
-        state.loading = false;
-        // console.log("Fetched vouchers", action.payload.data);
-        state.vouchers = action.payload.data;
-      })
-      .addCase(getVouchers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
@@ -159,7 +237,9 @@ const voucherSlice = createSlice({
         const index = state.vouchers.findIndex(
           (v) => v._id === action.payload.data._id
         );
-        state.vouchers[index] = action.payload.data;
+        if (index !== -1) {
+          state.vouchers[index] = action.payload.data;
+        }
       })
       .addCase(updateVoucher.rejected, (state, action) => {
         state.loading = false;
@@ -174,18 +254,6 @@ const voucherSlice = createSlice({
         state.vouchers = state.vouchers.filter((v) => v._id !== action.payload);
       })
       .addCase(deleteVoucher.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(validateVoucher.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(validateVoucher.fulfilled, (state, action) => {
-        state.loading = false;
-        state.voucher = action.payload.data;
-      })
-      .addCase(validateVoucher.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
@@ -204,5 +272,5 @@ const voucherSlice = createSlice({
   },
 });
 
-export const { clearError } = voucherSlice.actions;
+export const { clearError, clearVoucher } = voucherSlice.actions;
 export default voucherSlice.reducer;

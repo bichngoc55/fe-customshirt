@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+
 import { Canvas } from "@react-three/fiber";
 import {
   OrbitControls,
@@ -8,7 +9,6 @@ import {
 } from "@react-three/drei";
 import AIGeneratorModal from "../../components/AIGeneratorModal";
 import * as fabric from "fabric";
-import SettingsIcon from "@mui/icons-material/Settings";
 import {
   Box,
   Typography,
@@ -17,17 +17,13 @@ import {
   MenuItem,
   styled,
   Select,
-  Slider,
-  Dialog,
-  DialogTitle,
-  DialogContent,
   Tab,
   Modal,
   Switch,
 } from "@mui/material";
 import "./designPage.css";
 import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
-import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
+
 import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import ZoomInOutlinedIcon from "@mui/icons-material/ZoomInOutlined";
@@ -41,8 +37,8 @@ import FormatColorFillIcon from "@mui/icons-material/FormatColorFill";
 import AutoFixNormalIcon from "@mui/icons-material/AutoFixNormal";
 import HorizontalRuleIcon from "@mui/icons-material/HorizontalRule";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
-import { SketchPicker } from "react-color";
 import ControlCameraIcon from "@mui/icons-material/ControlCamera";
+import axios from "axios";
 //function load model
 function ModelWhite(props) {
   const { scene } = useGLTF("/t_shirt.glb");
@@ -98,19 +94,15 @@ const StyledSelect = styled(Select)(() => ({
     gap: "8px",
   },
 }));
-const styles = {
-  border: "0.0625rem solid #9c9c9c",
-  borderRadius: "0.25rem",
-};
 const DesignPage = () => {
-  const [selectedView, setSelectedView] = useState(0);
+  const [designTitle, setDesignTitle] = useState("Untitled");
   const [isOpen3Dview, setIsOpen3Dview] = useState(false);
   const [stickers, setStickers] = useState([]);
   const [selectedSticker, setSelectedSticker] = useState(null);
   const [isWhiteModel, setIsWhiteModel] = useState(true);
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedImage, setGeneratedImage] = useState(null);
+  const [generatedImage, setGeneratedImage] = useState([]);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const colors = ["white", "black"];
   const [drawingTool, setDrawingTool] = useState("Pencil");
@@ -118,62 +110,55 @@ const DesignPage = () => {
   const canvasRef = useRef(null);
   const [drawColor, setDrawColor] = useState("#000000");
   const [shapeType, setShapeType] = useState("rectangle");
-  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [selectedColors, setSelectedColors] = useState("white");
   const [pencilWidth, setPencilWidth] = useState(3);
   const [eraserWidth, setEraserWidth] = useState(20);
-  const [shapeWidth, setShapeWidth] = useState(5);
-  const [shapeSize, setShapeSize] = useState(100);
-  const [shapeRotation, setShapeRotation] = useState(0);
-  const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
   const [activeShape, setActiveShape] = useState(null);
   const canvasInitializedRef = useRef(false);
+  const [history, setHistory] = useState([]);
 
+  const saveCanvasState = () => {
+    if (canvas) {
+      const currentState = canvas.toJSON();
+      setHistory((prevHistory) => [...prevHistory, currentState]);
+    }
+  };
+  const undoLastAction = () => {
+    if (history.length > 0) {
+      const previousState = history[history.length - 1];
+      canvas.loadFromJSON(previousState, () => {
+        canvas.renderAll();
+        setHistory((prevHistory) => prevHistory.slice(0, -1));
+      });
+    }
+  };
   const generateImage = async () => {
     if (!prompt) return;
+    setGeneratedImage([]);
 
     setIsGenerating(true);
+    console.log("Generating prompt", prompt);
     try {
-      const response = await fetch(
-        "https://api.openai.com/v1/images/generations",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.KEY}`,
-          },
-          body: JSON.stringify({
-            prompt: prompt,
-            n: 1,
-            size: "1024x1024",
-          }),
-        }
+      const response = await axios.post(
+        "http://localhost:3005/api/generate-image",
+        { prompt }
       );
-      // console.log(`Bearer ${KEY}`);
-      console.log(response);
+      console.log("response: " + JSON.stringify(response));
 
-      const data = await response.json();
-      if (data.data && data.data[0].url) {
-        setGeneratedImage(data.data[0].url);
-        // Add the generated image to stickers
-        setStickers([
-          ...stickers,
-          {
-            id: Date.now(),
-            image: data.data[0].url,
-            x: 0,
-            y: 0,
-          },
-        ]);
+      if (response.data.success) {
+        setGeneratedImage(response.data.imageBase64);
       }
     } catch (error) {
-      console.error("Error generating image:", error);
+      console.error("Image generation failed:", error);
     } finally {
       setIsGenerating(false);
     }
   };
   const handleToolChange = (tool) => {
     setDrawingTool(tool);
+  };
+  const handleTitleChange = (e) => {
+    setDesignTitle(e.target.value);
   };
 
   const handleColorChange = (event) => {
@@ -184,9 +169,6 @@ const DesignPage = () => {
   const handleAIButtonClick = () => {
     setIsAIModalOpen(true);
   };
-  const handleChangeView = (event, newValue) => {
-    setSelectedView(newValue);
-  };
 
   const tools = [
     { name: "Pencil", icon: <PencilIcon /> },
@@ -194,12 +176,9 @@ const DesignPage = () => {
     { name: "Position", icon: <ControlCameraIcon /> },
 
     { name: "Eraser", icon: <AutoFixNormalIcon /> },
-    // { name: "Line", icon: <HorizontalRuleIcon /> },
     { name: "Shape", icon: <StarBorderIcon /> },
   ];
-  //sticker
 
-  // Handle drag-and-drop
   const handleDragStart = (sticker) => {
     setSelectedSticker(sticker);
   };
@@ -215,9 +194,7 @@ const DesignPage = () => {
       setSelectedSticker(null);
     }
   };
-  // draw
   useEffect(() => {
-    // Initialize canvas only once
     if (!canvasInitializedRef.current && canvasRef.current) {
       const initCanvas = new fabric.Canvas(canvasRef.current, {
         width: 550,
@@ -226,7 +203,6 @@ const DesignPage = () => {
       setCanvas(initCanvas);
       canvasInitializedRef.current = true;
 
-      // Return cleanup function
       return () => {
         initCanvas.dispose();
         canvasInitializedRef.current = false;
@@ -236,15 +212,10 @@ const DesignPage = () => {
 
   useEffect(() => {
     if (canvas) {
-      // Load the t-shirt image as background
       fabric.Image.fromURL(
         selectedColors === "white"
-          ? selectedView === 0
-            ? require("../../assets/images/whiteShirtFront.png")
-            : require("../../assets/images/whiteShirtBack.png")
-          : selectedView === 0
-          ? require("../../assets/images/blackShirtFront.png")
-          : require("../../assets/images/blackShirtBack.png"),
+          ? require("../../assets/images/whiteShirtFront.png")
+          : require("../../assets/images/blackShirtFront.png"),
         (img) => {
           img.scaleToWidth(550);
           img.scaleToHeight(550);
@@ -252,7 +223,7 @@ const DesignPage = () => {
         }
       );
     }
-  }, [canvas, selectedColors, selectedView]);
+  }, [canvas, selectedColors]);
   const addShape = (type) => {
     if (!canvas) return;
 
@@ -343,41 +314,17 @@ const DesignPage = () => {
   };
   useEffect(() => {
     if (canvas) {
-      startDrawing(); // Initialize the current tool settings
+      startDrawing();
+    }
+    if (canvas) {
+      canvas.on("mouse:up", stopDrawing);
+
+      return () => {
+        canvas.off("mouse:up", stopDrawing);
+      };
     }
   }, [canvas, drawingTool, drawColor, pencilWidth, eraserWidth]);
-  // useEffect(() => {
-  //   if (canvas) {
-  //     canvas.on("mouse:down", startDrawing);
-  //     canvas.on("mouse:up", stopDrawing);
-  //     canvas.on("selection:created", (e) => setActiveShape(e.target));
-  //     canvas.on("selection:updated", (e) => setActiveShape(e.target));
-  //     canvas.on("selection:cleared", () => setActiveShape(null));
 
-  //     return () => {
-  //       canvas.off("mouse:down", startDrawing);
-  //       canvas.off("mouse:up", stopDrawing);
-  //       canvas.off("selection:created");
-  //       canvas.off("selection:updated");
-  //       canvas.off("selection:cleared");
-  //     };
-  //   }
-  // }, [canvas, drawingTool, shapeType, drawColor, pencilWidth, eraserWidth]);
-
-  const handlePreferencesOpen = () => {
-    setIsPreferencesOpen(true);
-  };
-
-  const handlePreferencesClose = () => {
-    setIsPreferencesOpen(false);
-  };
-
-  const updateShapePreferences = (property, value) => {
-    if (activeShape) {
-      activeShape.set(property, value);
-      canvas.renderAll();
-    }
-  };
   return (
     <Box className="design-page">
       <Box className="upper-part">
@@ -396,10 +343,8 @@ const DesignPage = () => {
           <input
             type="text"
             className="design-title"
-            value="Untitile"
-            onChange={(e) => {
-              /* Handle title change */
-            }}
+            value={designTitle}
+            onChange={handleTitleChange}
           />
           <div className="icons">
             <IconButton>
@@ -463,7 +408,7 @@ const DesignPage = () => {
                 </Modal>
               )}
             </IconButton>
-            <IconButton>
+            <IconButton onClick={undoLastAction}>
               <ReplayOutlinedIcon sx={{ color: "white" }} />
             </IconButton>
             <IconButton>
@@ -548,34 +493,20 @@ const DesignPage = () => {
         </Box>
 
         <Box className="product-container">
-          <Tabs
-            value={selectedView}
-            onChange={handleChangeView}
-            aria-label="product views"
-            sx={{ borderBottom: 1, borderColor: "divider" }}
-          >
-            <Tab label="Front" />
-            <Tab label="Back" />
-          </Tabs>
           <Box className="product-view" style={{ position: "relative" }}>
-            {/* Show shirt image */}
-
             <img
               id="shirt-image"
               src={
                 selectedColors === "white"
-                  ? selectedView === 0
-                    ? require("../../assets/images/whiteShirtFront.png")
-                    : require("../../assets/images/whiteShirtBack.png")
-                  : selectedView === 0
-                  ? require("../../assets/images/blackShirtFront.png")
-                  : require("../../assets/images/blackShirtBack.png")
+                  ? require("../../assets/images/whiteShirtFront.png")
+                  : require("../../assets/images/blackShirtFront.png")
               }
               alt="T-Shirt"
               className="product-image"
               style={{
                 width: "550px",
                 height: "550px",
+                padding: "15px",
                 marginLeft: "220px",
               }}
             />
@@ -593,48 +524,7 @@ const DesignPage = () => {
               }}
             />
           </Box>
-          <IconButton onClick={handlePreferencesOpen} disabled={!activeShape}>
-            <SettingsIcon />
-          </IconButton>
-          <Dialog open={isPreferencesOpen} onClose={handlePreferencesClose}>
-            <DialogTitle>Shape Preferences</DialogTitle>
-            <DialogContent>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <Typography>Size</Typography>
-                <input
-                  type="number"
-                  value={activeShape?.width || 0}
-                  onChange={(e) =>
-                    updateShapePreferences("width", Number(e.target.value))
-                  }
-                />
-                <Typography>Rotation</Typography>
-                <input
-                  type="number"
-                  value={activeShape?.angle || 0}
-                  onChange={(e) =>
-                    updateShapePreferences("angle", Number(e.target.value))
-                  }
-                />
-                <Typography>Position X</Typography>
-                <input
-                  type="number"
-                  value={activeShape?.left || 0}
-                  onChange={(e) =>
-                    updateShapePreferences("left", Number(e.target.value))
-                  }
-                />
-                <Typography>Position Y</Typography>
-                <input
-                  type="number"
-                  value={activeShape?.top || 0}
-                  onChange={(e) =>
-                    updateShapePreferences("top", Number(e.target.value))
-                  }
-                />
-              </Box>
-            </DialogContent>
-          </Dialog>
+
           <div
             className="stickers-container"
             style={{ position: "relative", width: "100%", height: "100%" }}

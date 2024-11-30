@@ -98,6 +98,7 @@ const cartSlice = createSlice({
       state.items = action.payload.items;
     },
     setSelectedItems: (state, action) => {
+      console.log("trong action payload: ", action.payload);
       state.selectedItems = action.payload;
     },
     selectAllItems: (state) => {

@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { addToCart } from "../../redux/cartSlice";
+import { addToCart, setSelectedItems } from "../../redux/cartSlice";
 import RestartAltOutlinedIcon from "@mui/icons-material/RestartAltOutlined";
 import { FaPinterest } from "react-icons/fa";
 import sizeguide from "../../assets/images/sizeguide.png";
@@ -59,6 +59,7 @@ const TShirtDetails = () => {
   const navigate = useNavigate();
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const { selectedItems } = useSelector((state) => state.cart);
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
   const [voucherCode, setVoucherCode] = useState([]);
   const [copied, setCopied] = useState(null);
@@ -262,7 +263,7 @@ const TShirtDetails = () => {
           productId: product._id,
           selectedSize,
           selectedColor,
-          quantity: 1,
+          quantity: quantity,
         })
       ).unwrap();
 
@@ -283,11 +284,47 @@ const TShirtDetails = () => {
   };
 
   const handleBuyNow = () => {
-    if (!token) {
-      showAuthenticationMessage();
+    // if (!token) {
+    //   showAuthenticationMessage();
+    //   return;
+    // }
+    // handleAddToCart();
+    if (selectedColor !== "white" && selectedColor !== "black") {
+      setSnackbarMessage("Please select color");
+      setSnackbarSeverity("warning");
+      setOpenSnackbar(true);
       return;
     }
-    handleAddToCart();
+    if (!selectedSize) {
+      setSnackbarMessage("Please select size");
+      setSnackbarSeverity("warning");
+      setOpenSnackbar(true);
+      return;
+    }
+    const cartItem = {
+      productId: product._id,
+      product: {
+        _id: product._id,
+        salePercent: product.salePercent,
+        name: product.name,
+        price: product.price,
+        //  sai thi sua thanhf calculate
+        // originalPrice: product.price,
+        imageUrl: product.imageUrl,
+      },
+      // originalPrice: product.price,
+      selectedSize: selectedSize,
+      selectedColor: selectedColor,
+      quantity: quantity,
+      // imageUrl: product.imageUrl[0],
+      // isSale: product.isSale,
+      // salePercent: product.salePercent,
+    };
+    console.log("cart Items without login:", cartItems);
+    dispatch(setSelectedItems([cartItem]));
+    navigate(`/checkout/${selectedItems[0]._id}/shipping`);
+    // navigate(`/checkout/${selectedItems[0]._id}/shipping`);
+    // navigate("/checkout/2832483274837832483/shipping");
   };
 
   return (
