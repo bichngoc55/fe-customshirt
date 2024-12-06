@@ -3,6 +3,7 @@ import DashBoard from "./dashBoard";
 import { Routes, Route } from "react-router-dom";
 import User from "./User";
 import Order from "./Order";
+import Voucher from "./Voucher";
 import { Box } from "@mui/material";
 import Message from "./Message";
 import Analytics from "./Analytics";
@@ -15,6 +16,7 @@ const AdminPage = () => {
         <Route path="/" element={<Analytics />} />
         <Route path="/user" element={<User />} />
         <Route path="/order" element={<Order />} />
+        <Route path="/voucher" element={<Voucher />} />
         <Route path="/message" element={<Message />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
