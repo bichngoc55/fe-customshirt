@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import React, { useState, useEffect } from "react";
-=======
-import React, { useState,useEffect } from "react";
->>>>>>> main
 import "./Voucher.css";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import EditIcon from "@mui/icons-material/Edit";
@@ -40,11 +36,7 @@ const Voucher = () => {
     navigator.clipboard.writeText(code);
     alert(`Copied: ${code}`);
   };
-<<<<<<< HEAD
   const [vouchers, setVoucherCode] = useState([]);
-=======
-  const [vouchers,setVoucherCode]=useState([])
->>>>>>> main
   useEffect(() => {
     const fetchVoucherCode = async () => {
       try {
@@ -61,7 +53,6 @@ const Voucher = () => {
   }, []);
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-<<<<<<< HEAD
     const day = date.getDate().toString().padStart(2, "0");
     const month = (date.getMonth() + 1).toString().padStart(2, "0");
     const year = date.getFullYear().toString().slice(-2);
@@ -72,18 +63,6 @@ const Voucher = () => {
     <section className="voucher-section2">
       <h2 style={{ marginRight: "20px" }}>VOUCHER</h2>
       {/* <button className="add-voucher-btn">Add voucher</button> */}
-=======
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear().toString().slice(-2);
-    return `${day}/${month}/${year}`;
-  };
-  
-  return (
-    <section className="voucher-section">
-      <h2>VOUCHER</h2>
-      <button className="add-voucher-btn">Add voucher</button>
->>>>>>> main
       <div className="voucher-grid">
         {vouchers.map((voucher) => (
           <div key={voucher.code} className="voucher-item">
@@ -110,11 +89,7 @@ const Voucher = () => {
               </button>
             </div>
             <p className="validity">
-<<<<<<< HEAD
               • {formatDate(voucher.startDate)} - {formatDate(voucher.endDate)}
-=======
-            • {formatDate(voucher.startDate)} - {formatDate(voucher.endDate)}
->>>>>>> main
             </p>
             <p className="for-products">• {voucher.conditions}</p>
           </div>
