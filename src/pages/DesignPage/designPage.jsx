@@ -13,17 +13,17 @@ import {
   Box,
   Typography,
   IconButton,
-  Tabs,
+  Tooltip,
   MenuItem,
   styled,
   Select,
-  Tab,
   Modal,
   Switch,
 } from "@mui/material";
 import "./designPage.css";
 import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
-
+import ContentPasteIcon from "@mui/icons-material/ContentPaste";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import ZoomInOutlinedIcon from "@mui/icons-material/ZoomInOutlined";
@@ -96,6 +96,7 @@ const StyledSelect = styled(Select)(() => ({
 }));
 const DesignPage = () => {
   const [designTitle, setDesignTitle] = useState("Untitled");
+  const [clipboardImgData, setClipboardImgData] = useState(null);
   const [isOpen3Dview, setIsOpen3Dview] = useState(false);
   const [stickers, setStickers] = useState([]);
   const [selectedSticker, setSelectedSticker] = useState(null);
@@ -116,6 +117,7 @@ const DesignPage = () => {
   const [activeShape, setActiveShape] = useState(null);
   const canvasInitializedRef = useRef(false);
   const [history, setHistory] = useState([]);
+  const [hoveredSticker, setHoveredSticker] = useState(null);
 
   const saveCanvasState = () => {
     if (canvas) {
@@ -132,6 +134,63 @@ const DesignPage = () => {
       });
     }
   };
+  // paste img
+  // const pasteImg = async () => {
+  //   try {
+  //     const clipboardItems = await navigator.clipboard.read();
+  //     const blobOutput = await clipboardItems[0].getType("image/png");
+  //     const imgUrl = URL.createObjectURL(blobOutput);
+
+  //     if (canvas) {
+  //       fabric.Image.fromURL(imgUrl, (img) => {
+  //         img.scaleToWidth(200);
+  //         img.scaleToHeight(200);
+
+  //         const center = canvas.getCenter();
+  //         img.set({
+  //           left: center.left,
+  //           top: center.top,
+  //           cornerStyle: "circle",
+  //           transparentCorners: false,
+  //           borderColor: "rgba(0,0,0,0.5)",
+  //         });
+
+  //         img.set({
+  //           hasControls: true,
+  //           hasBorders: true,
+  //           lockScalingFlip: true,
+  //           lockRotation: true,
+  //         });
+
+  //         canvas.add(img);
+  //         canvas.setActiveObject(img);
+  //         canvas.renderAll();
+  //       });
+  //     }
+
+  //     setClipboardImgData(imgUrl);
+  //   } catch (e) {
+  //     console.error("Error pasting image:", e);
+  //     alert("Unable to paste image. Please ensure you have an image copied.");
+  //   }
+  // };
+  // copy
+  const copyToClipboard = async (image) => {
+    try {
+      const response = await fetch(`data:image/png;base64,${image}`);
+      const blob = await response.blob();
+
+      const data = [new ClipboardItem({ "image/png": blob })];
+      await navigator.clipboard.write(data);
+
+      return `data:image/png;base64,${image}`;
+    } catch (err) {
+      console.error("Failed to copy image:", err);
+      alert("Failed to copy image to clipboard.");
+      return null;
+    }
+  };
+  // generate sticker
   const generateImage = async () => {
     if (!prompt) return;
     setGeneratedImage([]);
@@ -147,6 +206,13 @@ const DesignPage = () => {
 
       if (response.data.success) {
         setGeneratedImage(response.data.imageBase64);
+        // setStickers(response.data.imageBase64);
+        const newImages = Array.isArray(response.data.imageBase64)
+          ? response.data.imageBase64
+          : [response.data.imageBase64];
+
+        setStickers((prev) => [...prev, ...newImages]);
+        console.log("stickers: ", stickers);
       }
     } catch (error) {
       console.error("Image generation failed:", error);
@@ -179,21 +245,6 @@ const DesignPage = () => {
     { name: "Shape", icon: <StarBorderIcon /> },
   ];
 
-  const handleDragStart = (sticker) => {
-    setSelectedSticker(sticker);
-  };
-
-  const handleDrop = (e) => {
-    if (selectedSticker) {
-      const newStickers = stickers.map((sticker) =>
-        sticker.id === selectedSticker.id
-          ? { ...sticker, x: e.clientX, y: e.clientY }
-          : sticker
-      );
-      setStickers(newStickers);
-      setSelectedSticker(null);
-    }
-  };
   useEffect(() => {
     if (!canvasInitializedRef.current && canvasRef.current) {
       const initCanvas = new fabric.Canvas(canvasRef.current, {
@@ -201,15 +252,141 @@ const DesignPage = () => {
         height: 550,
       });
       setCanvas(initCanvas);
-      canvasInitializedRef.current = true;
+      // canvasInitializedRef.current = true;
 
       return () => {
         initCanvas.dispose();
-        canvasInitializedRef.current = false;
+        // canvasInitializedRef.current = false;
       };
     }
   }, []);
+  const pasteImg = async () => {
+    try {
+      const clipboardItems = await navigator.clipboard.read();
+      const clipboardItem = clipboardItems[0];
+      const imageTypes = await clipboardItem.types;
 
+      if (imageTypes.includes("image/png")) {
+        const blob = await clipboardItem.getType("image/png");
+        const base64Image = await blobToBase64(blob);
+
+        if (canvas) {
+          const imgElement = document.createElement("img");
+          imgElement.src = `data:image/png;base64,${base64Image}`;
+          imgElement.onload = function () {
+            const fabricImage = new fabric.Image(imgElement, {
+              scaleToWidth: 200,
+              scaleToHeight: 200,
+              left: canvas.getCenter().left,
+              top: canvas.getCenter().top,
+              cornerStyle: "circle",
+              transparentCorners: false,
+              borderColor: "rgba(0,0,0,0.5)",
+              hasControls: true,
+              hasBorders: true,
+              lockScalingFlip: true,
+              // lockRotation: true,
+              elementType: "sticker",
+            });
+
+            canvas.add(fabricImage);
+            canvas.centerObject(fabricImage);
+            canvas.setActiveObject(fabricImage);
+            canvas.renderAll();
+
+            setupImageDeleteListener();
+          };
+        }
+      } else {
+        alert("No PNG image found in clipboard.");
+      }
+    } catch (e) {
+      console.error("Error pasting image:", e);
+      alert("Unable to paste image. Please ensure you have an image copied.");
+    }
+  };
+
+  const blobToBase64 = async (blob) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(",")[1]);
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(blob);
+    });
+  };
+  const handleDeleteImage = (e) => {
+    if (e.key === "delete" || e.key === "Backspace") {
+      const activeObject = canvas.getActiveObject();
+      if (activeObject && activeObject.type === "image") {
+        canvas.remove(activeObject);
+        canvas.renderAll();
+      }
+    }
+  };
+  const setupImageDeleteListener = () => {
+    document.addEventListener("keydown", handleDeleteImage);
+  };
+
+  const removeImageDeleteListener = () => {
+    document.removeEventListener("keydown", handleDeleteImage);
+  };
+  const handleAddImage = (e) => {
+    if (!canvas) return;
+
+    let imgObj = e.target.files[0];
+    let reader = new FileReader();
+    reader.readAsDataURL(imgObj);
+    reader.onload = (e) => {
+      let imageUrl = e.target.result;
+      let imageElement = document.createElement("img");
+      imageElement.src = imageUrl;
+      imageElement.onload = function () {
+        let image = new fabric.Image(imageElement);
+        image.scaleToWidth(200);
+        image.scaleToHeight(200);
+
+        const center = canvas.getCenter();
+        image.set({
+          left: center.left,
+          top: center.top,
+          cornerStyle: "circle",
+          transparentCorners: false,
+          borderColor: "rgba(0,0,0,0.5)",
+        });
+
+        image.set({
+          hasControls: true,
+          hasBorders: true,
+          lockScalingFlip: true,
+          // lockRotation: true,
+          elementType: "sticker",
+        });
+
+        canvas.add(image);
+        canvas.centerObject(image);
+        canvas.setActiveObject(image);
+        canvas.renderAll();
+        setupImageDeleteListener();
+      };
+    };
+  };
+  const addText = () => {
+    if (!canvas) return;
+
+    const text = new fabric.Textbox("Enter Text", {
+      left: canvas.getCenter().left,
+      top: canvas.getCenter().top,
+      fill: drawColor,
+      fontSize: 20,
+      fontFamily: "Arial",
+      elementType: "text",
+    });
+
+    canvas.add(text);
+    canvas.centerObject(text);
+    canvas.setActiveObject(text);
+    canvas.renderAll();
+  };
   useEffect(() => {
     if (canvas) {
       fabric.Image.fromURL(
@@ -238,6 +415,8 @@ const DesignPage = () => {
           fill: drawColor,
           width: 100,
           height: 100,
+          elementType: "shape",
+          shapeType: "rectangle",
         });
         break;
       case "triangle":
@@ -247,6 +426,8 @@ const DesignPage = () => {
           fill: drawColor,
           width: 100,
           height: 100,
+          elementType: "shape",
+          shapeType: "triangle",
         });
         break;
       case "circle":
@@ -255,6 +436,8 @@ const DesignPage = () => {
           top: center.top,
           fill: drawColor,
           radius: 50,
+          elementType: "shape",
+          shapeType: "circle",
         });
         break;
       case "line":
@@ -263,6 +446,8 @@ const DesignPage = () => {
           {
             stroke: drawColor,
             strokeWidth: 5,
+            elementType: "shape",
+            shapeType: "line",
           }
         );
         break;
@@ -524,30 +709,6 @@ const DesignPage = () => {
               }}
             />
           </Box>
-
-          <div
-            className="stickers-container"
-            style={{ position: "relative", width: "100%", height: "100%" }}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDrop}
-          >
-            {stickers.map((sticker) => (
-              <img
-                key={sticker.id}
-                src={sticker.image}
-                alt="Sticker"
-                style={{
-                  position: "absolute",
-                  left: sticker.x,
-                  top: sticker.y,
-                  width: "100px",
-                  cursor: "move",
-                }}
-                draggable
-                onDragStart={() => handleDragStart(sticker)}
-              />
-            ))}
-          </div>
         </Box>
         <Box className="AI-generator-container">
           <Typography
@@ -578,9 +739,13 @@ const DesignPage = () => {
               AI
             </Typography>
           </div>
-          {/* <div className="ai-option">
+          <div
+            className="ai-option"
+            onClick={pasteImg}
+            style={{ cursor: "pointer" }}
+          >
             <IconButton className="ai-button">
-              <ImageOutlinedIcon sx={{ color: "#B388FF" }} />
+              <ContentPasteIcon sx={{ color: "#8CFFB3" }} />
             </IconButton>
             <Typography
               sx={{
@@ -590,9 +755,15 @@ const DesignPage = () => {
                 textAlign: "center",
               }}
             >
-              Album
+              Paste
             </Typography>
-          </div> */}
+            <input
+              type="file"
+              accept="image/*"
+              label="Add Image"
+              onChange={handleAddImage}
+            />
+          </div>
         </Box>
       </Box>
       <AIGeneratorModal
@@ -604,6 +775,69 @@ const DesignPage = () => {
         prompt={prompt}
         setPrompt={setPrompt}
       />
+      {stickers.length > 0 && (
+        <Box
+          sx={{
+            mt: 2,
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)", // More controlled grid
+            gap: 2,
+            overflow: "auto",
+            // maxHeight: "400px", // Limit height
+            padding: "10px",
+          }}
+        >
+          {stickers.map((image, index) => (
+            <Box
+              key={index}
+              sx={{
+                width: "100%",
+                aspectRatio: "1/1",
+                position: "relative",
+                overflow: "hidden",
+              }}
+              onMouseEnter={() => setHoveredSticker(index)}
+              onMouseLeave={() => setHoveredSticker(null)}
+            >
+              <img
+                src={`data:image/png;base64,${image}`}
+                alt={`Generated Artwork ${index + 1}`}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  borderRadius: "4px",
+                }}
+              />
+              {hoveredSticker === index && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <Tooltip title="Copy to Clipboard">
+                    <IconButton
+                      onClick={() => copyToClipboard(image)}
+                      sx={{ color: "white" }}
+                    >
+                      <ContentCopyIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              )}
+            </Box>
+          ))}
+        </Box>
+      )}
     </Box>
   );
 };
