@@ -103,6 +103,8 @@ const Profile = () => {
       setSnackbarMessage("Please login again");
       setSnackbarSeverity("error");
       setOpenSnackbar(true);
+      dispatch(logoutUser());
+      navigate("/login");
     }
   };
   const handlePencilClick = (field) => {

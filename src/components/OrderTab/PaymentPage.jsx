@@ -55,10 +55,11 @@ const PaymentPage = ({ onPreviousStep, onNextStep }) => {
     voucherData,
   } = useSelector((state) => state.shipping);
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const { user } = useSelector((state) => state.auths);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
   const dispatch = useDispatch();
-  const { items } = useSelector((state) => state.orderDetails);
+  const { selectedItems } = useSelector((state) => state.cart);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -171,69 +172,90 @@ const PaymentPage = ({ onPreviousStep, onNextStep }) => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!paymentData) {
-      setSnackbarMessage("Please select a payment method to purchase");
-      setSnackbarSeverity("warning");
-      setOpenSnackbar(true);
-      return;
-    }
     setLoading(true);
 
-    const paymentData = {
-      method: paymentMethod,
-      ...(paymentMethod === "card" && { cardDetails }),
-    };
-
-    localStorage.setItem("paymentData", JSON.stringify(paymentData));
-    const formattedPaymentData = {
-      method: paymentMethod === "card" ? "Credit_Card" : "Cash",
-      status: "pending",
-      ...(paymentMethod === "card" && {
-        cardExpirationDate: new Date(cardDetails.expiry),
-        transactionId: generateTransactionId(),
-        last4Digits: cardDetails.cardNumber.slice(-4),
-        cardBrand: detectCardType(cardDetails.cardNumber),
-        paidAt: new Date(),
-      }),
-    };
-    console.log("formattedPayment", formattedPaymentData);
-
-    dispatch(setPaymentData(formattedPaymentData));
-    // dispatch(setPaymentData(paymentData));
-
-    const orderDetails = await Promise.all(
-      items.map(async (item) => {
-        const orderDetail = {
-          itemType: "store",
-          product: item.product._id,
-          productSize: item.selectedSize,
-          productColor: item.selectedColor,
-          productPrice: item.quantity * calculateSalePrice(item.product),
-          productQuantity: item.quantity,
-        };
-        console.log(orderDetail);
-
-        const response = await fetch("http://localhost:3005/orderDetails/add", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(orderDetail),
-        });
-
-        const data = await response.json();
-        return data._id;
-      })
-    );
     try {
+      // Validation checks
+      if (!selectedItems || selectedItems.length === 0) {
+        throw new Error("No items in cart");
+      }
+
+      // if (!user?._id) {
+      //   throw new Error("User not authenticated");
+      // }
+
+      if (!shippingData) {
+        throw new Error("Shipping information is missing");
+      }
+
+      const paymentData = {
+        method: paymentMethod,
+        ...(paymentMethod === "card" && { cardDetails }),
+      };
+
+      if (paymentData.method === null) {
+        throw new Error("Please select a payment method to purchase");
+      }
+
+      const formattedPaymentData = {
+        method: paymentMethod === "card" ? "Credit_Card" : "Cash",
+        status: "pending",
+        ...(paymentMethod === "card" && {
+          cardExpirationDate: new Date(cardDetails.expiry),
+          transactionId: generateTransactionId(),
+          last4Digits: cardDetails.cardNumber.slice(-4),
+          cardBrand: detectCardType(cardDetails.cardNumber),
+          paidAt: new Date(),
+        }),
+      };
+
+      const orderDetails = await Promise.all(
+        selectedItems.map(async (item) => {
+          if (!item?.product?._id) {
+            throw new Error("Invalid product information");
+          }
+
+          const orderDetail = {
+            itemType: "store",
+            product: item.product._id,
+            productSize: item.selectedSize,
+            productColor: item.selectedColor,
+            productPrice: item.quantity * calculateSalePrice(item.product),
+            productQuantity: item.quantity,
+          };
+
+          const response = await fetch(
+            "http://localhost:3005/orderDetails/add",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(orderDetail),
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to create order detail");
+          }
+
+          const data = await response.json();
+          return data._id;
+        })
+      );
+
       const order = {
         userInfo: {
+          userId: user?._id,
           name: shippingData.name,
           phone: shippingData.phone,
           email: shippingData.email,
         },
         items: orderDetails,
-        voucherId: voucherData ? voucherData.code : null,
+        voucherId: {
+          discount: voucherData?.discount,
+          code: voucherData?.code,
+        },
         deliveryDate: calculateDeliveryDate(deliveryData),
         total: totalFee,
         shippingFee: shippingFee,
@@ -245,31 +267,29 @@ const PaymentPage = ({ onPreviousStep, onNextStep }) => {
           details: shippingData.address,
         },
       };
-      console.log("order", order);
 
-      try {
-        const response = await fetch("http://localhost:3005/order/add", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(order),
-        });
+      const orderResponse = await fetch("http://localhost:3005/order/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(order),
+      });
 
-        if (response.status === 201) {
-          setLoading(false);
-          resetAllData();
-          //   onNextStep();
-          navigate(`/checkout/${items[0]._id}/confirmation`);
-        } else {
-          const data = await response.json();
-          throw new Error(data.msg || "Failed to create order");
-        }
-      } catch (error) {
-        console.error("Error creating order:", error);
+      if (!orderResponse.ok) {
+        const errorData = await orderResponse.json();
+        throw new Error(errorData.msg || "Failed to create order");
       }
+
+      setLoading(false);
+      resetAllData();
+      navigate(`/checkout/${selectedItems[0]._id}/confirmation`);
     } catch (error) {
-      console.error("Error creating order:", error);
+      console.error("Error in order submission:", error);
+      setSnackbarMessage(error.message || "Failed to process order");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+      setLoading(false);
     }
   };
 

@@ -1,7 +1,11 @@
 import React from "react";
 import { Box, Button, Typography } from "@mui/material";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const Confirm = () => {
+  const { user } = useSelector((state) => state.auths);
+  const navigate = useNavigate();
   return (
     <Box
       display="flex"
@@ -51,16 +55,23 @@ const Confirm = () => {
           >
             Go to the Home Page
           </Button>
-          <Button
-            sx={{
-              color: "#F7D87A",
-              border: "0.4px solid #2EBB77",
-              borderRadius: "15px",
-              padding: "10px",
-            }}
-          >
-            View my order
-          </Button>
+          {user && (
+            <>
+              <Button
+                sx={{
+                  color: "#F7D87A",
+                  border: "0.4px solid #2EBB77",
+                  borderRadius: "15px",
+                  padding: "10px",
+                }}
+                onClick={() => {
+                  navigate(`/${user._id}/profile/order`);
+                }}
+              >
+                View my order
+              </Button>
+            </>
+          )}
         </Box>
       </Box>
     </Box>

@@ -9,9 +9,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Button,
+  Snackbar,
+  Alert,
   Paper,
   Collapse,
-  IconButton,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -22,12 +24,18 @@ import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+// import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+// import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import noImg from "../../assets/images/no_img.jpeg";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteOrder, fetchOrders, updateOrder } from "../../redux/orderSlice";
+import {
+  cancelOrder,
+  clearErrors,
+  fetchOrders,
+  updateDeliveryStatus,
+} from "../../redux/orderSlice";
 import { format, parseISO } from "date-fns";
+import CancelOrderDialog from "../../components/ModalCancelOrder/ModalCancelOrder";
 
 const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
   backgroundColor: "var(--background-color)",
@@ -36,6 +44,10 @@ const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
   "& .MuiTableCell-root": {
     borderBottom: "1px solid #333",
     color: "white",
+  },
+  "& table": {
+    tableLayout: "fixed",
+    width: "100%",
   },
 }));
 const InfoContainer = styled(Box)(({ theme }) => ({
@@ -85,15 +97,25 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
+// const StyledTableCell = styled(TableCell)(({ theme }) => ({
+//   padding: "16px",
+//   fontFamily: "Montserrat",
+//   fontSize: "14px",
+//   width: "100%",
+//   verticalAlign: "top",
+//   color: "#C8FFF6",
+//   transition: "background-color 0.3s",
+// }));
+const StyledTableCell = styled(TableCell)(({ theme, width }) => ({
   padding: "16px",
   fontFamily: "Montserrat",
   fontSize: "14px",
   verticalAlign: "top",
   color: "#C8FFF6",
   transition: "background-color 0.3s",
+  width: width || "auto",
+  minWidth: width || "auto",
 }));
-
 const DetailRow = styled(TableRow)(({ theme }) => ({
   "& .MuiTableCell-root": {
     borderBottom: "none",
@@ -117,55 +139,162 @@ const DetailTable = styled(Table)(({ theme }) => ({
   "& .MuiTableRow-root:last-child .MuiTableCell-root": {
     borderBottom: "none",
   },
+  tableLayout: "fixed",
+  width: "100%",
 }));
-const DetailTableCell = styled(TableCell)(({ theme }) => ({
+const DetailTableCell = styled(TableCell)(({ theme, width }) => ({
   padding: "8px 16px",
   fontFamily: "Montserrat",
+
   fontSize: "14px",
   color: "white",
+  width: width || "auto",
+  minWidth: width || "auto",
 }));
 
-const DetailTableCellHead = styled(TableCell)(({ theme }) => ({
+const DetailTableCellHead = styled(TableCell)(({ theme, width }) => ({
   padding: "8px 16px",
   fontFamily: "Montserrat",
   fontSize: "14px",
   color: "white",
   borderBottom: "1px solid #333",
+  width: width || "auto",
+  minWidth: width || "auto",
+  fontWeight: "bold",
 }));
 
 const MyOrder = () => {
   const [openRows, setOpenRows] = useState({});
   const { user } = useSelector((state) => state.auths);
-
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   const handleRowClick = (id) => {
     setOpenRows((prev) => ({ ...prev, [id]: !prev[id] }));
   };
+  const [cancelingOrders, setCancelingOrders] = useState({});
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+
   const dispatch = useDispatch();
-  const { orders, status, error } = useSelector((state) => state.orders);
+  const { orders, status, error, cancelStatus, updateStatus } = useSelector(
+    (state) => state.orders
+  );
   useEffect(() => {
     dispatch(fetchOrders());
     // console.log("Orders fetched", orders);
   }, [dispatch]);
-  const handleUpdateOrder = (id, orderData) => {
-    dispatch(updateOrder({ id, orderData }));
-  };
+  useEffect(() => {
+    const checkDeliveryStatus = () => {
+      dispatch(updateDeliveryStatus());
+    };
+
+    checkDeliveryStatus();
+    const interval = setInterval(checkDeliveryStatus, 3600000);
+
+    return () => clearInterval(interval);
+  }, [dispatch]);
+  useEffect(() => {
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: error,
+        severity: "error",
+      });
+    }
+  }, [error]);
+  // useEffect(() => {
+  //   if (cancelStatus === "succeeded") {
+  //     setSnackbar({
+  //       open: true,
+  //       message: "Order cancelled successfully",
+  //       severity: "success",
+  //     });
+  //     dispatch(fetchOrders());
+  //   }
+  // }, [cancelStatus, dispatch]);
 
   const formattedDate = (date) => {
     return format(parseISO(date), "dd/MM/yy");
   };
-  const handleCancelOrder = (id) => {
-    const updatedOrderData = {
-      deliveryStatus: "Cancelled",
-    };
-    dispatch(updateOrder({ id, orderData: updatedOrderData }));
+  // const handleCancelOrder = async (orderId) => {
+  //   if (window.confirm("Are you sure you want to cancel this order?")) {
+  //     dispatch(cancelOrder(orderId));
+  //     if (cancelStatus === "succeeded") {
+  //       setSnackbar({
+  //         open: true,
+  //         message: "Order cancelled successfully",
+  //         severity: "success",
+  //       });
+  //       dispatch(fetchOrders());
+  //     }
+  //   }
+  // };
+  const handleCancelOrder = (orderId) => {
+    setSelectedOrderId(orderId);
+    setCancelDialogOpen(true);
   };
-  const handleReceiveOrder = (id) => {
-    const updatedOrderData = {
-      deliveryStatus: "Received",
-    };
-    dispatch(updateOrder({ id, orderData: updatedOrderData }));
+  const handleConfirmCancel = () => {
+    if (selectedOrderId) {
+      dispatch(cancelOrder(selectedOrderId));
+      if (cancelStatus === "succeeded") {
+        setSnackbar({
+          open: true,
+          message: "Order cancelled successfully",
+          severity: "success",
+        });
+        dispatch(fetchOrders());
+      }
+      setCancelDialogOpen(false);
+      setSelectedOrderId(null);
+    }
   };
+  const handleCloseDialog = () => {
+    setCancelDialogOpen(false);
+    setSelectedOrderId(null);
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
+    dispatch(clearErrors());
+  };
+  const renderActionButtons = (order) => {
+    if (order.deliveryStatus === "Pending") {
+      return (
+        <Button
+          variant="contained"
+          color="error"
+          disabled={cancelingOrders[order._id]}
+          onClick={() => handleCancelOrder(order._id)}
+          startIcon={<CancelIcon />}
+          sx={{
+            fontFamily: "Montserrat",
+            backgroundColor: "#FA8B01",
+            marginRight: "20px",
+            "&:hover": {
+              backgroundColor: "#d67601",
+            },
+          }}
+        >
+          {cancelingOrders[order._id] ? "Cancelling..." : "Cancel"}
+        </Button>
+      );
+    }
+    return null;
+  };
+  // const handleReceiveOrder = (id) => {
+  //   const updatedOrderData = {
+  //     deliveryStatus: "Received",
+  //   };
+  //   dispatch(updateOrder({ id, orderData: updatedOrderData }));
+  // };
   const formatPrice = (price) => {
+    if (price == null) return "0";
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
   const formattedTime = (date) => {
@@ -215,44 +344,38 @@ const MyOrder = () => {
             textAlign: "center",
           }}
         >
-          Your order
+          My order
         </Typography>
         <StyledTableContainer component={Paper}>
           <Table>
             <TableHead>
               <TableRow>
-                <StyledTableCell>Your order</StyledTableCell>
-                <StyledTableCell>Payment Method</StyledTableCell>
-                <StyledTableCell>Price</StyledTableCell>
-                <StyledTableCell>Delivery Status</StyledTableCell>
-                <StyledTableCell>Voucher</StyledTableCell>
-                <StyledTableCell>Order Status</StyledTableCell>
-                <StyledTableCell />
+                <StyledTableCell width="25%">Your order</StyledTableCell>
+                <StyledTableCell width="12%">Payment Method</StyledTableCell>
+                <StyledTableCell width="12%">Price</StyledTableCell>
+                <StyledTableCell width="15%">Delivery Status</StyledTableCell>
+                <StyledTableCell width="12%">Voucher</StyledTableCell>
+                <StyledTableCell width="12%">Order Status</StyledTableCell>
+                <StyledTableCell width="15%">Option</StyledTableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {orders.map((order) => (
                 <React.Fragment key={order._id}>
                   <StyledTableRow>
-                    <StyledTableCell onClick={() => handleRowClick(order._id)}>
+                    <StyledTableCell>
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 2 }}
                       >
-                        <Box
-                          sx={{
-                            width: 50,
-                            height: 50,
-                            bgcolor: "grey.300",
-                            borderRadius: 1,
-                          }}
-                        />
                         <Box>
                           <Typography
+                            onClick={() => handleRowClick(order._id)}
                             sx={{
                               fontFamily: "Montserrat",
                               fontSize: "16px",
+
                               fontWeight: "bold",
-                              marginLeft: "10px",
+                              // marginLeft: "10px",
                             }}
                           >
                             {order._id}
@@ -287,7 +410,7 @@ const MyOrder = () => {
                         </Box>
                       </Box>
                     </StyledTableCell>
-                    <StyledTableCell sx={{ color: "#C8FFF6" }}>
+                    <StyledTableCell width="25%" sx={{ color: "#C8FFF6" }}>
                       {order.paymentDetails.method === "Cash" ? (
                         <Box
                           sx={{ display: "flex", alignItems: "center", gap: 1 }}
@@ -302,10 +425,10 @@ const MyOrder = () => {
                         </Box>
                       )}
                     </StyledTableCell>
-                    <StyledTableCell>
+                    <StyledTableCell width="12%">
                       {formatPrice(order.total)}
                     </StyledTableCell>
-                    <StyledTableCell>
+                    <StyledTableCell width="15%">
                       {order.deliveryStatus === "On delivery" ? (
                         <Box
                           sx={{
@@ -317,7 +440,7 @@ const MyOrder = () => {
                           <LocalShippingIcon sx={{ color: "orange" }} />
                           On delivery
                         </Box>
-                      ) : order.deliveryStatus === "Cancelled" ? (
+                      ) : order.deliveryStatus === "cancelled" ? (
                         <Box
                           sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
@@ -345,13 +468,18 @@ const MyOrder = () => {
                       )}
                     </StyledTableCell>
 
-                    <StyledTableCell>
-                      {order.voucherCode ? order.voucherCode : "No voucher"}
+                    <StyledTableCell width="12%">
+                      {order.voucherId ? order.voucherId.code : "No voucher"}
                     </StyledTableCell>
-                    <StyledTableCell>
-                      {order.orderStatus ? order.orderStatus : "processing"}
+                    <StyledTableCell width="12%">
+                      {order.orderStatus && order.deliveryStatus !== "cancelled"
+                        ? order.orderStatus
+                        : "cancelled"}
                     </StyledTableCell>
-                    <StyledTableCell>
+                    <StyledTableCell width="15%">
+                      {renderActionButtons(order)}
+                    </StyledTableCell>
+                    {/* <StyledTableCell>
                       <IconButton
                         aria-label="expand row"
                         size="small"
@@ -363,7 +491,7 @@ const MyOrder = () => {
                           <KeyboardArrowDownIcon />
                         )}
                       </IconButton>
-                    </StyledTableCell>
+                    </StyledTableCell> */}
                   </StyledTableRow>
                   <DetailRow>
                     <DetailCell colSpan={6}>
@@ -392,6 +520,7 @@ const MyOrder = () => {
                               <TableHead>
                                 <TableRow>
                                   <DetailTableCell
+                                    width="30%"
                                     sx={{
                                       fontFamily: "Montserrat",
                                       fontWeight: "bold",
@@ -400,6 +529,7 @@ const MyOrder = () => {
                                     Product
                                   </DetailTableCell>
                                   <DetailTableCellHead
+                                    width="15%"
                                     sx={{
                                       fontFamily: "Montserrat",
                                       fontWeight: "bold",
@@ -408,6 +538,7 @@ const MyOrder = () => {
                                     Size
                                   </DetailTableCellHead>
                                   <DetailTableCellHead
+                                    width="15%"
                                     sx={{
                                       fontFamily: "Montserrat",
                                       fontWeight: "bold",
@@ -416,6 +547,7 @@ const MyOrder = () => {
                                     Color
                                   </DetailTableCellHead>
                                   <DetailTableCellHead
+                                    width="15%"
                                     align="right"
                                     sx={{
                                       fontFamily: "Montserrat",
@@ -425,6 +557,7 @@ const MyOrder = () => {
                                     Quantity
                                   </DetailTableCellHead>
                                   <DetailTableCellHead
+                                    width="20%"
                                     sx={{
                                       fontFamily: "Montserrat",
                                       fontWeight: "bold",
@@ -439,7 +572,7 @@ const MyOrder = () => {
                                 {order.items.map((detail, index) => (
                                   <TableRow key={index}>
                                     <DetailTableCell component="th" scope="row">
-                                      {detail.product.name}
+                                      {detail.product?.name}
                                     </DetailTableCell>
                                     <DetailTableCell>
                                       {detail.productSize}
@@ -451,18 +584,18 @@ const MyOrder = () => {
                                       {detail.productQuantity}
                                     </DetailTableCell>
                                     <DetailTableCell align="right">
-                                      {formatPrice(detail.product.price)}
+                                      {formatPrice(detail.product?.price)}
                                     </DetailTableCell>
                                   </TableRow>
                                 ))}
-                                <TableRow>
+                                {/* <TableRow>
                                   <DetailTableCell colSpan={4}>
                                     Total
                                   </DetailTableCell>
                                   <DetailTableCell align="right">
                                     {formatPrice(order.total)}
                                   </DetailTableCell>
-                                </TableRow>
+                                </TableRow> */}
                               </TableBody>
                             </Table>
                           </DetailTable>
@@ -502,13 +635,16 @@ const MyOrder = () => {
                               <InfoGrid>
                                 <InfoLabel>Subtotal</InfoLabel>
                                 <InfoValue>
-                                  {formatPrice(order.total) -
-                                    formatPrice(order.shippingFee)}{" "}
+                                  {formatPrice(order.total - order.shippingFee)}{" "}
                                   VND
                                 </InfoValue>
                                 <InfoLabel>Shipping</InfoLabel>
                                 <InfoValue>
-                                  {formatPrice(order.shippingFee)}
+                                  {formatPrice(order.shippingFee)} VND
+                                </InfoValue>
+                                <InfoLabel>Discount value</InfoLabel>
+                                <InfoValue>
+                                  {order.voucherId?.discount} %
                                 </InfoValue>
                                 <InfoLabel
                                   sx={{ fontWeight: "bold", color: "#FA8B02" }}
@@ -533,6 +669,25 @@ const MyOrder = () => {
           </Table>
         </StyledTableContainer>
       </Box>
+      <CancelOrderDialog
+        open={cancelDialogOpen}
+        onClose={handleCloseDialog}
+        onConfirm={handleConfirmCancel}
+      />
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

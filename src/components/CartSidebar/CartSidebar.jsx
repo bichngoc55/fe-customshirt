@@ -23,15 +23,18 @@ import {
   removeFromCart,
   updateQuantity,
   clearCart,
+  selectAllItems,
+  clearSelectedItems,
+  setSelectedItems,
 } from "../../redux/cartSlice";
+
 import { useNavigate } from "react-router-dom";
-import { setOrderDetailsData } from "../../redux/orderDetailSlice";
 
 const CartSidebar = ({ open, onClose, setCartItems }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auths);
-  const { items } = useSelector((state) => state.cart);
-  const [selectedItems, setSelectedItems] = useState([]);
+  const { items, selectedItems } = useSelector((state) => state.cart);
+  // const [selectedItems, setSelectedItems] = useState([]);
   const navigate = useNavigate();
   const [cartTotalItems, setCartTotalItems] = useState(0);
 
@@ -44,39 +47,26 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
   const handleRemoveFromCart = (item) => {
     dispatch(removeFromCart({ userId: user._id, itemId: item._id }));
   };
-  // const handleCheckboxChange = (item) => {
-  //   setSelectedItems((prev) => {
-  //     if (prev.some((selectedItem) => selectedItem._id === item._id)) {
-  //       return prev.filter((selectedItem) => selectedItem._id !== item._id);
-  //     } else {
-  //       return [...prev, item];
-  //     }
-  //   });
-  // };
   const handleCheckboxChange = (item) => {
     if (!item) return;
 
-    setSelectedItems((prev) => {
-      if (
-        prev.some(
-          (selectedItem) => selectedItem && selectedItem._id === item._id
-        )
-      ) {
-        return prev.filter((selectedItem) => selectedItem._id !== item._id);
-      } else {
-        return [...prev, item];
-      }
-    });
+    const currentSelected = selectedItems || [];
+    const newSelectedItems = currentSelected.some(
+      (selectedItem) => selectedItem._id === item._id
+    )
+      ? currentSelected.filter((selectedItem) => selectedItem._id !== item._id)
+      : [...currentSelected, item];
+
+    dispatch(setSelectedItems(newSelectedItems));
   };
 
   const handleSelectAll = (event) => {
     if (event.target.checked) {
-      setSelectedItems(items);
+      dispatch(selectAllItems());
     } else {
-      setSelectedItems([]);
+      dispatch(clearSelectedItems());
     }
   };
-
   const handleIncreaseQuantity = (item) => {
     dispatch(
       updateQuantity({
@@ -106,8 +96,13 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
     const totalItems = items.reduce((total, item) => total + item.quantity, 0);
     setCartTotalItems(totalItems);
   }, [items]);
-  // const calculateTotal = () => {
-  //   return items.reduce((total, item) => {
+
+  // const calculateSelectedTotal = () => {
+  //   if (selectedItems?.length === 0) return 0;
+
+  //   return selectedItems.reduce((total, item) => {
+  //     if (!item || !item.product) return total;
+
   //     const price = item.product.salePercent
   //       ? calculateSalePrice(item.product)
   //       : item.product.price;
@@ -115,10 +110,10 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
   //   }, 0);
   // };
   const calculateSelectedTotal = () => {
-    if (!selectedItems || selectedItems.length === 0) return 0;
+    if (!selectedItems?.length) return 0;
 
     return selectedItems.reduce((total, item) => {
-      if (!item || !item.product) return total;
+      if (!item?.product) return total;
 
       const price = item.product.salePercent
         ? calculateSalePrice(item.product)
@@ -132,37 +127,11 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
     }
     return product.price;
   };
-  // const handleBuyNow = async () => {
-  //   if (selectedItems.length > 0) {
-  //     dispatch(setOrderDetailsData(selectedItems));
-  //     console.log("selectedItem: ", selectedItems);
-  //     navigate(`/checkout/${selectedItems[0]?._id}/shipping`);
-
-  //     onClose();
-  //   } else {
-  //     console.error("Cart item ID is missing");
-  //   }
-  // };
   const handleBuyNow = async () => {
-    if (selectedItems.length > 0) {
-      const orderDetails = {
-        userId: user._id,
-        items: selectedItems.map((item) => ({
-          product: item.product,
-          selectedSize: item.selectedSize,
-          selectedColor: item.selectedColor,
-          quantity: item.quantity,
-        })),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      console.log("selectedItem: ", orderDetails);
-      dispatch(setOrderDetailsData(orderDetails));
-
+    if (selectedItems?.length > 0) {
       navigate(`/checkout/${selectedItems[0]._id}/shipping`);
       onClose();
     } else {
-      console.error("Please select items to proceed");
     }
   };
   const handleShopNow = () => {
@@ -178,7 +147,7 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
     >
       <Box className="cart-container">
         <div className="cart-header">
-          <Typography sx={{ fontSize: "20px" }}>
+          <Typography sx={{ fontSize: "20px", fontFamily: "Montserrat" }}>
             {" "}
             Giỏ hàng của bạn ({cartTotalItems})
           </Typography>
@@ -188,14 +157,15 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={selectedItems.length === items.length}
+                      checked={selectedItems?.length === items?.length}
                       indeterminate={
-                        selectedItems.length > 0 &&
-                        selectedItems.length < items.length
+                        selectedItems?.length > 0 &&
+                        selectedItems?.length < items?.length
                       }
                       onChange={handleSelectAll}
                     />
                   }
+                  sx={{ fontFamily: "Montserrat", fontSize: "10px" }}
                   label="Select All"
                 />
                 <Button onClick={handleClearCart} className="clear-cart-button">
@@ -231,8 +201,8 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
                     <FormControlLabel
                       control={
                         <Checkbox
-                          checked={selectedItems.some(
-                            (selectedItem) => selectedItem._id === item._id
+                          checked={selectedItems?.some(
+                            (selectedItem) => selectedItem?._id === item._id
                           )}
                           onChange={() => handleCheckboxChange(item)}
                         />
@@ -339,10 +309,7 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
                     {calculateSelectedTotal().toLocaleString()}đ
                   </Typography>
                 </div>
-                {/* <div className="summary-row">
-                  <Typography>Shipping fee:</Typography>
-                  <Typography>Miễn phí</Typography>
-                </div> */}
+
                 <Divider className="summary-divider" />
                 <div className="summary-row total">
                   <Typography variant="h6">Tổng cộng:</Typography>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
-import { useDispatch, useSelector } from "react-redux";
+// import { useDispatch, useSelector } from "react-redux";
 const ShippingCard = ({ items }) => {
   // const [quantity, setQuantity] = useState(1);
   // const { user } = useSelector((state) => state.auths);
@@ -46,17 +46,35 @@ const ShippingCard = ({ items }) => {
                 }
                 alt={item.product.name}
               />
-              <div>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "flex-start",
+                }}
+              >
                 <h3 style={{ marginLeft: "10px" }}>{item.product.name}</h3>
                 <span
                   style={{
                     color: "white",
                     fontSize: "1rem",
-                    marginLeft: "15px",
+                    marginLeft: "10px",
+                    marginTop: "5px",
+                  }}
+                  // className="quantity-display"
+                >
+                  x{item.quantity}
+                </span>
+                <span
+                  style={{
+                    color: "white",
+                    fontSize: "1rem",
+                    marginLeft: "10px",
+                    marginTop: "5px",
                   }}
                   className="quantity-display"
                 >
-                  x{item.quantity}
+                  Size {item.selectedSize}
                 </span>
               </div>
             </div>
@@ -78,7 +96,7 @@ const ShippingCard = ({ items }) => {
                     }}
                   >
                     {(
-                      calculateSalePrice(item.product) * item.productQuantity
+                      calculateSalePrice(item.product) * item.quantity
                     ).toLocaleString()}
                     đ
                   </span>

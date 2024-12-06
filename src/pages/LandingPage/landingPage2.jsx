@@ -25,6 +25,8 @@ import tree5 from "../../assets/images/tree5.png";
 import cloud12Img from "../../assets/images/more-cloud.png";
 import cloud13Img from "../../assets/images/cloud-new10.png";
 import { useNavigate } from "react-router-dom";
+import FeedbackSection from "../../components/feedbackSection";
+import axios from "axios";
 
 const tShirts = [
   { id: 1, name: "UNDEFINED NAME", price: "₱ 1,400.00" },
@@ -129,8 +131,9 @@ const LandingPage = () => {
   const [moonPosition, setMoonPosition] = useState(-30);
   const fireflyWrapperRef = useRef(null);
   const footerRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-
+  const [feedbackData, setFeedbackData] = useState(null);
   const toggleQuestion = (index) => {
     setOpenQuestion(openQuestion === index ? null : index);
   };
@@ -153,20 +156,36 @@ const LandingPage = () => {
       sectionRefs.current.push(el);
     }
   };
-  useEffect(() => {
-    const observerOptions = {
-      root: null,
-      rootMargin: "0px",
-      threshold: 0.15,
-    };
+  const fetchFeedback = async () => {
+    try {
+      const response = await axios.get("http://localhost:3005/feedback");
 
-    const observerCallback = (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("section-visible");
-        }
-      });
-    };
+      console.log("feedback data", response.data);
+      setFeedbackData(response.data);
+    } catch (err) {
+      console.error("Error while fetching feedback:", err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFeedback();
+  }, []);
+  useEffect(() => {
+    // const observerOptions = {
+    //   root: null,
+    //   rootMargin: "0px",
+    //   threshold: 0.15,
+    // };
+
+    // const observerCallback = (entries) => {
+    //   entries.forEach((entry) => {
+    //     if (entry.isIntersecting) {
+    //       entry.target.classList.add("section-visible");
+    //     }
+    //   });
+    // };
     sectionRefs.current.forEach((section) => {
       observer.observe(section);
     });
@@ -187,7 +206,7 @@ const LandingPage = () => {
         const textRect = domdomText.getBoundingClientRect();
         // Position for the first O
         return {
-          x: textRect.left + textRect.width * 0.347,
+          x: textRect.left + textRect.width * 0.359,
           y: textRect.top + textRect.height / 6.99,
         };
       }
@@ -429,7 +448,7 @@ const LandingPage = () => {
         </div>
       </section>
       {/* voucher section */}
-      <section ref={addToRefs} className="voucher-section section-hidden">
+      {/* <section ref={addToRefs} className="voucher-section section-hidden">
         <h2>VOUCHER</h2>
         <p className="voucher-description">
           We provide vouchers for cheaper deals
@@ -459,7 +478,7 @@ const LandingPage = () => {
         </div>
         <button className="see-more-btn">See more</button>
         <img src={cloud12Img} alt="cloud" className="cloud cloud-12" />
-      </section>
+      </section> */}
       {/* guidance section */}
       <section ref={addToRefs} className="guidance-section section-hidden">
         <h2>GUIDANCE FOR FIRST-TIME VISITORS</h2>
@@ -480,7 +499,17 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-
+      {/* feedback section */}
+      <section ref={addToRefs} className="feedback-section section-hidden">
+        <h2>FEEDBACK BY OUR CUSTOMERS</h2>
+        <p className="faq-description">
+          Feedback us anytime after buying products
+        </p>
+        <FeedbackSection
+          feedbacks={feedbackData}
+          onFeedbackUpdate={setFeedbackData}
+        />
+      </section>
       {/* faq section */}
       <section ref={addToRefs} className="faq-section section-hidden">
         <h2>FREQUENTLY ASKED QUESTIONS</h2>

@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import DeliveryPage from "./DeliveryPage"; // You'll need to create this
 import PaymentPage from "./PaymentPage";
 import ShippingInfo from "./ShippingInfo";
-import Confirm from "./Confirm";
 import { useNavigate } from "react-router-dom";
 
 const OrderTab = ({ checkoutId }) => {

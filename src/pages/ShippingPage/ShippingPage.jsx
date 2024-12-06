@@ -6,9 +6,10 @@ import { useSelector } from "react-redux";
 import OrderSummary from "../../components/OrderSummary/OrderSummary";
 import OrderTab from "../../components/OrderTab/OrderTab";
 const ShippingPage = () => {
-  const { orderDetails } = useSelector((state) => state.orderDetails);
+  const { selectedItems } = useSelector((state) => state.cart);
+
   useEffect(() => {
-    console.log(orderDetails);
+    console.log("trong shipping page", selectedItems);
   }, []);
 
   return (
@@ -30,8 +31,8 @@ const ShippingPage = () => {
       >
         <ArrowBackIosIcon />
       </IconButton>
-      <OrderSummary items={orderDetails} />
-      <OrderTab checkoutId={orderDetails[0]?._id} />
+      <OrderSummary items={selectedItems} />
+      <OrderTab checkoutId={selectedItems[0]?._id} />
     </div>
   );
 };

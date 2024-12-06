@@ -47,6 +47,7 @@ export const NavBar = ({ user }) => {
   };
   useEffect(() => {
     const totalItems = items.reduce((total, item) => total + item.quantity, 0);
+    console.log("items :", items);
     setCartTotalItems(totalItems);
   }, [items]);
 
@@ -65,7 +66,7 @@ export const NavBar = ({ user }) => {
     setAnchorEl(event.currentTarget);
   };
   const handleNavigateToMessage = () => {
-    navigate(`/message${user?._id}`);
+    navigate(`/message/${user?._id}`);
   };
   const handleLogout = async () => {
     handleClose();
