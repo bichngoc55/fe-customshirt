@@ -7,6 +7,7 @@ import { Box, Typography, IconButton } from "@mui/material";
 import ModalAddProduct from "../../components/ModalAddProduct/ModalAddProduct";
 import { useNavigate } from "react-router-dom";
 import CenterFocusWeakIcon from "@mui/icons-material/CenterFocusWeak";
+import { useSelector } from "react-redux";
 const CollectionPage = () => {
   const [price, setPrice] = useState(0);
   const [products, setProducts] = useState([]);
@@ -29,8 +30,8 @@ const CollectionPage = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [salePercent, setSalePercent] = useState(0);
   const [selectedColor, setSelectedColor] = useState("");
+  const { user } = useSelector((state) => state.auths);
 
-  // handleFetch
   const handleFetch = async () => {
     try {
       const response = await fetch("http://localhost:3005/shirt/", {
@@ -195,14 +196,12 @@ const CollectionPage = () => {
   ) => {
     let filtered = [...products];
 
-    // Apply search filter
     if (search) {
       filtered = filtered.filter((product) =>
         product.name.toLowerCase().includes(search.toLowerCase())
       );
     }
 
-    // Apply size filter
     if (sizes.length > 0) {
       filtered = filtered.filter((product) =>
         sizes.some((size) => product.size.includes(size))
@@ -212,12 +211,10 @@ const CollectionPage = () => {
       filtered = filtered.filter((product) => product.color.includes(color));
     }
 
-    // Apply price filter
     if (maxPrice > 0) {
       filtered = filtered.filter((product) => product.price <= maxPrice);
     }
 
-    // Apply stock status filter
     if (stockStatus) {
       switch (stockStatus) {
         case "On sale":
@@ -324,7 +321,7 @@ const CollectionPage = () => {
         <div className="filter-section">
           <h2>Sort by</h2>
           {[
-            "Default sorting",
+            // "Default sorting",
             "Price: low to high",
             "Price: high to low",
             "Latest",
@@ -376,23 +373,27 @@ const CollectionPage = () => {
             alignItems: "center",
           }}
         >
-          <div style={{ display: "flex", textAlign: "center" }}>
-            <IconButton onClick={handleModalOpenClick}>
-              <AddIcon sx={{ color: "#8CFFB3" }} />
-            </IconButton>
-            <Typography
-              mt={"10px"}
-              sx={{
-                color: "white",
-                fontSize: "0.8rem",
-                fontFamily: "Montserrat",
+          {user?.role === "admin" && (
+            <>
+              <div style={{ display: "flex", textAlign: "center" }}>
+                <IconButton onClick={handleModalOpenClick}>
+                  <AddIcon sx={{ color: "#8CFFB3" }} />
+                </IconButton>
+                <Typography
+                  mt={"10px"}
+                  sx={{
+                    color: "white",
+                    fontSize: "0.8rem",
+                    fontFamily: "Montserrat",
 
-                // textAlign: "center",
-              }}
-            >
-              Add
-            </Typography>
-          </div>
+                    // textAlign: "center",
+                  }}
+                >
+                  Add
+                </Typography>
+              </div>
+            </>
+          )}
           {isOpenModal && (
             <ModalAddProduct
               isModalOpen={isOpenModal}
