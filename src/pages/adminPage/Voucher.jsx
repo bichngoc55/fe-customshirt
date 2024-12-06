@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "./Voucher.css";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import EditIcon from "@mui/icons-material/Edit";
@@ -36,7 +36,7 @@ const Voucher = () => {
     navigator.clipboard.writeText(code);
     alert(`Copied: ${code}`);
   };
-  const [vouchers,setVoucherCode]=useState([])
+  const [vouchers, setVoucherCode] = useState([]);
   useEffect(() => {
     const fetchVoucherCode = async () => {
       try {
@@ -53,16 +53,16 @@ const Voucher = () => {
   }, []);
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
     const year = date.getFullYear().toString().slice(-2);
     return `${day}/${month}/${year}`;
   };
-  
+
   return (
-    <section className="voucher-section">
-      <h2>VOUCHER</h2>
-      <button className="add-voucher-btn">Add voucher</button>
+    <section className="voucher-section2">
+      <h2 style={{ marginRight: "20px" }}>VOUCHER</h2>
+      {/* <button className="add-voucher-btn">Add voucher</button> */}
       <div className="voucher-grid">
         {vouchers.map((voucher) => (
           <div key={voucher.code} className="voucher-item">
@@ -89,7 +89,7 @@ const Voucher = () => {
               </button>
             </div>
             <p className="validity">
-            • {formatDate(voucher.startDate)} - {formatDate(voucher.endDate)}
+              • {formatDate(voucher.startDate)} - {formatDate(voucher.endDate)}
             </p>
             <p className="for-products">• {voucher.conditions}</p>
           </div>

@@ -47,6 +47,7 @@ export const NavBar = ({ user }) => {
   };
   useEffect(() => {
     const totalItems = items.reduce((total, item) => total + item.quantity, 0);
+    console.log("items :", items);
     setCartTotalItems(totalItems);
   }, [items]);
 

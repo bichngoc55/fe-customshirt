@@ -35,12 +35,11 @@ function App() {
             {token && <Route path="/admin/*" element={<AdminPage />} />}
             <Route path="/design" element={<DesignPage />} />
             <Route path="/collection/:id" element={<TShirtDetails />} />
-            {token && (
-              <Route path="/checkout/:id/*" element={<ShippingPage />} />
-            )}
-            {token && (
-              <Route path="/checkout/:id/confirmation" element={<Confirm />} />
-            )}
+
+            <Route path="/checkout/:id/*" element={<ShippingPage />} />
+
+            <Route path="/checkout/:id/confirmation" element={<Confirm />} />
+
             {token && <Route path="/message/:id" element={<Message />} />}
           </Routes>
         </main>

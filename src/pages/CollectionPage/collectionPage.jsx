@@ -197,9 +197,18 @@ const CollectionPage = () => {
     let filtered = [...products];
 
     if (search) {
-      filtered = filtered.filter((product) =>
-        product.name.toLowerCase().includes(search.toLowerCase())
-      );
+      filtered = filtered.filter((product) => {
+        // product.name.toLowerCase().includes(search.toLowerCase())
+        const nameMatch = product.name
+          .toLowerCase()
+          .includes(search.toLowerCase());
+        const tagMatch =
+          product.tag &&
+          product.tag.some((t) =>
+            t.toLowerCase().includes(search.toLowerCase())
+          );
+        return nameMatch || tagMatch;
+      });
     }
 
     if (sizes.length > 0) {
@@ -373,7 +382,7 @@ const CollectionPage = () => {
             alignItems: "center",
           }}
         >
-          {user.role === "admin" && (
+          {user?.role === "admin" && (
             <>
               <div style={{ display: "flex", textAlign: "center" }}>
                 <IconButton onClick={handleModalOpenClick}>

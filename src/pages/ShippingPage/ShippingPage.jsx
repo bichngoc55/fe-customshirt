@@ -9,7 +9,7 @@ const ShippingPage = () => {
   const { selectedItems } = useSelector((state) => state.cart);
 
   useEffect(() => {
-    console.log(selectedItems);
+    console.log("trong shipping page", selectedItems);
   }, []);
 
   return (

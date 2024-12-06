@@ -117,8 +117,8 @@
 }
 .tool-button:hover {
   background-color: #3d3d3d;
-  transform: translateY(-3px); /* Move button up by 3px on hover */
-  box-shadow: 0 0 15px rgba(140, 255, 179, 0.7); /* Add glow effect */
+  transform: translateY(-3px);
+  box-shadow: 0 0 15px rgba(140, 255, 179, 0.7);
 }
 
 .tool-button .MuiSvgIcon-root {

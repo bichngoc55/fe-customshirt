@@ -40,6 +40,7 @@ const CustomSelect = styled(Select)({
 const OrderSummary = ({ items }) => {
   const dispatch = useDispatch();
   const { vouchers } = useSelector((state) => state.voucher);
+  const { user } = useSelector((state) => state.auths);
   const [selectedVoucher, setSelectedVoucher] = useState(null);
   // const [selectedVoucherApplied, setSelectedVoucherApplied] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -52,8 +53,8 @@ const OrderSummary = ({ items }) => {
   const { voucherData } = useSelector((state) => state.shipping);
   useEffect(() => {
     dispatch(getVouchers());
-    console.log("shippingData", shippingData);
-    console.log("items inside order summary", items);
+    // console.log("shippingData", shippingData);
+    // console.log("items inside order summary", items);
   }, [dispatch]);
 
   const calculateSalePrice = (product) => {
@@ -62,7 +63,39 @@ const OrderSummary = ({ items }) => {
     }
     return product.price;
   };
-
+  // const renderVoucherMenuItem = (voucher) => (
+  //   <MenuItem
+  //     key={voucher._id}
+  //     value={voucher.code}
+  //     disabled={!voucher.isApplicable}
+  //     sx={{
+  //       opacity: voucher.isApplicable ? 1 : 0.5,
+  //       color: voucher.isApplicable ? "inherit" : "gray",
+  //       "&:hover": {
+  //         backgroundColor: voucher.isApplicable
+  //           ? "rgba(0, 0, 0, 0.04)"
+  //           : "none",
+  //       },
+  //     }}
+  //   >
+  //     {voucher.code} - {voucher.discount}% off
+  //     {!voucher.isApplicable && " (Not Applicable)"}
+  //   </MenuItem>
+  // );
+  const renderVoucherMenuItem = (voucher) => (
+    <MenuItem key={voucher._id} value={voucher.code}>
+      {voucher.code} - {voucher.discount}% off
+    </MenuItem>
+  );
+  useEffect(() => {
+    const total = calculateTotal();
+    dispatch(
+      getVouchers({
+        userId: user?.id,
+        orderTotal: total,
+      })
+    );
+  }, [dispatch, user, items]);
   const calculateTotal = () => {
     let total = items.reduce((total, item) => {
       const price = item.product.salePercent
@@ -122,23 +155,36 @@ const OrderSummary = ({ items }) => {
     return 0;
   };
   const handleVoucherApply = async () => {
-    try {
-      const action = await dispatch(validateVoucher(selectedVoucher));
-      if (action.payload.success) {
-        dispatch(setVoucherData(action.payload.data));
+    if (!selectedVoucher) {
+      setSnackbarMessage("Please select a voucher");
+      setSnackbarSeverity("warning");
+      setOpenSnackbar(true);
+      return;
+    }
 
-        setSnackbarMessage("This voucher is applied successfully");
+    try {
+      const result = await dispatch(
+        validateVoucher({
+          code: selectedVoucher,
+          userId: user?.id,
+        })
+      );
+
+      if (result.payload?.success) {
+        dispatch(setVoucherData(result.payload.data));
+        setSnackbarMessage("Voucher applied successfully");
         setSnackbarSeverity("success");
       } else {
-        setSnackbarMessage("This voucher is not valid at this moment");
+        setSnackbarMessage(result.payload?.message || "Invalid voucher");
         setSnackbarSeverity("warning");
         dispatch(setVoucherData(null));
       }
     } catch (error) {
-      setSnackbarMessage("Error occurred while applying voucher");
+      setSnackbarMessage("Error applying voucher");
       setSnackbarSeverity("error");
       dispatch(setVoucherData(null));
     }
+
     setOpenSnackbar(true);
   };
 
@@ -164,6 +210,11 @@ const OrderSummary = ({ items }) => {
         <div className="gift-card-section">
           <div style={{ fontSize: "16px", marginBottom: "10px" }}>
             Voucher code
+            {!user && calculateTotal() < 400000 && (
+              <Typography variant="caption" color="text.secondary">
+                (Login or order above 400,000 VND to access vouchers)
+              </Typography>
+            )}
           </div>
           <div className="input-container">
             <CustomSelect
@@ -178,6 +229,14 @@ const OrderSummary = ({ items }) => {
               ))}
               {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
             </CustomSelect>
+            {/* <CustomSelect
+              id="gift-card"
+              onChange={(e) => setSelectedVoucher(e.target.value)}
+              disabled={!user || calculateTotal() < 400000}
+            >
+              <MenuItem value="">Select</MenuItem>
+              {vouchers.map(renderVoucherMenuItem)}
+            </CustomSelect> */}
 
             <Button
               variant="contained"

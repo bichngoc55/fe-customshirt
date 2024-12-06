@@ -180,9 +180,9 @@ const PaymentPage = ({ onPreviousStep, onNextStep }) => {
         throw new Error("No items in cart");
       }
 
-      if (!user?._id) {
-        throw new Error("User not authenticated");
-      }
+      // if (!user?._id) {
+      //   throw new Error("User not authenticated");
+      // }
 
       if (!shippingData) {
         throw new Error("Shipping information is missing");
@@ -196,8 +196,6 @@ const PaymentPage = ({ onPreviousStep, onNextStep }) => {
       if (paymentData.method === null) {
         throw new Error("Please select a payment method to purchase");
       }
-
-      //   localStorage.setItem("paymentData", JSON.stringify(paymentData));
 
       const formattedPaymentData = {
         method: paymentMethod === "card" ? "Credit_Card" : "Cash",
@@ -248,7 +246,7 @@ const PaymentPage = ({ onPreviousStep, onNextStep }) => {
 
       const order = {
         userInfo: {
-          userId: user._id,
+          userId: user?._id,
           name: shippingData.name,
           phone: shippingData.phone,
           email: shippingData.email,

@@ -448,7 +448,7 @@ const LandingPage = () => {
         </div>
       </section>
       {/* voucher section */}
-      <section ref={addToRefs} className="voucher-section section-hidden">
+      {/* <section ref={addToRefs} className="voucher-section section-hidden">
         <h2>VOUCHER</h2>
         <p className="voucher-description">
           We provide vouchers for cheaper deals
@@ -478,7 +478,7 @@ const LandingPage = () => {
         </div>
         <button className="see-more-btn">See more</button>
         <img src={cloud12Img} alt="cloud" className="cloud cloud-12" />
-      </section>
+      </section> */}
       {/* guidance section */}
       <section ref={addToRefs} className="guidance-section section-hidden">
         <h2>GUIDANCE FOR FIRST-TIME VISITORS</h2>

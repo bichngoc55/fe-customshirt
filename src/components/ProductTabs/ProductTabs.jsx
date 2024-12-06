@@ -182,9 +182,14 @@ const ProductTabs = ({ product, onReviewUpdate }) => {
   // page
   const indexOfLastReview = page * reviewsPerPage;
   const indexOfFirstReview = indexOfLastReview - reviewsPerPage;
-  const currentReviews =
-    product.reviews?.slice(indexOfFirstReview, indexOfLastReview) || [];
-  const totalPages = Math.ceil((product.reviews?.length || 0) / reviewsPerPage);
+  const currentReviews = Array.isArray(product?.reviews)
+    ? product.reviews.slice(indexOfFirstReview, indexOfLastReview)
+    : [];
+
+  const totalPages = Math.ceil(
+    (Array.isArray(product?.reviews) ? product.reviews.length : 0) /
+      reviewsPerPage
+  );
 
   const handlePageChange = (event, value) => {
     setPage(value);
@@ -396,7 +401,7 @@ const ProductTabs = ({ product, onReviewUpdate }) => {
         <div className="reviews-container">
           {product.reviews?.length > 0 ? (
             <>
-              {currentReviews.map((review, index) => (
+              {currentReviews?.map((review, index) => (
                 <div key={index} className="review-item">
                   <div className="review-header">
                     <Avatar className="review-avatar">
