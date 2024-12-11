@@ -1,106 +1,68 @@
-import React, { useMemo } from "react";
-import { Select, MenuItem, FormHelperText } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import { provinces, districts } from "./vietnamLocations";
+import React, { useState, useEffect } from 'react';
+import './LocationDropdown.css';
+import { provinces, districts } from '../OrderTab/vietnamLocations';
+ 
 
-const CustomSelect = styled(Select)({
-  width: "100%",
-  "& .MuiSelect-select": {
-    padding: "8px 32px 8px 16px",
-    fontSize: "16px",
-    backgroundColor: "#fff",
-    borderRadius: "8px",
-    border: "1px solid #ccc",
-    "&:focus": {
-      backgroundColor: "#fff",
-      borderColor: "#4d4d4d",
-    },
-  },
-  "& .MuiSvgIcon-root": {
-    color: "#4d4d4d",
-  },
-});
+const LocationDropdown = ({ onProvinceChange, onDistrictChange }) => {
+  const [selectedProvince, setSelectedProvince] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [availableDistricts, setAvailableDistricts] = useState([]);
 
-const LocationDropdown = ({
-  selectedProvince,
-  selectedDistrict,
-  onProvinceChange,
-  onDistrictChange,
-  error,
-  helperText,
-  required = false,
-  className = "",
-  disabled = false,
-}) => {
-  const filteredDistricts = useMemo(() => {
-    return districts.filter(
-      (district) => district.idProvince === selectedProvince
-    );
+  useEffect(() => {
+    if (selectedProvince) {
+      const filteredDistricts = districts.filter(
+        district => district.idProvince === selectedProvince
+      );
+      setAvailableDistricts(filteredDistricts);
+      setSelectedDistrict("");  
+    }
   }, [selectedProvince]);
 
   const handleProvinceChange = (event) => {
     const provinceId = event.target.value;
-    onProvinceChange(provinceId);
-    onDistrictChange("");
+    setSelectedProvince(provinceId);
+    onProvinceChange?.(provinceId);
   };
 
   const handleDistrictChange = (event) => {
     const districtId = event.target.value;
-    onDistrictChange(districtId);
+    setSelectedDistrict(districtId);
+    onDistrictChange?.(districtId);
   };
 
   return (
-    <div className={`flex flex-col gap-4 ${className}`}>
-      <div>
-        <CustomSelect
-          value={selectedProvince || ""}
+    <div className="location-selector-container">
+      <div className="location-group">
+        <label className="location-label">Province</label>
+        <select
+          className="location-select"
+          value={selectedProvince}
           onChange={handleProvinceChange}
-          error={error && !selectedProvince}
-          required={required}
-          disabled={disabled}
-          displayEmpty
-          fullWidth
         >
-          <MenuItem value="">
-            <em>Chọn Tỉnh/Thành phố</em>
-          </MenuItem>
+          <option value="">Select Province</option>
           {provinces.map((province) => (
-            <MenuItem key={province.idProvince} value={province.idProvince}>
+            <option key={province.idProvince} value={province.idProvince}>
               {province.name}
-            </MenuItem>
+            </option>
           ))}
-        </CustomSelect>
-        {error && !selectedProvince && (
-          <FormHelperText error>
-            {helperText || "Vui lòng chọn Tỉnh/Thành phố"}
-          </FormHelperText>
-        )}
+        </select>
       </div>
 
-      <div>
-        <CustomSelect
-          value={selectedDistrict || ""}
+      <div className="location-group">
+        <label className="location-label">District</label>
+        <select
+          className="location-select"
+          value={selectedDistrict}
           onChange={handleDistrictChange}
-          error={error && !selectedDistrict}
-          required={required}
-          disabled={!selectedProvince || disabled}
-          displayEmpty
-          fullWidth
+          disabled={!selectedProvince}
         >
-          <MenuItem value="">
-            <em>Chọn Quận/Huyện</em>
-          </MenuItem>
-          {filteredDistricts.map((district) => (
-            <MenuItem key={district.idDistrict} value={district.idDistrict}>
+          <option value="">Select District</option>
+          {availableDistricts.map((district) => (
+            <option key={district.idDistrict} value={district.idDistrict}>
               {district.name}
-            </MenuItem>
+            </option>
           ))}
-        </CustomSelect>
-        {error && selectedProvince && !selectedDistrict && (
-          <FormHelperText error>
-            {helperText || "Vui lòng chọn Quận/Huyện"}
-          </FormHelperText>
-        )}
+        </select>
       </div>
     </div>
   );

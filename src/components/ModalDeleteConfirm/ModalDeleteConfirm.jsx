@@ -62,8 +62,8 @@ const ModalDeleteConfirm = ({
           Cancel
         </Button>
         <Button
-          variant="contained"
-          onClose={handleDeleteProduct}
+          // variant="contained"
+          onClick={handleDeleteProduct}
           sx={{
             bgcolor: "red",
             color: "white",

@@ -7,6 +7,7 @@ import { store, persistor } from "./redux/store";
 import { MetaMaskProvider } from "@metamask/sdk-react";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
+// import { ThirdwebProvider } from "@thirdweb-dev/react";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(

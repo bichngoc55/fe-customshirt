@@ -312,7 +312,7 @@ const MyOrder = () => {
           marginTop: "20px",
         }}
       >
-        <Avatar src={noImg} sx={{ width: 50, height: 50 }} />
+        <Avatar src={user.avaURL} sx={{ width: 50, height: 50 }} />
         <Box>
           <Typography
             sx={{

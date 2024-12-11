@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { useLocation } from "react-router-dom";
+
 import { Canvas } from "@react-three/fiber";
 import {
   OrbitControls,
@@ -11,16 +13,15 @@ import {
   Box,
   Typography,
   IconButton,
+  Snackbar,
+  Alert,
   Tooltip,
   MenuItem,
   styled,
   Select,
-  Snackbar,
-  Alert,
   Modal,
   Switch,
 } from "@mui/material";
-import "./designPage.css";
 import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -38,6 +39,7 @@ import HorizontalRuleIcon from "@mui/icons-material/HorizontalRule";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import ControlCameraIcon from "@mui/icons-material/ControlCamera";
 import axios from "axios";
+import "./DetailedDesignPage.css";
 // new
 import rough from "roughjs/bundled/rough.esm";
 import getStroke from "perfect-freehand";
@@ -76,7 +78,6 @@ const onLine = (x1, y1, x2, y2, x, y, maxDistance = 1) => {
   const offset = distance(a, b) - (distance(a, c) + distance(b, c));
   return Math.abs(offset) < maxDistance ? "inside" : null;
 };
-
 const positionWithinElement = (x, y, element) => {
   const { type, x1, x2, y1, y2 } = element;
   switch (type) {
@@ -93,15 +94,7 @@ const positionWithinElement = (x, y, element) => {
       const bottomRight = nearPoint(x, y, x2, y2, "br");
       const inside = x >= x1 && x <= x2 && y >= y1 && y <= y2 ? "inside" : null;
       return topLeft || topRight || bottomLeft || bottomRight || inside;
-    // case "pencil":
-    //   const betweenAnyPoint = element.points.some((point, index) => {
-    //     const nextPoint = element.points[index + 1];
-    //     if (!nextPoint) return false;
-    //     return (
-    //       onLine(point.x, point.y, nextPoint.x, nextPoint.y, x, y, 5) != null
-    //     );
-    //   });
-    //   return betweenAnyPoint ? "inside" : null;
+
     case "pencil":
       const betweenAnyPoint = element.points.some((point, index) => {
         const nextPoint = element.points[index + 1];
@@ -228,6 +221,7 @@ const getSvgPathFromStroke = (stroke) => {
   d.push("Z");
   return d.join(" ");
 };
+
 const drawElement = (roughCanvas, context, element) => {
   switch (element.type) {
     case "line":
@@ -269,7 +263,6 @@ const drawElement = (roughCanvas, context, element) => {
   }
 };
 
-// const adjustmentRequired = (type) => ["line", "rectangle"].includes(type);
 const adjustmentRequired = (type) =>
   ["line", "rectangle", "text", "image"].includes(type);
 
@@ -355,8 +348,17 @@ const StyledSelect = styled(Select)(() => ({
     gap: "8px",
   },
 }));
-const DesignPage = () => {
-  const [designTitle, setDesignTitle] = useState("Untitled");
+const DetailedDesignPage = () => {
+  const location = useLocation();
+
+  const initialDesign = location.state;
+
+  // const { design: initialProduct } = state;
+
+  const [design, setDesign] = useState(
+    initialDesign || { name: "Untitled", elements: [] }
+  );
+  const [designTitle, setDesignTitle] = useState(design?.name || "Untitled");
   const [isOpen3Dview, setIsOpen3Dview] = useState(false);
   const [stickers, setStickers] = useState([]);
   const [isWhiteModel, setIsWhiteModel] = useState(true);
@@ -365,9 +367,15 @@ const DesignPage = () => {
   const [generatedImage, setGeneratedImage] = useState([]);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const colors = ["white", "black"];
-  const [drawingTool, setDrawingTool] = useState("pencil");
-  const [selectedColors, setSelectedColors] = useState("white");
-  // const canvasInitializedRef = useRef(false);
+  const [drawingTool, setDrawingTool] = useState("Pencil");
+  const [canvas, setCanvas] = useState(null);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("info");
+  const [selectedColors, setSelectedColors] = useState(
+    design?.color || "white"
+  );
+
   const [hoveredSticker, setHoveredSticker] = useState(null);
   const { user } = useSelector((state) => state.auths);
   const [canvasBounds, setCanvasBounds] = useState({
@@ -376,9 +384,12 @@ const DesignPage = () => {
     width: 550,
     height: 550,
   });
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState("info");
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
   // copy
   const copyToClipboard = async (image) => {
     try {
@@ -390,9 +401,8 @@ const DesignPage = () => {
 
       return `data:image/png;base64,${image}`;
     } catch (err) {
-      setSnackbarMessage("Failed to copy image to clipboard.");
-      setSnackbarSeverity("error");
-      setOpenSnackbar(true);
+      console.error("Failed to copy image:", err);
+      alert("Failed to copy image to clipboard.");
       return null;
     }
   };
@@ -439,12 +449,6 @@ const DesignPage = () => {
     setIsAIModalOpen(true);
   };
 
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setOpenSnackbar(false);
-  };
   const tools = [
     { name: "pencil", icon: <PencilIcon /> },
     { name: "text", icon: <TextFieldsIcon /> },
@@ -453,6 +457,7 @@ const DesignPage = () => {
     { name: "eraser", icon: <AutoFixNormalIcon /> },
     { name: "rectangle", icon: <StarBorderIcon /> },
   ];
+
   const pasteImg = async (event) => {
     try {
       const clipboardItems = await navigator.clipboard.read();
@@ -509,7 +514,6 @@ const DesignPage = () => {
       reader.readAsDataURL(blob);
     });
   };
-
   const handleDeleteImage = (
     selectedElement,
     setElements,
@@ -533,10 +537,10 @@ const DesignPage = () => {
     setElements((prevElements) =>
       prevElements.filter((element) => element.id !== selectedElement.id)
     );
-
     setSelectedElement(null);
     setAction("none");
   };
+
   const handleAddImage = (e) => {
     const image = e.target.files[0];
     if (image) {
@@ -584,12 +588,13 @@ const DesignPage = () => {
       });
     }
   }, [selectedColors]);
+
   // not new
-  const handleSaveDesign = async () => {
+  const handleSaveDesign = async (designData) => {
     try {
       if (!user) {
-        setSnackbarMessage("Please log in to save your design.");
-        setSnackbarSeverity("error");
+        setSnackbarMessage("Please login before save design");
+        setSnackbarSeverity("warning");
         setOpenSnackbar(true);
         return;
       }
@@ -685,30 +690,86 @@ const DesignPage = () => {
         canvasPreview: canvasAPI,
         elements: schemaElements,
         previewImage: previewImage,
-        price: 0,
-        isNFT: false,
-        mintingStatus: "not_minted",
       };
       // console.log("================================payload: ", designPayload);
-      const response = await axios.post(
-        "http://localhost:3005/design/add",
+      const response = await axios.patch(
+        `http://localhost:3005/design/${design?._id}`,
         designPayload
       );
 
       if (response.data.success) {
-        setSnackbarMessage("Design saved successfully!");
+        setSnackbarMessage("Update design successfully");
         setSnackbarSeverity("success");
         setOpenSnackbar(true);
-        return response.data.design;
       }
     } catch (error) {
       setSnackbarMessage("Failed to save design. Please try again.");
       setSnackbarSeverity("error");
       setOpenSnackbar(true);
-      return null;
     }
   };
-
+  const convertDbElementsToCanvasElements = (dbElements) => {
+    return dbElements
+      .map((element, index) => {
+        switch (element.type) {
+          case "shape":
+            if (element.content === "freehand") {
+              return {
+                id: index,
+                type: "pencil",
+                points: element.properties.points.map((point) => ({
+                  x: point.x,
+                  y: point.y,
+                })),
+              };
+            } else if (element.content === "line") {
+              return {
+                id: index,
+                type: "line",
+                x1: element.properties.position.x,
+                y1: element.properties.position.y,
+                x2: element.properties.position.x + element.properties.width,
+                y2: element.properties.position.y + element.properties.height,
+                roughElement: generator.line(
+                  element.properties.position.x,
+                  element.properties.position.y,
+                  element.properties.position.x + element.properties.width,
+                  element.properties.position.y + element.properties.height
+                ),
+              };
+            } else if (element.content === "rectangle") {
+              return {
+                id: index,
+                type: "rectangle",
+                x1: element.properties.position.x,
+                y1: element.properties.position.y,
+                x2: element.properties.position.x + element.properties.width,
+                y2: element.properties.position.y + element.properties.height,
+                roughElement: generator.rectangle(
+                  element.properties.position.x,
+                  element.properties.position.y,
+                  element.properties.width,
+                  element.properties.height
+                ),
+              };
+            }
+            break;
+          case "text":
+            return {
+              id: index,
+              type: "text",
+              x1: element.properties.position.x,
+              y1: element.properties.position.y,
+              x2: element.properties.position.x + element.properties.width,
+              y2: element.properties.position.y + element.properties.height,
+              text: element.content,
+            };
+          default:
+            return null;
+        }
+      })
+      .filter((element) => element !== null);
+  };
   // new
   const [elements, setElements, undo, redo] = useHistory([]);
   const [action, setAction] = useState("none");
@@ -731,6 +792,18 @@ const DesignPage = () => {
 
     context.save();
     context.translate(panOffset.x, panOffset.y);
+    // console.log("elements: ", elements);
+    if (design && design.elements && elements?.length === 0) {
+      const convertedElements = convertDbElementsToCanvasElements(
+        design.elements
+      );
+      setElements(convertedElements, true);
+      // console.log("den day r", convertedElements);
+
+      setSelectedColors(design.color);
+      setDesignTitle(design.name);
+    }
+    // console.log("elements 2: ", elements);
 
     elements.forEach((element) => {
       if (action === "writing" && selectedElement.id === element.id) return;
@@ -916,10 +989,8 @@ const DesignPage = () => {
       setAction(tool === "text" ? "writing" : "drawing");
     }
   };
-
   const handleMouseMove = (event) => {
     const { clientX, clientY } = getMouseCoordinates(event);
-
     if (action === "panning") {
       const deltaX = clientX - startPanMousePosition.x;
       const deltaY = clientY - startPanMousePosition.y;
@@ -1012,15 +1083,12 @@ const DesignPage = () => {
     if (action === "writing") return;
 
     setAction("none");
-    // cant resize image
-    // setSelectedElement(null);
+    setSelectedElement(null);
   };
 
   const handleBlur = (event) => {
     const { id, x1, y1, type } = selectedElement;
     setAction("none");
-    console.log("co chay vao day ko 4");
-
     setSelectedElement(null);
     updateElement(id, x1, y1, null, null, type, { text: event.target.value });
   };
@@ -1063,7 +1131,6 @@ const DesignPage = () => {
       document.removeEventListener("keydown", deleteHandler);
     };
   }, [elements, selectedElement, canvasBounds, action]);
-
   return (
     <Box className="design-page">
       <Box className="upper-part">
@@ -1082,7 +1149,7 @@ const DesignPage = () => {
           <input
             type="text"
             className="design-title"
-            value={designTitle}
+            value={design.name}
             onChange={handleTitleChange}
           />
           <div className="icons">
@@ -1214,10 +1281,7 @@ const DesignPage = () => {
           {tools.map((tool, index) => (
             <div key={index} className="tool-item">
               <IconButton
-                onClick={() => {
-                  setTool(tool.name);
-                  setDrawingTool(tool.name);
-                }}
+                onClick={() => setTool(tool.name)}
                 className={`tool-button ${
                   drawingTool === tool.name ? "active" : ""
                 }`}
@@ -1276,8 +1340,6 @@ const DesignPage = () => {
                 marginLeft: "220px",
               }}
             />
-
-            {/* Drawing Canvas */}
 
             <canvas
               id="canvas"
@@ -1447,4 +1509,4 @@ const DesignPage = () => {
   );
 };
 
-export default DesignPage;
+export default DetailedDesignPage;

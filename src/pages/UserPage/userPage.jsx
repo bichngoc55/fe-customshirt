@@ -5,8 +5,7 @@ import { Routes, Route, useParams } from "react-router-dom";
 import NFTCollection from "./NFTCollection";
 import Profile from "./profilePage";
 import SharedTabs from "./SharedTabs";
-import MyOrder from "./myOrder";
-// input form
+import MyOrder from "./myOrder"; 
 
 const UserProfile = () => {
   const { id } = useParams();

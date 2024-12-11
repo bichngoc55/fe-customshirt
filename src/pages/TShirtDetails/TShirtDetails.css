@@ -43,8 +43,9 @@
 
 .image-slider {
   position: relative;
-  width: 100%;
+  width: 80%;
   height: 500px;
+  margin-left: 100px;
   overflow: hidden;
 }
 
