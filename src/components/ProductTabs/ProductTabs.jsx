@@ -58,9 +58,9 @@ const ProductTabs = ({ product, onReviewUpdate }) => {
   const [files, setFiles] = useState([]);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
-  useEffect(() => {
-    console.log("review", product.reviews);
-  }, []);
+  // useEffect(() => {
+  //   console.log("review", product.reviews);
+  // }, []);
 
   const handleTabChange = (newValue) => {
     setActiveTab(newValue);
@@ -164,11 +164,31 @@ const ProductTabs = ({ product, onReviewUpdate }) => {
     }
   };
   const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    console.log("Newly selected files:", files);
+    // const files = Array.from(e.target.files);
+    const selectedFiles = Array.from(e.target.files);
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "image/bmp",
+    ];
+    const validImageFiles = selectedFiles.filter((file) => {
+      if (!allowedTypes.includes(file.type)) {
+        setSnackbarMessage(
+          `Invalid file type: ${file.name}. Please upload only image files (jpg, png, gif).`
+        );
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
+        return false;
+      }
+      return true;
+    });
+    // console.log("Newly selected files:", files);
     setFiles((prev) => {
-      const updatedFiles = [...prev, ...files];
-      console.log("Updated files2 state:", updatedFiles);
+      const updatedFiles = [...prev, ...validImageFiles];
+      // console.log("Updated files2 state:", updatedFiles);
       return updatedFiles;
     });
   };

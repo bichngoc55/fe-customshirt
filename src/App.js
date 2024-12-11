@@ -16,6 +16,7 @@ import TShirtDetails from "./pages/TShirtDetails/TShirtDetails";
 import ShippingPage from "./pages/ShippingPage/ShippingPage";
 import Message from "./pages/Message/Message";
 import Confirm from "./components/OrderTab/Confirm";
+import DetailedDesignPage from "./pages/DetailedDesignPage/DetailedDesignPage";
 function App() {
   const { token, user } = useSelector((state) => state.auths);
   const isAdmin = user?.role === "admin";
@@ -37,6 +38,9 @@ function App() {
             <Route path="/collection/:id" element={<TShirtDetails />} />
 
             <Route path="/checkout/:id/*" element={<ShippingPage />} />
+            {token && (
+              <Route path="/design/:id" element={<DetailedDesignPage />} />
+            )}
 
             <Route path="/checkout/:id/confirmation" element={<Confirm />} />
 

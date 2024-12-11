@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Box,
   Typography,
@@ -17,8 +17,6 @@ const AIGeneratorModal = ({
   prompt,
   setPrompt,
 }) => {
-  const [selectedImage, setSelectedImage] = useState(null);
-
   const handlePromptChange = (e) => {
     setPrompt(e.target.value);
   };
@@ -28,56 +26,7 @@ const AIGeneratorModal = ({
       generateImage();
     }
   };
-  const handleImageClick = async (image, index) => {
-    const imageUrl = `data:image/png;base64,${image}`;
-    const processedImage = await removeBackground(imageUrl);
-    if (processedImage) {
-      setSelectedImage(processedImage);
-    }
-  };
-  const removeBackground = async (imageUrl) => {
-    try {
-      const response = await fetch("https://api.remove.bg/v1.0/removebg", {
-        method: "POST",
-        headers: {
-          "Api-Key": "9vPP12bw3AKAVh1BqEAB61sP",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          image_url: imageUrl,
-          size: "auto",
-          format: "png",
-        }),
-      });
-      console.log(response);
-
-      if (!response.ok) throw new Error("Failed to remove background");
-
-      const blob = await response.blob();
-      return URL.createObjectURL(blob);
-    } catch (error) {
-      console.error("Error removing background:", error);
-      return null;
-    }
-  };
-
-  const handleCopyImage = async () => {
-    if (selectedImage) {
-      try {
-        const response = await fetch(selectedImage);
-        const blob = await response.blob();
-        await navigator.clipboard.write([
-          new ClipboardItem({
-            "image/png": blob,
-          }),
-        ]);
-        alert("Image copied to clipboard!");
-      } catch (error) {
-        console.error("Failed to copy image:", error);
-        alert("Failed to copy image to clipboard");
-      }
-    }
-  };
+  
 
   return (
     <Modal
@@ -160,7 +109,7 @@ const AIGeneratorModal = ({
             Close
           </Button>
         </Box>
-        {/* {generatedImage.length > 0 && (
+        {generatedImage.length > 0 && (
           <Box
             sx={{
               mt: 2,
@@ -193,72 +142,6 @@ const AIGeneratorModal = ({
               </Box>
             ))}
           </Box>
-        )} */}
-        {generatedImage.length > 0 && (
-          <>
-            <Box
-              sx={{
-                mt: 2,
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-                gap: 2,
-              }}
-            >
-              {generatedImage.map((image, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    width: "100%",
-                    aspectRatio: "1/1",
-                    position: "relative",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => handleImageClick(image, index)}
-                >
-                  <img
-                    src={`data:image/png;base64,${image}`}
-                    alt={`Generated Artwork ${index + 1}`}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      borderRadius: "4px",
-                    }}
-                  />
-                </Box>
-              ))}
-            </Box>
-            {selectedImage && (
-              <Box sx={{ mt: 2, textAlign: "center" }}>
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                  Processed Image (Background Removed)
-                </Typography>
-                <img
-                  src={selectedImage}
-                  alt="Processed"
-                  style={{
-                    maxWidth: "100%",
-                    height: "auto",
-                    borderRadius: "4px",
-                  }}
-                />
-                <Button
-                  variant="contained"
-                  onClick={handleCopyImage}
-                  sx={{
-                    mt: 2,
-                    bgcolor: "#8CFFB3",
-                    color: "black",
-                    "&:hover": {
-                      bgcolor: "#7deea2",
-                    },
-                  }}
-                >
-                  Copy to Clipboard
-                </Button>
-              </Box>
-            )}
-          </>
         )}
       </Box>
     </Modal>

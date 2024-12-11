@@ -229,6 +229,7 @@ const Message = () => {
                     )}
                   </div>
                 </div>
+                <div></div>
 
                 {message.sender === user._id &&
                   !message.isUnsent &&

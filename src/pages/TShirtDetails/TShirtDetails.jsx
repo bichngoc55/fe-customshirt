@@ -37,8 +37,6 @@ import AutoFixHighOutlinedIcon from "@mui/icons-material/AutoFixHighOutlined";
 import ProductTabs from "../../components/ProductTabs/ProductTabs";
 import SizeGuideModal from "../../components/SizeGuideModal";
 import RecentViewedSlider from "../../components/RecentViewedSlider/RecentViewedSlider";
-import { setVoucherData } from "../../redux/shippingSlice";
-// const TabContext = React.createContext();
 
 const TShirtDetails = () => {
   const { state } = useLocation();
@@ -62,7 +60,6 @@ const TShirtDetails = () => {
   const { selectedItems } = useSelector((state) => state.cart);
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
   const [voucherCode, setVoucherCode] = useState([]);
-  const [copied, setCopied] = useState(null);
   const [selectedVoucher, setSelectedVoucher] = useState(voucherData);
   const [isModalSizeGuideOpen, setIsModalSizeGuideOpen] = useState(false);
   const [shareData, setShareData] = useState({
@@ -323,17 +320,25 @@ const TShirtDetails = () => {
     console.log("cart Items without login:", cartItems);
     dispatch(setSelectedItems([cartItem]));
     navigate(`/checkout/${selectedItems[0]._id}/shipping`);
-    // navigate(`/checkout/${selectedItems[0]._id}/shipping`);
-    // navigate("/checkout/2832483274837832483/shipping");
   };
 
   return (
     <div className="body">
       <div className="path-container">
-        <div style={{ marginLeft: "30px" }} className="path-text">
+        <div
+          style={{ marginLeft: "30px", cursor: "pointer" }}
+          onClick={() => navigate("/home")}
+          className="path-text"
+        >
           Home /
         </div>
-        <div className="path-text">Collection /</div>
+        <div
+          style={{ cursor: "pointer" }}
+          className="path-text"
+          onClick={() => navigate("/collection")}
+        >
+          Collection /
+        </div>
         <div style={{ color: "#8F6600" }} className="path-text">
           {product.name}
         </div>
@@ -400,34 +405,44 @@ const TShirtDetails = () => {
             <button className="slider-button prev" onClick={handlePrevImage}>
               <ChevronLeftIcon />
             </button>
-            <Badge
-              badgeContent="Sale"
-              color="secondary"
-              sx={{ marginLeft: "20px", marginTop: "-5px", fontSize: "1.2rem" }}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
-            />
-
+            {product.isSale && (
+              <Badge
+                badgeContent="Sale"
+                color="secondary"
+                sx={{
+                  marginLeft: "20px",
+                  marginTop: "15px",
+                  position: "absolute",
+                  fontSize: "1.2rem",
+                  zIndex: 10,
+                }}
+                anchorOrigin={{
+                  vertical: "top",
+                  horizontal: "left",
+                }}
+              />
+            )}
             <img
               src={product.imageUrl[currentImageIndex]}
               alt={product.name}
               className="product-image"
             />
-            <Badge
-              badgeContent="New"
-              color="primary"
-              sx={{
-                // marginLeft: "20px",
-                marginTop: "40px",
-                backgroundColor: "red",
-              }}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
-            />
+            {product.isNewShirt && (
+              <Badge
+                badgeContent="New"
+                color="primary"
+                sx={{
+                  marginLeft: "20px",
+                  marginTop: "40px",
+                  backgroundColor: "red",
+                  zIndex: 10,
+                }}
+                anchorOrigin={{
+                  vertical: "top",
+                  horizontal: "left",
+                }}
+              />
+            )}
             <button className="slider-button next" onClick={handleNextImage}>
               <ChevronRightIcon />
             </button>
@@ -719,20 +734,6 @@ const TShirtDetails = () => {
         cartItems={cartItems}
         setCartItems={setCartItems}
       />
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbarSeverity}
-          sx={{ width: "100%" }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}
