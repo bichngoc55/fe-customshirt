@@ -24,6 +24,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../../redux/authSlice";
+import BtnComponent from "../../components/btnComponent/btnComponent";
 
 const StyledCardMedia = styled(CardMedia)(({ theme }) => ({
   position: "relative",
@@ -68,16 +69,18 @@ const MyDesign = () => {
               Authorization: `Bearer ${token}`,
             },
           });
-
+          // console.log("hehe: ", result);
           if (result.data.success) {
             setDesigns(result.data.designs);
-          } else if (result.status === 401) {
+          } else {
             // console.log("Failed to fetch designs");
             dispatch(logoutUser());
             navigate("/login");
           }
         } catch (error) {
           // console.error("Error fetching designs:", error);
+          dispatch(logoutUser());
+          navigate("/login");
         }
       }
     };
@@ -260,10 +263,27 @@ const MyDesign = () => {
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>
+                    <BtnComponent
+                      handleClick={() => {
+                        if (user === null) {
+                          setSnackbarMessage("Please login to contact us");
+                          setSnackbarSeverity("warning");
+                          setOpenSnackbar(true);
+                          return;
+                        } else
+                          navigate(`/design/payment/${design?._id}`, {
+                            state: { design },
+                          });
+                      }}
+                      value={"Buy Now"}
+                      width={"400px"}
+                      height={"400px"}
+                    />
                   </CardActions>
                 </StyledCardMedia>
               </Grid>
             ))}
+
             <Grid
               item
               xs={12}
@@ -275,19 +295,26 @@ const MyDesign = () => {
                 justifyContent: "center",
               }}
             >
-              <Button
-                onClick={() => navigate("/design/create")}
-                endIcon={<ArrowForwardIcon />}
-                sx={{
-                  color: "white",
-                  alignSelf: "center",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.1)" },
-                }}
-              >
-                See more
-              </Button>
+              {" "}
+              {designs.length > 3 && (
+                <>
+                  <Button
+                    onClick={() => console.log("")}
+                    endIcon={<ArrowForwardIcon />}
+                    sx={{
+                      color: "white",
+                      alignSelf: "center",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      "&:hover": {
+                        backgroundColor: "rgba(255, 255, 255, 0.1)",
+                      },
+                    }}
+                  >
+                    See more
+                  </Button>
+                </>
+              )}
             </Grid>
           </Grid>
         )}

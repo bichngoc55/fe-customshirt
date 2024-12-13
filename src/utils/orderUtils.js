@@ -9,7 +9,7 @@ export const calculateDeliveryDate = (deliveryType) => {
     case "express":
       deliveryDate.setDate(today.getDate() + 3);
       break;
-    case "same day":
+    case "same-day":
       deliveryDate.setHours(23, 59, 59, 999);
       break;
     default:

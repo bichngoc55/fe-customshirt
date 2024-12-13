@@ -63,7 +63,7 @@ const PaymentPage = ({ onPreviousStep, onNextStep }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const [paymentMethod, setPaymentMethod] = useState(paymentData || "cash");
+  const [paymentMethod, setPaymentMethod] = useState(paymentData || null);
   const [cardDetails, setCardDetails] = useState({
     cardNumber: "",
     expiry: "",
@@ -175,17 +175,17 @@ const PaymentPage = ({ onPreviousStep, onNextStep }) => {
     setLoading(true);
 
     try {
-      // Validation checks
       if (!selectedItems || selectedItems.length === 0) {
-        throw new Error("No items in cart");
+        setSnackbarMessage("No items in cart");
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
+        return;
       }
-
-      // if (!user?._id) {
-      //   throw new Error("User not authenticated");
-      // }
-
       if (!shippingData) {
-        throw new Error("Shipping information is missing");
+        setSnackbarMessage("Shipping information is missing.");
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
+        return;
       }
 
       const paymentData = {
@@ -193,8 +193,11 @@ const PaymentPage = ({ onPreviousStep, onNextStep }) => {
         ...(paymentMethod === "card" && { cardDetails }),
       };
 
-      if (paymentData.method === null) {
-        throw new Error("Please select a payment method to purchase");
+      if (paymentData.method === null || paymentData === undefined) {
+        setSnackbarMessage("Please select a payment method to purchase");
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
+        return;
       }
 
       const formattedPaymentData = {

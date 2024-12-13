@@ -92,11 +92,9 @@ const TShirtDetails = () => {
     fetchVoucherCode();
   }, []);
   const handleOpenSizeGuideModal = async () => {
-    // open modal
     setIsModalSizeGuideOpen(true);
   };
   const handleCloseSizeGuideModal = () => {
-    // close modal
     setIsModalSizeGuideOpen(false);
   };
 

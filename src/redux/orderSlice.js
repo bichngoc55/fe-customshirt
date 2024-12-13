@@ -3,6 +3,18 @@ import axios from "axios";
 
 const API_URL = "http://localhost:3005/order";
 
+// Auto-refuse unconfirmed orders
+export const autoRefuseUnconfirmedOrders = createAsyncThunk(
+  "orders/autoRefuseUnconfirmedOrders",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.put(`${API_URL}/auto-refuse`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
 // Fetch all orders
 export const fetchOrders = createAsyncThunk(
   "orders/fetchOrders",
@@ -34,7 +46,7 @@ export const updateOrder = createAsyncThunk(
   "orders/updateOrder",
   async ({ id, orderData }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`${API_URL}/${id}`, orderData);
+      const response = await axios.patch(`${API_URL}/${id}`, orderData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -89,6 +101,7 @@ const orderSlice = createSlice({
     error: null,
     cancelStatus: "idle",
     updateStatus: "idle",
+    autoRefuseStatus: "idle",
   },
   reducers: {
     clearErrors: (state) => {
@@ -145,6 +158,7 @@ const orderSlice = createSlice({
       })
       .addCase(cancelOrder.fulfilled, (state, action) => {
         state.cancelStatus = "succeeded";
+        console.log("Cancelled Order", state.cancelStatus);
         const index = state.orders.findIndex(
           (order) => order._id === action.payload._id
         );
@@ -184,6 +198,33 @@ const orderSlice = createSlice({
       })
       .addCase(deleteOrder.rejected, (state, action) => {
         state.error = action.payload?.message || "Failed to delete order";
+      })
+      // Auto-refuse unconfirmed orders
+      .addCase(autoRefuseUnconfirmedOrders.pending, (state) => {
+        state.autoRefuseStatus = "loading";
+      })
+      .addCase(autoRefuseUnconfirmedOrders.fulfilled, (state, action) => {
+        if (action.payload.count === 0) {
+          // state.error = "No unconfirmed orders to auto-refuse.";
+          return;
+        }
+        state.autoRefuseStatus = "succeeded";
+
+        action.payload?.updatedOrders?.forEach((refusedOrder) => {
+          const index = state.orders.findIndex(
+            (order) => order._id === refusedOrder._id
+          );
+          if (index !== -1) {
+            state.orders[index] = refusedOrder;
+          }
+        });
+
+        state.error = null;
+      })
+      .addCase(autoRefuseUnconfirmedOrders.rejected, (state, action) => {
+        state.autoRefuseStatus = "failed";
+        state.error =
+          action.payload?.message || "Failed to auto-refuse unconfirmed orders";
       });
   },
 });

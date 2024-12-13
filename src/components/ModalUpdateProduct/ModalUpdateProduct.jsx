@@ -204,10 +204,10 @@ const ModalUpdateProduct = ({
           return response.data.secure_url;
         })
       );
-      console.log("new Image ", newImageUrls);
+      // console.log("new Image ", newImageUrls);
 
-      console.log("isSaleProduct", isSaleProduct);
-      console.log("isNewShirt", isNewProduct);
+      // console.log("isSaleProduct", isSaleProduct);
+      // console.log("isNewShirt", isNewProduct);
 
       await handleUpdateProduct({
         name,
