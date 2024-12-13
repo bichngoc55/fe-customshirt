@@ -20,20 +20,11 @@ import tree1 from "../../assets/images/tree-1.png";
 import tree3 from "../../assets/images/ggdrive2.png";
 import mountain from "../../assets/images/ggdrive.png";
 import mountainStar from "../../assets/images/star2.png";
-import tree4 from "../../assets/images/tree4.png";
-import tree5 from "../../assets/images/tree5.png";
-import cloud12Img from "../../assets/images/more-cloud.png";
 import cloud13Img from "../../assets/images/cloud-new10.png";
 import { useNavigate } from "react-router-dom";
 import FeedbackSection from "../../components/feedbackSection";
 import axios from "axios";
 
-const tShirts = [
-  { id: 1, name: "UNDEFINED NAME", price: "₱ 1,400.00" },
-  { id: 2, name: "UNDEFINED NAME", price: "₱ 900.00" },
-  { id: 3, name: "UNDEFINED NAME", price: "₱ 3,500.00" },
-  { id: 4, name: "UNDEFINED NAME", price: "₱ 3,500.00" },
-];
 const features = [
   {
     icon: <AccessibleForwardIcon />,
@@ -50,32 +41,6 @@ const features = [
     icon: <AccessibleForwardIcon />,
     title: "AI & Paint Tools",
     description: "creative and easy T-shirt design",
-  },
-];
-const vouchers = [
-  {
-    discount: "5% OFF",
-    forText: "FOR WHOLE ORDER",
-    code: "CODE_123sksdlof",
-    validFrom: "05/08/2021 04:00",
-    validTo: "09/08/2021 12:00",
-    forProducts: "For all products.",
-  },
-  {
-    discount: "5% OFF",
-    forText: "FOR WHOLE ORDER",
-    code: "CODE_123sksdlof",
-    validFrom: "05/08/2021 04:00",
-    validTo: "09/08/2021 12:00",
-    forProducts: "For all products.",
-  },
-  {
-    discount: "5% OFF",
-    forText: "FOR WHOLE ORDER",
-    code: "CODE_123sksdlof",
-    validFrom: "05/08/2021 04:00",
-    validTo: "09/08/2021 12:00",
-    forProducts: "For all products.",
   },
 ];
 
@@ -131,9 +96,11 @@ const LandingPage = () => {
   const [moonPosition, setMoonPosition] = useState(-30);
   const fireflyWrapperRef = useRef(null);
   const footerRef = useRef(null);
-  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const [feedbackData, setFeedbackData] = useState(null);
+  const [tShirts, setTShirts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const toggleQuestion = (index) => {
     setOpenQuestion(openQuestion === index ? null : index);
   };
@@ -168,6 +135,24 @@ const LandingPage = () => {
       setIsLoading(false);
     }
   };
+  const handleFetch4SellingShirt = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(
+        "http://localhost:3005/order/top-selling"
+      );
+      console.log("Top Selling Shirts:", response.data);
+      setTShirts(response.data);
+      setIsLoading(false);
+    } catch (err) {
+      setError("Failed to fetch top-selling shirts");
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    handleFetch4SellingShirt();
+  }, []);
 
   useEffect(() => {
     fetchFeedback();
@@ -236,16 +221,13 @@ const LandingPage = () => {
         document.documentElement.scrollHeight - window.innerHeight;
       const scrollPercentage = Math.min(scrollPosition / maxScroll, 1);
 
-      // Check if we're near the bottom
       const isNearBottom = scrollPercentage > 0.95;
       setIsLanded(isNearBottom);
 
-      // Calculate zigzag pattern
-      const amplitude = isNearBottom ? 0 : 100; // Stop zigzag when landing
+      const amplitude = isNearBottom ? 0 : 100;
       const frequency = 5; //ban dau la 3
       // const xOffset =
       //   amplitude * Math.sin(scrollPercentage * Math.PI * frequency);
-      // Add a secondary wave for more natural movement
       const secondaryAmplitude = isNearBottom ? 0 : 30;
       const secondaryFrequency = 8;
 
@@ -253,29 +235,25 @@ const LandingPage = () => {
         amplitude * Math.sin(scrollPercentage * Math.PI * frequency) +
         secondaryAmplitude *
           Math.cos(scrollPercentage * Math.PI * secondaryFrequency);
-      // Calculate position
       let newX, newY;
       if (isNearBottom) {
         newX = endPos.x;
         newY = endPos.y;
       } else {
-        // Normal flying path
         newX =
           startPos.x + (endPos.x - startPos.x) * scrollPercentage + xOffset;
         newY = Math.max(
           startPos.y + (endPos.y - startPos.y) * scrollPercentage,
-          100 // Keep minimum distance from top
+          100
         );
       }
 
-      // Convert to viewport percentages
       const viewportX = (newX / window.innerWidth) * 100;
       const viewportY = (newY / window.innerHeight) * 100;
 
       setFireflyPosition({ x: viewportX, y: viewportY });
     };
 
-    // Initial position
     handleScroll();
 
     window.addEventListener("scroll", handleScroll);
@@ -286,7 +264,6 @@ const LandingPage = () => {
       window.removeEventListener("resize", handleScroll);
     };
   }, []);
-  // Add new moon animation effect
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
@@ -294,7 +271,6 @@ const LandingPage = () => {
         document.documentElement.scrollHeight - window.innerHeight;
       const scrollPercentage = Math.min(scrollPosition / maxScroll, 1);
 
-      // Calculate moon position
       let newMoonPosition = scrollPercentage * 100;
 
       if (footerRef.current) {
@@ -309,12 +285,21 @@ const LandingPage = () => {
       setMoonPosition(newMoonPosition);
     };
 
-    // Initial position
     handleScroll();
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+  const handleBuyingClick = (tshirt) => {
+    const product = tshirt.product;
+    navigate(`/collection/${tshirt._id}`, { state: { product } });
+  };
+  const calculateSalePrice = (isSale, salePercent, price) => {
+    if (isSale) {
+      return price * (1 - salePercent / 100);
+    }
+    return price;
+  };
 
   return (
     <div className="landing-page">
@@ -361,7 +346,7 @@ const LandingPage = () => {
           <img src={cloud4Img} alt="cloud" className="cloud cloud-4" />
           <img src={cloud6Img} alt="cloud" className="cloud cloud-6" />
           <img src={cloud7Img} alt="cloud" className="cloud cloud-7" />
-          <img src={cloud8Img} alt="cloud" className="cloud cloud-8" />
+          {/* <img src={cloud8Img} alt="cloud" className="cloud cloud-8" /> */}
           <img src={cloud5Img} alt="cloud" className="cloud cloud-5" />
           <img src={cloud10Img} alt="cloud" className="cloud cloud-10" />
           <img src={cloud11Img} alt="cloud" className="cloud cloud-11" />
@@ -391,6 +376,10 @@ const LandingPage = () => {
       </header>
 
       <section ref={addToRefs} className="features">
+        <div className="cloud-container">
+          {" "}
+          <img src={cloud8Img} alt="cloud" className="cloud cloud-8" />
+        </div>
         <h2>T-Shirt Design for Your Creative Ventures</h2>
         <p>
           Unleash your creativity with our versatile design tools, perfect for
@@ -422,10 +411,35 @@ const LandingPage = () => {
         </div>
         <div className="t-shirt-grid">
           {tShirts.map((tShirt) => (
-            <div key={tShirt.id} className="t-shirt-item">
-              <div className="t-shirt-image"></div>
+            <div
+              onClick={() => handleBuyingClick(tShirt)}
+              key={tShirt._id}
+              className="t-shirt-item"
+            >
+              <div
+                className="t-shirt-image"
+                style={{
+                  backgroundImage: `url(${tShirt.imageUrl[0]})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              ></div>{" "}
               <p className="t-shirt-name">{tShirt.name}</p>
-              <p className="t-shirt-price">{tShirt.price}</p>
+              <p className="t-shirt-price">
+                Price:
+                <span className="original-price">
+                  {tShirt.price.toLocaleString()} đ VND
+                </span>
+                <span className="sale-price">
+                  {calculateSalePrice(
+                    tShirt.isSale,
+                    tShirt.salePercent,
+                    tShirt.price
+                  ).toLocaleString()}
+                  đ
+                </span>
+              </p>
+              <p className="t-shirt-price">Sold: {tShirt.totalQuantitySold}</p>
             </div>
           ))}
         </div>

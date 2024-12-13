@@ -7,6 +7,7 @@ import {
   MenuItem,
   styled,
   Badge,
+  Avatar,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import MailIcon from "@mui/icons-material/Mail";
@@ -159,7 +160,7 @@ export const NavBar = ({ user }) => {
                 onClick={handleNavigateToMessage}
               />
             </Badge>
-            <img src={defaultAva} alt="" className="ava" />
+            <Avatar src={user?.avaURL} alt="" />
             <div className="user" onClick={handleClick}>
               {user?.username}
             </div>

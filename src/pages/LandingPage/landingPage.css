@@ -4,6 +4,8 @@
   color: #ffffff;
   font-family: "Montserrat", sans-serif;
   margin: 0% 3%;
+  /* width: 80%; */
+  /* max-width: 700px; */
 }
 
 .hero {
@@ -81,7 +83,7 @@ cloud-container {
   animation-duration: 20s;
 }
 .cloud-8 {
-  top: 50%;
+  top: -135%;
   left: 80%;
   width: 32%;
   animation-duration: 22s;
@@ -460,28 +462,48 @@ footer {
 
 .t-shirt-image {
   width: 100%;
-  height: 200px;
-  background-color: #f0f0f0;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23cccccc"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>');
+
+  height: 270px;
+  /* background-color: #f0f0f0; */
+  /* background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23cccccc"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>'); */
   background-repeat: no-repeat;
   background-position: center;
+
   background-size: 48px;
 }
 
 .t-shirt-name {
   font-size: 1rem;
-  color: #ffffff;
+  color: white;
   padding: 10px;
   margin: 0;
+  transition: text-shadow 0.3s ease;
+}
+
+.t-shirt-name:hover {
+  text-shadow: 0 0 5px rgb(255, 255, 255, 0.3), 0 0 5px rgb(231, 228, 222, 0.3),
+    0 0 10px rgb(255, 255, 255, 0.2);
 }
 
 .t-shirt-price {
-  font-size: 1rem;
+  /* font-size: 1rem; */
   color: #a0a0a0;
   padding: 0 10px 10px;
   margin: 0;
 }
+.original-price {
+  text-decoration: line-through;
+  color: red;
+  margin-right: 10px;
+  margin-left: 10px;
+  display: inline;
+}
 
+.sale-price {
+  color: green;
+  font-weight: bold;
+  display: inline;
+}
 /* about us */
 
 .about-us {
