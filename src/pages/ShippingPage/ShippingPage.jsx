@@ -8,9 +8,9 @@ import OrderTab from "../../components/OrderTab/OrderTab";
 const ShippingPage = () => {
   const { selectedItems } = useSelector((state) => state.cart);
 
-  useEffect(() => {
-    console.log("trong shipping page", selectedItems);
-  }, []);
+  // useEffect(() => {
+  //   console.log("trong shipping page", selectedItems);
+  // }, []);
 
   return (
     <div

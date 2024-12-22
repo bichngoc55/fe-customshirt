@@ -5,9 +5,9 @@ import {
   CardMedia,
   CardContent,
   Typography,
-  IconButton,
   styled,
 } from "@mui/material";
+import noImg from "../../assets/images/no_img.jpeg";
 
 const StyledCard = styled(Card)(({ theme }) => ({
   backgroundColor: "#1a1a1a",
@@ -177,9 +177,7 @@ const RecentViewedSlider = ({ user, product }) => {
               <StyledCard key={recentProduct._id}>
                 <ProductImage
                   component="img"
-                  image={
-                    recentProduct.imageUrl?.[0] || "/placeholder-image.jpg"
-                  }
+                  image={recentProduct.imageUrl?.[0] || noImg}
                   alt={recentProduct.name}
                 />
 

@@ -3,11 +3,14 @@ import "./collectionPage.css";
 import SearchIcon from "@mui/icons-material/Search";
 import axios from "axios";
 import AddIcon from "@mui/icons-material/Add";
-import { Box, Typography, IconButton } from "@mui/material";
+import { Box, Typography, IconButton, Snackbar, Alert } from "@mui/material";
 import ModalAddProduct from "../../components/ModalAddProduct/ModalAddProduct";
 import { useNavigate } from "react-router-dom";
 import CenterFocusWeakIcon from "@mui/icons-material/CenterFocusWeak";
 import { useSelector } from "react-redux";
+import { Backdrop, CircularProgress } from "@mui/material";
+import SearchResultModal from "../../components/imageSearchResultModal/ImageSearchResultModal";
+
 const CollectionPage = () => {
   const [price, setPrice] = useState(0);
   const [products, setProducts] = useState([]);
@@ -29,8 +32,14 @@ const CollectionPage = () => {
   const [sortOption, setSortOption] = useState("default");
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [salePercent, setSalePercent] = useState(0);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("info");
   const [selectedColor, setSelectedColor] = useState("");
   const { user } = useSelector((state) => state.auths);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchError, setSearchError] = useState(null);
+  const [isOpenModalSearchImage, setIsOpenModalSearchImage] = useState(false);
 
   const handleFetch = async () => {
     try {
@@ -43,15 +52,19 @@ const CollectionPage = () => {
 
       if (response.ok) {
         const data = await response.json();
-        // console.log(data);
         setProducts(data);
         setFilteredProducts(data);
       } else {
-        console.error("Failed to fetch products");
       }
     } catch (error) {
-      console.error("Error fetching products:", error);
+      // console.error("Error fetching products:", error);
     }
+  };
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenSnackbar(false);
   };
   useEffect(() => {
     handleFetch();
@@ -63,7 +76,10 @@ const CollectionPage = () => {
   const handleModalOpenClick = () => {
     setIsOpenModal(true);
   };
-
+  const handleModalImageSearchOpenClick = () => {
+    setIsOpenModalSearchImage(true);
+    setSearchError(null);
+  };
   const formatPrice = (value) => {
     return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
@@ -94,7 +110,7 @@ const CollectionPage = () => {
         body: JSON.stringify({
           name,
           description,
-          price2,
+          price: price2,
           imageUrl: uploadedUrls,
           quantity,
           salePercent,
@@ -106,7 +122,10 @@ const CollectionPage = () => {
       });
 
       if (response.ok) {
-        alert("Product added successfully!");
+        const newShirt = await response.json();
+
+        setProducts((prevProducts) => [...prevProducts, newShirt]);
+        setFilteredProducts((prevFiltered) => [...prevFiltered, newShirt]);
         setName("");
         setDescription("");
         setPrice2(0);
@@ -117,11 +136,18 @@ const CollectionPage = () => {
         setImageUrl("");
         setImageUrl(null);
         setIsOpenModal(false);
+        setSnackbarMessage("Product added successfully!");
+        setSnackbarSeverity("success");
+        setOpenSnackbar(true);
       } else {
-        alert("Failed to add product.");
+        setSnackbarMessage("Failed to add product.");
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
       }
     } catch (error) {
-      console.error("Error uploading images:", error);
+      setSnackbarMessage("Error uploading images");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
     }
   };
   //  handle Filter
@@ -255,7 +281,41 @@ const CollectionPage = () => {
 
     setFilteredProducts(filtered);
   };
-  const handleFindProductWithImage = () => {};
+  const handleImageSearchUpload = async (file) => {
+    try {
+      setSearchError(null);
+      setIsLoading(true);
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await axios.post(
+        "http://localhost:3005/shirt/search-by-image",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.data && response.data.products) {
+        setFilteredProducts(response.data.products);
+        setIsOpenModalSearchImage(false);
+      } else {
+        setFilteredProducts([]);
+      }
+    } catch (error) {
+      // console.error("Image search error:", error);
+
+      const errorMsg =
+        error.response?.data?.message ||
+        "Failed to search products by image. Please try again.";
+      setSearchError(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const ColorFilterSection = () => (
     <div className="filter-section">
       <h2>Filter by Color</h2>
@@ -369,7 +429,7 @@ const CollectionPage = () => {
             Showing {filteredProducts.length} of {products.length} results
           </p>
 
-          <IconButton onClick={handleFindProductWithImage}>
+          <IconButton onClick={handleModalImageSearchOpenClick}>
             <CenterFocusWeakIcon sx={{ color: "white" }} />
           </IconButton>
         </div>
@@ -450,6 +510,40 @@ const CollectionPage = () => {
           ))}
         </div>
       </main>
+      {isLoading && (
+        <Backdrop
+          sx={{
+            color: "#fff",
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+          }}
+          open={isLoading}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+      )}
+      {isOpenModalSearchImage && (
+        <SearchResultModal
+          isOpenModal={isOpenModalSearchImage}
+          isLoading={isLoading}
+          handleImageSearchUpload={handleImageSearchUpload}
+          searchError={searchError}
+          setIsOpenModalSearchImage={setIsOpenModalSearchImage}
+        />
+      )}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

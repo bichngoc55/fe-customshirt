@@ -43,8 +43,9 @@
 
 .image-slider {
   position: relative;
-  width: 100%;
+  width: 80%;
   height: 500px;
+  margin-left: 100px;
   overflow: hidden;
 }
 
@@ -264,7 +265,7 @@
 }
 
 .size-guide:hover {
-  color: #ffd700; /* Change to any color you prefer on hover */
+  color: #ffd700;
 }
 
 .footer-section {

@@ -24,18 +24,17 @@ import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
-// import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-// import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import noImg from "../../assets/images/no_img.jpeg";
 import { useDispatch, useSelector } from "react-redux";
 import {
   cancelOrder,
-  clearErrors,
   fetchOrders,
   updateDeliveryStatus,
+  autoRefuseUnconfirmedOrders,
 } from "../../redux/orderSlice";
 import { format, parseISO } from "date-fns";
 import CancelOrderDialog from "../../components/ModalCancelOrder/ModalCancelOrder";
+import BtnComponent from "../../components/btnComponent/btnComponent";
+import { useNavigate } from "react-router-dom";
 
 const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
   backgroundColor: "var(--background-color)",
@@ -167,21 +166,30 @@ const MyOrder = () => {
   const [openRows, setOpenRows] = useState({});
   const { user } = useSelector((state) => state.auths);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
-  const handleRowClick = (id) => {
-    setOpenRows((prev) => ({ ...prev, [id]: !prev[id] }));
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const navigate = useNavigate();
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const { selectedItems } = useSelector((state) => state.cart);
+  const [snackbarSeverity, setSnackbarSeverity] = useState("info");
+  const handleRowClick = (id, isCancelled) => {
+    if (!isCancelled) {
+      setOpenRows((prev) => ({ ...prev, [id]: !prev[id] }));
+    } else {
+      return;
+    }
   };
   const [cancelingOrders, setCancelingOrders] = useState({});
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
   const dispatch = useDispatch();
-  const { orders, status, error, cancelStatus, updateStatus } = useSelector(
-    (state) => state.orders
-  );
+  const {
+    orders,
+    status,
+    error,
+    cancelStatus,
+    updateStatus,
+    autoRefuseStatus,
+  } = useSelector((state) => state.orders);
   useEffect(() => {
     dispatch(fetchOrders());
     // console.log("Orders fetched", orders);
@@ -196,57 +204,60 @@ const MyOrder = () => {
 
     return () => clearInterval(interval);
   }, [dispatch]);
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
   useEffect(() => {
     if (error) {
-      setSnackbar({
-        open: true,
-        message: error,
-        severity: "error",
-      });
+      setSnackbarMessage(error);
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
     }
   }, [error]);
-  // useEffect(() => {
-  //   if (cancelStatus === "succeeded") {
-  //     setSnackbar({
-  //       open: true,
-  //       message: "Order cancelled successfully",
-  //       severity: "success",
-  //     });
-  //     dispatch(fetchOrders());
-  //   }
-  // }, [cancelStatus, dispatch]);
+
+  useEffect(() => {
+    const checkUnconfirmedOrders = () => {
+      dispatch(autoRefuseUnconfirmedOrders());
+    };
+
+    checkUnconfirmedOrders();
+    const interval = setInterval(checkUnconfirmedOrders, 3600000);
+
+    return () => clearInterval(interval);
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (autoRefuseStatus === "succeeded") {
+      setSnackbarMessage("Unconfirmed orders auto-refused");
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
+    } else if (autoRefuseStatus === "failed") {
+      setSnackbarMessage("Failed to auto-refuse unconfirmed orders");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+    }
+  }, [autoRefuseStatus]);
 
   const formattedDate = (date) => {
     return format(parseISO(date), "dd/MM/yy");
   };
-  // const handleCancelOrder = async (orderId) => {
-  //   if (window.confirm("Are you sure you want to cancel this order?")) {
-  //     dispatch(cancelOrder(orderId));
-  //     if (cancelStatus === "succeeded") {
-  //       setSnackbar({
-  //         open: true,
-  //         message: "Order cancelled successfully",
-  //         severity: "success",
-  //       });
-  //       dispatch(fetchOrders());
-  //     }
-  //   }
-  // };
   const handleCancelOrder = (orderId) => {
     setSelectedOrderId(orderId);
     setCancelDialogOpen(true);
   };
-  const handleConfirmCancel = () => {
+  const handleConfirmCancel = async () => {
     if (selectedOrderId) {
-      dispatch(cancelOrder(selectedOrderId));
+      await dispatch(cancelOrder(selectedOrderId));
       if (cancelStatus === "succeeded") {
-        setSnackbar({
-          open: true,
-          message: "Order cancelled successfully",
-          severity: "success",
-        });
-        dispatch(fetchOrders());
+        setSnackbarMessage("Order cancelled successfully");
+        setSnackbarSeverity("success");
+        setOpenSnackbar(true);
+        // dispatch(fetchOrders());
       }
+      dispatch(fetchOrders());
       setCancelDialogOpen(false);
       setSelectedOrderId(null);
     }
@@ -256,43 +267,48 @@ const MyOrder = () => {
     setSelectedOrderId(null);
   };
 
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbar({ ...snackbar, open: false });
-    dispatch(clearErrors());
-  };
   const renderActionButtons = (order) => {
-    if (order.deliveryStatus === "Pending") {
-      return (
-        <Button
-          variant="contained"
-          color="error"
-          disabled={cancelingOrders[order._id]}
-          onClick={() => handleCancelOrder(order._id)}
-          startIcon={<CancelIcon />}
-          sx={{
-            fontFamily: "Montserrat",
-            backgroundColor: "#FA8B01",
-            marginRight: "20px",
-            "&:hover": {
-              backgroundColor: "#d67601",
-            },
+    return (
+      <>
+        {order.deliveryStatus === "Pending" && (
+          <Button
+            variant="contained"
+            color="error"
+            disabled={cancelingOrders[order._id]}
+            onClick={() => handleCancelOrder(order._id)}
+            startIcon={<CancelIcon />}
+            sx={{
+              fontFamily: "Montserrat",
+              backgroundColor: "#FA8B01",
+              marginRight: "20px",
+              "&:hover": {
+                backgroundColor: "#d67601",
+              },
+            }}
+          >
+            {cancelingOrders[order._id] ? "Cancelling..." : "Cancel"}
+          </Button>
+        )}
+        <BtnComponent
+          handleClick={() => {
+            if (user === null) {
+              setSnackbarMessage("Please login to contact us");
+              setSnackbarSeverity("warning");
+              setOpenSnackbar(true);
+              return;
+            } else {
+              console.log("order", order);
+              navigate(`/message/${user?._id}`, { state: { order } });
+            }
           }}
-        >
-          {cancelingOrders[order._id] ? "Cancelling..." : "Cancel"}
-        </Button>
-      );
-    }
-    return null;
+          value={"Consult"}
+          width={"300px"}
+          height={"300px"}
+        />
+      </>
+    );
   };
-  // const handleReceiveOrder = (id) => {
-  //   const updatedOrderData = {
-  //     deliveryStatus: "Received",
-  //   };
-  //   dispatch(updateOrder({ id, orderData: updatedOrderData }));
-  // };
+
   const formatPrice = (price) => {
     if (price == null) return "0";
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -312,7 +328,7 @@ const MyOrder = () => {
           marginTop: "20px",
         }}
       >
-        <Avatar src={noImg} sx={{ width: 50, height: 50 }} />
+        <Avatar src={user.avaURL} sx={{ width: 50, height: 50 }} />
         <Box>
           <Typography
             sx={{
@@ -360,41 +376,87 @@ const MyOrder = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {orders.map((order) => (
-                <React.Fragment key={order._id}>
-                  <StyledTableRow>
-                    <StyledTableCell>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
-                      >
-                        <Box>
-                          <Typography
-                            onClick={() => handleRowClick(order._id)}
-                            sx={{
-                              fontFamily: "Montserrat",
-                              fontSize: "16px",
-
-                              fontWeight: "bold",
-                              // marginLeft: "10px",
-                            }}
-                          >
-                            {order._id}
-                          </Typography>
+              {orders.map((order) => {
+                const isCancelled = order.deliveryStatus === "cancelled";
+                return (
+                  <React.Fragment key={order._id}>
+                    <StyledTableRow>
+                      <StyledTableCell>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                        >
+                          <Box>
+                            <Typography
+                              onClick={() =>
+                                handleRowClick(order._id, isCancelled)
+                              }
+                              sx={{
+                                fontFamily: "Montserrat",
+                                fontSize: "16px",
+                                textDecoration: isCancelled
+                                  ? "line-through"
+                                  : "none",
+                                color: isCancelled ? "gray" : "inherit",
+                                fontWeight: "bold",
+                                // marginLeft: "10px",
+                              }}
+                            >
+                              {order._id}
+                            </Typography>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                                marginBottom: "10px",
+                              }}
+                            >
+                              <CalendarMonthOutlinedIcon
+                                sx={{ color: "#FA8B02" }}
+                              />
+                              <Typography
+                                variant="body2"
+                                sx={{ color: "white" }}
+                              >
+                                {isCancelled
+                                  ? "..."
+                                  : formattedDate(order.deliveryDate)}
+                              </Typography>
+                            </Box>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <AccessTimeOutlinedIcon
+                                sx={{ color: "#FA8B02" }}
+                              />
+                              <Typography
+                                sx={{ color: "white" }}
+                                variant="body2"
+                              >
+                                {isCancelled
+                                  ? "..."
+                                  : formattedTime(order.deliveryDate)}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+                      </StyledTableCell>
+                      <StyledTableCell width="25%" sx={{ color: "#C8FFF6" }}>
+                        {order.paymentDetails.method === "Cash" ? (
                           <Box
                             sx={{
                               display: "flex",
                               alignItems: "center",
                               gap: 1,
-                              marginBottom: "10px",
                             }}
                           >
-                            <CalendarMonthOutlinedIcon
-                              sx={{ color: "#FA8B02" }}
-                            />
-                            <Typography variant="body2" sx={{ color: "white" }}>
-                              {formattedDate(order.deliveryDate)}
-                            </Typography>
+                            <PaypalIcon /> Cash
                           </Box>
+                        ) : (
                           <Box
                             sx={{
                               display: "flex",
@@ -402,84 +464,84 @@ const MyOrder = () => {
                               gap: 1,
                             }}
                           >
-                            <AccessTimeOutlinedIcon sx={{ color: "#FA8B02" }} />
-                            <Typography sx={{ color: "white" }} variant="body2">
-                              {formattedTime(order.deliveryDate)}
-                            </Typography>
+                            <CreditCardIcon /> Credit Card
                           </Box>
-                        </Box>
-                      </Box>
-                    </StyledTableCell>
-                    <StyledTableCell width="25%" sx={{ color: "#C8FFF6" }}>
-                      {order.paymentDetails.method === "Cash" ? (
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
-                          <PaypalIcon /> Cash
-                        </Box>
-                      ) : (
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
-                          <CreditCardIcon /> Credit Card
-                        </Box>
-                      )}
-                    </StyledTableCell>
-                    <StyledTableCell width="12%">
-                      {formatPrice(order.total)}
-                    </StyledTableCell>
-                    <StyledTableCell width="15%">
-                      {order.deliveryStatus === "On delivery" ? (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                          }}
-                        >
-                          <LocalShippingIcon sx={{ color: "orange" }} />
-                          On delivery
-                        </Box>
-                      ) : order.deliveryStatus === "cancelled" ? (
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
-                          <CancelIcon sx={{ color: "red" }} />
-                          Cancelled
-                        </Box>
-                      ) : order.deliveryStatus === "Pending" ? (
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
-                          <AutorenewIcon sx={{ color: "red" }} />
-                          Pending
-                        </Box>
-                      ) : (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                          }}
-                        >
-                          <CheckCircleIcon sx={{ color: "green" }} />
-                          Received
-                        </Box>
-                      )}
-                    </StyledTableCell>
+                        )}
+                      </StyledTableCell>
+                      <StyledTableCell width="12%">
+                        {formatPrice(order.total)}
+                      </StyledTableCell>
+                      <StyledTableCell width="15%">
+                        {order.deliveryStatus === "On delivery" ? (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            <LocalShippingIcon sx={{ color: "orange" }} />
+                            On delivery
+                          </Box>
+                        ) : order.deliveryStatus === "cancelled" ? (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            <CancelIcon sx={{ color: "red" }} />
+                            Cancelled
+                          </Box>
+                        ) : order.deliveryStatus === "Pending" ? (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            <AutorenewIcon sx={{ color: "red" }} />
+                            Pending
+                          </Box>
+                        ) : (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            <CheckCircleIcon sx={{ color: "green" }} />
+                            Received
+                          </Box>
+                        )}
+                      </StyledTableCell>
 
-                    <StyledTableCell width="12%">
-                      {order.voucherId ? order.voucherId.code : "No voucher"}
-                    </StyledTableCell>
-                    <StyledTableCell width="12%">
-                      {order.orderStatus && order.deliveryStatus !== "cancelled"
-                        ? order.orderStatus
-                        : "cancelled"}
-                    </StyledTableCell>
-                    <StyledTableCell width="15%">
-                      {renderActionButtons(order)}
-                    </StyledTableCell>
-                    {/* <StyledTableCell>
+                      <StyledTableCell width="12%">
+                        {order.voucherId ? order.voucherId.code : "No voucher"}
+                      </StyledTableCell>
+                      <StyledTableCell width="12%">
+                        {order.orderStatus &&
+                        order.deliveryStatus !== "cancelled" ? (
+                          <span
+                            style={{
+                              color: "green",
+                              textTransform: "uppercase",
+                            }}
+                          >
+                            {order.orderStatus}
+                          </span>
+                        ) : (
+                          <span style={{ color: "red" }}>CANCELLED</span>
+                        )}
+                      </StyledTableCell>
+
+                      <StyledTableCell width="15%">
+                        {renderActionButtons(order)}
+                      </StyledTableCell>
+                      {/* <StyledTableCell>
                       <IconButton
                         aria-label="expand row"
                         size="small"
@@ -492,103 +554,106 @@ const MyOrder = () => {
                         )}
                       </IconButton>
                     </StyledTableCell> */}
-                  </StyledTableRow>
-                  <DetailRow>
-                    <DetailCell colSpan={6}>
-                      <Collapse
-                        in={openRows[order._id]}
-                        timeout="auto"
-                        unmountOnExit
-                      >
-                        <Box sx={{ margin: 1 }}>
-                          <Typography
-                            sx={{ fontFamily: "Montserrat" }}
-                            gutterBottom
-                            component="div"
-                          >
-                            Order Details
-                          </Typography>
-                          <DetailTable size="small" aria-label="purchases">
-                            <Table
-                              size="small"
-                              aria-label="purchases"
-                              sx={{
-                                color: "white",
-                                border: "1px solid #FA8B01",
-                              }}
+                    </StyledTableRow>
+                    <DetailRow>
+                      <DetailCell colSpan={6}>
+                        <Collapse
+                          in={openRows[order._id]}
+                          timeout="auto"
+                          unmountOnExit
+                        >
+                          <Box sx={{ margin: 1 }}>
+                            <Typography
+                              sx={{ fontFamily: "Montserrat" }}
+                              gutterBottom
+                              component="div"
                             >
-                              <TableHead>
-                                <TableRow>
-                                  <DetailTableCell
-                                    width="30%"
-                                    sx={{
-                                      fontFamily: "Montserrat",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
-                                    Product
-                                  </DetailTableCell>
-                                  <DetailTableCellHead
-                                    width="15%"
-                                    sx={{
-                                      fontFamily: "Montserrat",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
-                                    Size
-                                  </DetailTableCellHead>
-                                  <DetailTableCellHead
-                                    width="15%"
-                                    sx={{
-                                      fontFamily: "Montserrat",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
-                                    Color
-                                  </DetailTableCellHead>
-                                  <DetailTableCellHead
-                                    width="15%"
-                                    align="right"
-                                    sx={{
-                                      fontFamily: "Montserrat",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
-                                    Quantity
-                                  </DetailTableCellHead>
-                                  <DetailTableCellHead
-                                    width="20%"
-                                    sx={{
-                                      fontFamily: "Montserrat",
-                                      fontWeight: "bold",
-                                    }}
-                                    align="right"
-                                  >
-                                    Price/Shirt
-                                  </DetailTableCellHead>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {order.items.map((detail, index) => (
-                                  <TableRow key={index}>
-                                    <DetailTableCell component="th" scope="row">
-                                      {detail.product?.name}
+                              Order Details
+                            </Typography>
+                            <DetailTable size="small" aria-label="purchases">
+                              <Table
+                                size="small"
+                                aria-label="purchases"
+                                sx={{
+                                  color: "white",
+                                  border: "1px solid #FA8B01",
+                                }}
+                              >
+                                <TableHead>
+                                  <TableRow>
+                                    <DetailTableCell
+                                      width="30%"
+                                      sx={{
+                                        fontFamily: "Montserrat",
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      Product
                                     </DetailTableCell>
-                                    <DetailTableCell>
-                                      {detail.productSize}
-                                    </DetailTableCell>
-                                    <DetailTableCell>
-                                      {detail.productColor}
-                                    </DetailTableCell>
-                                    <DetailTableCell align="right">
-                                      {detail.productQuantity}
-                                    </DetailTableCell>
-                                    <DetailTableCell align="right">
-                                      {formatPrice(detail.product?.price)}
-                                    </DetailTableCell>
+                                    <DetailTableCellHead
+                                      width="15%"
+                                      sx={{
+                                        fontFamily: "Montserrat",
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      Size
+                                    </DetailTableCellHead>
+                                    <DetailTableCellHead
+                                      width="15%"
+                                      sx={{
+                                        fontFamily: "Montserrat",
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      Color
+                                    </DetailTableCellHead>
+                                    <DetailTableCellHead
+                                      width="15%"
+                                      align="right"
+                                      sx={{
+                                        fontFamily: "Montserrat",
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      Quantity
+                                    </DetailTableCellHead>
+                                    <DetailTableCellHead
+                                      width="20%"
+                                      sx={{
+                                        fontFamily: "Montserrat",
+                                        fontWeight: "bold",
+                                      }}
+                                      align="right"
+                                    >
+                                      Price/Shirt
+                                    </DetailTableCellHead>
                                   </TableRow>
-                                ))}
-                                {/* <TableRow>
+                                </TableHead>
+                                <TableBody>
+                                  {order.items.map((detail, index) => (
+                                    <TableRow key={index}>
+                                      <DetailTableCell
+                                        component="th"
+                                        scope="row"
+                                      >
+                                        {detail.product?.name}
+                                      </DetailTableCell>
+                                      <DetailTableCell>
+                                        {detail.productSize}
+                                      </DetailTableCell>
+                                      <DetailTableCell>
+                                        {detail.productColor}
+                                      </DetailTableCell>
+                                      <DetailTableCell align="right">
+                                        {detail.productQuantity}
+                                      </DetailTableCell>
+                                      <DetailTableCell align="right">
+                                        {formatPrice(detail.product?.price)}
+                                      </DetailTableCell>
+                                    </TableRow>
+                                  ))}
+                                  {/* <TableRow>
                                   <DetailTableCell colSpan={4}>
                                     Total
                                   </DetailTableCell>
@@ -596,75 +661,84 @@ const MyOrder = () => {
                                     {formatPrice(order.total)}
                                   </DetailTableCell>
                                 </TableRow> */}
-                              </TableBody>
-                            </Table>
-                          </DetailTable>
-                          <InfoContainer>
-                            <InfoSection>
-                              <InfoTitle>Billing Information</InfoTitle>
-                              <InfoGrid>
-                                <InfoLabel>Address</InfoLabel>
-                                <InfoValue>
-                                  {order.billingAddress.details}
-                                </InfoValue>
-                                <InfoLabel>District</InfoLabel>
-                                <InfoValue>
-                                  {order.billingAddress.district}
-                                </InfoValue>
-                                <InfoLabel>Province</InfoLabel>
-                                <InfoValue>
-                                  {order.billingAddress.province}
-                                </InfoValue>
-                              </InfoGrid>
-                            </InfoSection>
+                                </TableBody>
+                              </Table>
+                            </DetailTable>
+                            <InfoContainer>
+                              <InfoSection>
+                                <InfoTitle>Billing Information</InfoTitle>
+                                <InfoGrid>
+                                  <InfoLabel>Address</InfoLabel>
+                                  <InfoValue>
+                                    {order.billingAddress.details}
+                                  </InfoValue>
+                                  <InfoLabel>District</InfoLabel>
+                                  <InfoValue>
+                                    {order.billingAddress.district}
+                                  </InfoValue>
+                                  <InfoLabel>Province</InfoLabel>
+                                  <InfoValue>
+                                    {order.billingAddress.province}
+                                  </InfoValue>
+                                </InfoGrid>
+                              </InfoSection>
 
-                            <InfoSection>
-                              <InfoTitle>User Information</InfoTitle>
-                              <InfoGrid>
-                                <InfoLabel>Name</InfoLabel>
-                                <InfoValue>{order.userInfo.name}</InfoValue>
-                                <InfoLabel>Email</InfoLabel>
-                                <InfoValue>{order.userInfo.email}</InfoValue>
-                                <InfoLabel>Phone Number</InfoLabel>
-                                <InfoValue>{order.userInfo.phone}</InfoValue>
-                              </InfoGrid>
-                            </InfoSection>
+                              <InfoSection>
+                                <InfoTitle>User Information</InfoTitle>
+                                <InfoGrid>
+                                  <InfoLabel>Name</InfoLabel>
+                                  <InfoValue>{order.userInfo.name}</InfoValue>
+                                  <InfoLabel>Email</InfoLabel>
+                                  <InfoValue>{order.userInfo.email}</InfoValue>
+                                  <InfoLabel>Phone Number</InfoLabel>
+                                  <InfoValue>{order.userInfo.phone}</InfoValue>
+                                </InfoGrid>
+                              </InfoSection>
 
-                            <InfoSection>
-                              <InfoTitle>Order Summary</InfoTitle>
-                              <InfoGrid>
-                                <InfoLabel>Subtotal</InfoLabel>
-                                <InfoValue>
-                                  {formatPrice(order.total - order.shippingFee)}{" "}
-                                  VND
-                                </InfoValue>
-                                <InfoLabel>Shipping</InfoLabel>
-                                <InfoValue>
-                                  {formatPrice(order.shippingFee)} VND
-                                </InfoValue>
-                                <InfoLabel>Discount value</InfoLabel>
-                                <InfoValue>
-                                  {order.voucherId?.discount} %
-                                </InfoValue>
-                                <InfoLabel
-                                  sx={{ fontWeight: "bold", color: "#FA8B02" }}
-                                >
-                                  Total
-                                </InfoLabel>
-                                <InfoValue
-                                  sx={{ fontWeight: "bold", color: "#FA8B02" }}
-                                >
-                                  {formatPrice(order.total)} VND
-                                </InfoValue>
-                              </InfoGrid>
-                            </InfoSection>
-                          </InfoContainer>
-                        </Box>
-                      </Collapse>
-                    </DetailCell>
-                  </DetailRow>
-                </React.Fragment>
-              ))}
+                              <InfoSection>
+                                <InfoTitle>Order Summary</InfoTitle>
+                                <InfoGrid>
+                                  <InfoLabel>Subtotal</InfoLabel>
+                                  <InfoValue>
+                                    {formatPrice(
+                                      order.total - order.shippingFee
+                                    )}{" "}
+                                    VND
+                                  </InfoValue>
+                                  <InfoLabel>Shipping</InfoLabel>
+                                  <InfoValue>
+                                    {formatPrice(order.shippingFee)} VND
+                                  </InfoValue>
+                                  <InfoLabel>Discount value</InfoLabel>
+                                  <InfoValue>
+                                    {order.voucherId?.discount} %
+                                  </InfoValue>
+                                  <InfoLabel
+                                    sx={{
+                                      fontWeight: "bold",
+                                      color: "#FA8B02",
+                                    }}
+                                  >
+                                    Total
+                                  </InfoLabel>
+                                  <InfoValue
+                                    sx={{
+                                      fontWeight: "bold",
+                                      color: "#FA8B02",
+                                    }}
+                                  >
+                                    {formatPrice(order.total)} VND
+                                  </InfoValue>
+                                </InfoGrid>
+                              </InfoSection>
+                            </InfoContainer>
+                          </Box>
+                        </Collapse>
+                      </DetailCell>
+                    </DetailRow>
+                  </React.Fragment>
+                );
+              })}
             </TableBody>
           </Table>
         </StyledTableContainer>
@@ -675,17 +749,17 @@ const MyOrder = () => {
         onConfirm={handleConfirmCancel}
       />
       <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
+        open={openSnackbar}
+        autoHideDuration={3000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
+          severity={snackbarSeverity}
           sx={{ width: "100%" }}
         >
-          {snackbar.message}
+          {snackbarMessage}
         </Alert>
       </Snackbar>
     </Box>

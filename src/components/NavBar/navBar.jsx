@@ -7,6 +7,7 @@ import {
   MenuItem,
   styled,
   Badge,
+  Avatar,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import MailIcon from "@mui/icons-material/Mail";
@@ -47,7 +48,7 @@ export const NavBar = ({ user }) => {
   };
   useEffect(() => {
     const totalItems = items.reduce((total, item) => total + item.quantity, 0);
-    console.log("items :", items);
+    // console.log("items :", items);
     setCartTotalItems(totalItems);
   }, [items]);
 
@@ -142,12 +143,13 @@ export const NavBar = ({ user }) => {
         )}
         {token && (
           <div className="service">
-            <SearchOutlinedIcon sx={{ color: "white" }} />
+            {/* <SearchOutlinedIcon sx={{ color: "white" }} /> */}
             <IconButton onClick={handleOpenCart} sx={{ color: "white" }}>
               <StyledBadge badgeContent={cartTotalItems} color="primary">
                 <ShoppingCartIcon />
               </StyledBadge>
             </IconButton>
+
             <CartSidebar
               open={isCartOpen}
               onClose={() => setIsCartOpen(false)}
@@ -158,7 +160,7 @@ export const NavBar = ({ user }) => {
                 onClick={handleNavigateToMessage}
               />
             </Badge>
-            <img src={defaultAva} alt="" className="ava" />
+            <Avatar src={user?.avaURL} alt="" />
             <div className="user" onClick={handleClick}>
               {user?.username}
             </div>
