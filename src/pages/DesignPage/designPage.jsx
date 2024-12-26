@@ -593,6 +593,10 @@ const DesignPage = () => {
         setOpenSnackbar(true);
         return;
       }
+      const canvas = document.getElementById("canvas");
+      var canvasAPI = canvas
+        .toDataURL("image/png")
+        .replace("image/png", "image/octet-stream");
       const schemaElements = elements
         .map((element) => {
           switch (element.type) {
@@ -607,6 +611,18 @@ const DesignPage = () => {
                   position: { x: element.x1, y: element.y1 },
                   width: element.x2 - element.x1,
                   height: element.y2 - element.y1,
+                },
+              };
+            case "image":
+              return {
+                type: "stickers",
+                content: "image",
+                properties: {
+                  shapeType: "image",
+                  position: { x: element.x1, y: element.y1 },
+                  width: element.x2 - element.x1,
+                  height: element.y2 - element.y1,
+                  src: element.src || canvasAPI,
                 },
               };
             case "rectangle":
@@ -643,17 +659,12 @@ const DesignPage = () => {
                   color: "black",
                 },
               };
+
             default:
               return null;
           }
         })
-        .filter((element) => element !== null);
-      // console.log("================================elements: ", elements);
-
-      const canvas = document.getElementById("canvas");
-      var canvasAPI = canvas
-        .toDataURL("image/png")
-        .replace("image/png", "image/octet-stream");
+        .filter((element) => element !== null); 
       const tempCanvas = document.createElement("canvas");
       const tempContext = tempCanvas.getContext("2d");
 
@@ -682,7 +693,7 @@ const DesignPage = () => {
         name: designTitle,
         creator: user?._id,
         color: selectedColors,
-        canvasPreview: canvasAPI,
+        // canvasPreview: canvasAPI,
         elements: schemaElements,
         previewImage: previewImage,
         price: 0,
@@ -1158,7 +1169,7 @@ const DesignPage = () => {
         <Box
           onClick={handleSaveDesign}
           className="save"
-          sx={{ marginRight: "10px" }}
+          sx={{ marginRight: "10px", display: "flex", flexDirection: "column" }}
         >
           <Typography
             sx={{
@@ -1293,6 +1304,7 @@ const DesignPage = () => {
                 pointerEvents: "auto",
                 zIndex: 10,
               }}
+              
             >
               Canvas
             </canvas>

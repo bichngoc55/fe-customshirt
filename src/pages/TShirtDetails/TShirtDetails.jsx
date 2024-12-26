@@ -10,7 +10,7 @@ import {
   Alert,
   Radio,
 } from "@mui/material";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { addToCart, setSelectedItems } from "../../redux/cartSlice";
 import RestartAltOutlinedIcon from "@mui/icons-material/RestartAltOutlined";
@@ -39,9 +39,10 @@ import SizeGuideModal from "../../components/SizeGuideModal";
 import RecentViewedSlider from "../../components/RecentViewedSlider/RecentViewedSlider";
 
 const TShirtDetails = () => {
-  const { state } = useLocation();
-  const { product: initialProduct } = state;
-  const [product, setProduct] = useState(initialProduct);
+  // const { state } = useLocation();
+  // const { product: initialProduct } = state;
+  const { id } = useParams();
+  const [product, setProduct] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState("S");
@@ -52,6 +53,8 @@ const TShirtDetails = () => {
   const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
   const [updatedProduct, setUpdateProduct] = useState(null);
   const { token, user } = useSelector((state) => state.auths);
+  const isAdmin = user?.role === "admin";
+
   const dispatch = useDispatch();
   const [selectedColor, setSelectedColor] = useState("");
   const navigate = useNavigate();
@@ -62,20 +65,23 @@ const TShirtDetails = () => {
   const [voucherCode, setVoucherCode] = useState([]);
   const [selectedVoucher, setSelectedVoucher] = useState(voucherData);
   const [isModalSizeGuideOpen, setIsModalSizeGuideOpen] = useState(false);
+  useEffect(() => {
+    const fetchProduct = async () => {
+      const response = await fetch(`http://localhost:3005/shirt/${id}`);
+      const data = await response.json();
+      setProduct(data);
+    };
+
+    fetchProduct();
+  }, [id]);
+ 
+
   const [shareData, setShareData] = useState({
     url: "https://github.com/bichngoc55",
-    media: `${product.imageUrl[0]}`,
+    media: `${product?.imageUrl[0]}`,
     description: "Ao dep qua ne!",
   });
-  // const handleCopyToClipboard = (voucherCode) => {
-  //   navigator.clipboard
-  //     .writeText(voucherCode)
-  //     .then(() => {
-  //       setCopied(true);
-  //       setTimeout(() => setCopied(false), 2000);
-  //     })
-  //     .catch((err) => console.error("Failed to copy text: ", err));
-  // };
+
   // fetch voucher
   useEffect(() => {
     const fetchVoucherCode = async () => {
@@ -91,6 +97,7 @@ const TShirtDetails = () => {
 
     fetchVoucherCode();
   }, []);
+
   const handleOpenSizeGuideModal = async () => {
     setIsModalSizeGuideOpen(true);
   };
@@ -175,10 +182,10 @@ const TShirtDetails = () => {
   };
   // Calculate the sale price
   const calculateSalePrice = () => {
-    if (product.isSale) {
-      return product.price * (1 - product.salePercent / 100);
+    if (product?.isSale) {
+      return product?.price * (1 - product?.salePercent / 100);
     }
-    return product.price;
+    return product?.price;
   };
 
   const salePrice = calculateSalePrice();
@@ -186,12 +193,12 @@ const TShirtDetails = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentImageIndex((prevIndex) =>
-        prevIndex === product.imageUrl.length - 1 ? 0 : prevIndex + 1
+        prevIndex === product?.imageUrl.length - 1 ? 0 : prevIndex + 1
       );
     }, 3000);
 
     return () => clearInterval(timer);
-  }, [product.imageUrl.length]);
+  }, [product?.imageUrl.length]);
   const handleShareToFacebook = () => {
     const { url, title, description } = shareData;
     const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
@@ -315,10 +322,11 @@ const TShirtDetails = () => {
       // isSale: product.isSale,
       // salePercent: product.salePercent,
     };
-    console.log("cart Items without login:", cartItems);
+    // console.log("cart Items without login:", cartItems);
     dispatch(setSelectedItems([cartItem]));
-    navigate(`/checkout/${selectedItems[0]._id}/shipping`);
+    navigate(`/checkout/${product?._id}/shipping`);
   };
+  if (!product) return <div>Loading...</div>;
 
   return (
     <div className="body">
@@ -343,60 +351,64 @@ const TShirtDetails = () => {
       </div>
 
       <Box sx={{ g: 2, ml: "10%", mr: "10%" }}>
-        <div
-          style={{ display: "flex", marginBottom: "-20px" }}
-          className="update-container"
-        >
-          <div className="" style={{ display: "flex" }}>
-            <IconButton onClick={handleModalUpdateOpenClick}>
-              <AutoFixHighOutlinedIcon sx={{ color: "#8CFFB3" }} />
-            </IconButton>
-            <Typography
-              mt={"10px"}
-              sx={{
-                color: "white",
-                fontSize: "0.8rem",
-                fontFamily: "Montserrat",
-              }}
+        {isAdmin && (
+          <>
+            <div
+              style={{ display: "flex", marginBottom: "-20px" }}
+              className="update-container"
             >
-              Update
-            </Typography>
-            {isOpenUpdateModal && (
-              <ModalUpdateProduct
-                isModalOpen={isOpenUpdateModal}
-                setIsModalOpen={setIsOpenUpdateModal}
-                handleUpdateProduct={handleUpdateProduct}
-                setUpdateProduct={setUpdateProduct}
-                product={product}
-              />
-            )}
-          </div>
+              <div className="" style={{ display: "flex" }}>
+                <IconButton onClick={handleModalUpdateOpenClick}>
+                  <AutoFixHighOutlinedIcon sx={{ color: "#8CFFB3" }} />
+                </IconButton>
+                <Typography
+                  mt={"10px"}
+                  sx={{
+                    color: "white",
+                    fontSize: "0.8rem",
+                    fontFamily: "Montserrat",
+                  }}
+                >
+                  Update
+                </Typography>
+                {isOpenUpdateModal && (
+                  <ModalUpdateProduct
+                    isModalOpen={isOpenUpdateModal}
+                    setIsModalOpen={setIsOpenUpdateModal}
+                    handleUpdateProduct={handleUpdateProduct}
+                    setUpdateProduct={setUpdateProduct}
+                    product={product}
+                  />
+                )}
+              </div>
 
-          <div className="" style={{ display: "flex" }}>
-            <IconButton onClick={handleOpenModalDeleteClick}>
-              <DeleteIcon sx={{ color: "#8CFFB3" }} />
-            </IconButton>
-            <Typography
-              mt={"10px"}
-              sx={{
-                color: "white",
-                fontSize: "0.8rem",
-                fontFamily: "Montserrat",
-                // textAlign: "center",
-              }}
-            >
-              Delete
-            </Typography>
-            {isOpenDeleteModal && (
-              <ModalDeleteConfirm
-                isOpenModal={isOpenDeleteModal}
-                setOpenModal={setIsOpenDeleteModal}
-                handleDeleteProduct={handleDeleteProduct}
-                handleCloseDeleteModal={handleCloseDeleteModal}
-              />
-            )}
-          </div>
-        </div>
+              <div className="" style={{ display: "flex" }}>
+                <IconButton onClick={handleOpenModalDeleteClick}>
+                  <DeleteIcon sx={{ color: "#8CFFB3" }} />
+                </IconButton>
+                <Typography
+                  mt={"10px"}
+                  sx={{
+                    color: "white",
+                    fontSize: "0.8rem",
+                    fontFamily: "Montserrat",
+                    // textAlign: "center",
+                  }}
+                >
+                  Delete
+                </Typography>
+                {isOpenDeleteModal && (
+                  <ModalDeleteConfirm
+                    isOpenModal={isOpenDeleteModal}
+                    setOpenModal={setIsOpenDeleteModal}
+                    handleDeleteProduct={handleDeleteProduct}
+                    handleCloseDeleteModal={handleCloseDeleteModal}
+                  />
+                )}
+              </div>
+            </div>
+          </>
+        )}
         <div className="grid-container">
           {/* Product Image Slider */}
           <div className="image-slider">
@@ -522,46 +534,6 @@ const TShirtDetails = () => {
                 })}
               </RadioGroup>
             </div>
-            {/* voucher code */}
-            {/* <div className="voucher-section">
-              <span
-                style={{
-                  color: "#C8FFF6",
-                  fontSize: "1rem",
-                  marginLeft: "-20px",
-                }}
-              >
-                Voucher code:
-              </span>{" "}
-              <span
-                style={{ color: "white", fontSize: "1rem", marginLeft: "10px" }}
-              >
-                {selectedVoucher.code}
-              </span>
-            </div>
-            <div className="voucher-input">
-              {voucherCode.map((voucher) => (
-                <Button
-                  key={voucher.code}
-                  sx={{
-                    color: "white",
-                    fontSize: "1rem",
-                    marginLeft: "10px",
-                    padding: "5px 15px",
-                    borderRadius: "5px",
-                    border: "1px solid white",
-                    backgroundColor: "#151A27",
-                  }}
-                  onClick={() => {
-                    handleCopyToClipboard(voucher.code);
-                    setSelectedVoucher(voucher);
-                  }}
-                >
-                  {voucher.code}
-                </Button>
-              ))}
-              {copied && <p style={{ color: "green" }}>Voucher code copied!</p>}
-            </div> */}
 
             {/* Size Selection */}
             <div className="size-section">

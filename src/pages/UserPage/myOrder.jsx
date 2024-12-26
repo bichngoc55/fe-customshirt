@@ -96,17 +96,8 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-// const StyledTableCell = styled(TableCell)(({ theme }) => ({
-//   padding: "16px",
-//   fontFamily: "Montserrat",
-//   fontSize: "14px",
-//   width: "100%",
-//   verticalAlign: "top",
-//   color: "#C8FFF6",
-//   transition: "background-color 0.3s",
-// }));
 const StyledTableCell = styled(TableCell)(({ theme, width }) => ({
-  padding: "16px",
+  padding: "18px",
   fontFamily: "Montserrat",
   fontSize: "14px",
   verticalAlign: "top",
@@ -217,6 +208,9 @@ const MyOrder = () => {
       setOpenSnackbar(true);
     }
   }, [error]);
+  useEffect(() => {
+    console.log("Order: ", orders);
+  }, []);
 
   useEffect(() => {
     const checkUnconfirmedOrders = () => {
@@ -276,11 +270,13 @@ const MyOrder = () => {
             color="error"
             disabled={cancelingOrders[order._id]}
             onClick={() => handleCancelOrder(order._id)}
-            startIcon={<CancelIcon />}
+            // startIcon={<CancelIcon />}
             sx={{
               fontFamily: "Montserrat",
               backgroundColor: "#FA8B01",
               marginRight: "20px",
+              width: "100px",
+              marginBottom: "20px",
               "&:hover": {
                 backgroundColor: "#d67601",
               },
@@ -297,11 +293,11 @@ const MyOrder = () => {
               setOpenSnackbar(true);
               return;
             } else {
-              console.log("order", order);
+              // console.log("order", order);
               navigate(`/message/${user?._id}`, { state: { order } });
             }
           }}
-          value={"Consult"}
+          value={"CONSULT"}
           width={"300px"}
           height={"300px"}
         />
@@ -372,6 +368,8 @@ const MyOrder = () => {
                 <StyledTableCell width="15%">Delivery Status</StyledTableCell>
                 <StyledTableCell width="12%">Voucher</StyledTableCell>
                 <StyledTableCell width="12%">Order Status</StyledTableCell>
+                <StyledTableCell width="15%">Payment Status</StyledTableCell>
+
                 <StyledTableCell width="15%">Option</StyledTableCell>
               </TableRow>
             </TableHead>
@@ -537,7 +535,23 @@ const MyOrder = () => {
                           <span style={{ color: "red" }}>CANCELLED</span>
                         )}
                       </StyledTableCell>
-
+                      <StyledTableCell width="15%">
+                        <span
+                          style={{
+                            color:
+                              order.paymentDetails.status === "failed"
+                                ? "red"
+                                : order.paymentDetails.status === "completed"
+                                ? "green"
+                                : order.paymentDetails.status === "processing"
+                                ? "yellow"
+                                : "yellow",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {order.paymentDetails.status}
+                        </span>
+                      </StyledTableCell>
                       <StyledTableCell width="15%">
                         {renderActionButtons(order)}
                       </StyledTableCell>
@@ -637,7 +651,9 @@ const MyOrder = () => {
                                         component="th"
                                         scope="row"
                                       >
-                                        {detail.product?.name}
+                                        {detail.product?.name != null
+                                          ? detail.product?.name
+                                          : detail.design?.name}
                                       </DetailTableCell>
                                       <DetailTableCell>
                                         {detail.productSize}
@@ -649,7 +665,7 @@ const MyOrder = () => {
                                         {detail.productQuantity}
                                       </DetailTableCell>
                                       <DetailTableCell align="right">
-                                        {formatPrice(detail.product?.price)}
+                                        {formatPrice(detail.productPrice)}
                                       </DetailTableCell>
                                     </TableRow>
                                   ))}

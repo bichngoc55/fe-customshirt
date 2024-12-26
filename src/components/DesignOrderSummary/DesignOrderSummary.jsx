@@ -9,8 +9,7 @@ import {
   Alert,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import ShippingCard from "../shippingCard";
-import "./OrderSummary.css";
+import "./DesignOrderSummary.css";
 import { useDispatch, useSelector } from "react-redux";
 import { getVouchers, validateVoucher } from "../../redux/voucherSlice";
 import {
@@ -18,6 +17,7 @@ import {
   setShippingFee,
   setVoucherData,
 } from "../../redux/shippingSlice";
+import DesignOrderCard from "../DesignOrderCard/DesignOrderCard";
 
 const CustomSelect = styled(Select)({
   width: "100%",
@@ -37,30 +37,34 @@ const CustomSelect = styled(Select)({
   },
 });
 
-const OrderSummary = ({ items }) => {
+const DesignOrderSummary = ({
+  selectedSize,
+  setSelectedSize,
+  quantity,
+  setQuantity,
+  price,
+  setPrice,
+  design,
+}) => {
   const dispatch = useDispatch();
   const { vouchers } = useSelector((state) => state.voucher);
   const { user } = useSelector((state) => state.auths);
-  const [selectedVoucher, setSelectedVoucher] = useState(null); 
+  const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const { shippingData, deliveryData } = useSelector((state) => state.shipping);
- 
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
   const { voucherData } = useSelector((state) => state.shipping);
   useEffect(() => {
     dispatch(getVouchers());
-    // console.log("voucherData", vouchers); 
   }, [dispatch]);
 
-  const calculateSalePrice = (product) => {
-    if (product.isSale) {
-      return product.price * (1 - product.salePercent / 100);
-    }
-    return product.price;
-  };
-
+  const renderVoucherMenuItem = (voucher) => (
+    <MenuItem key={voucher._id} value={voucher.code}>
+      {voucher.code} - {voucher.discount}% off
+    </MenuItem>
+  );
   useEffect(() => {
     const total = calculateTotal();
     dispatch(
@@ -69,20 +73,15 @@ const OrderSummary = ({ items }) => {
         orderTotal: total,
       })
     );
-  }, [dispatch, user, items]);
+  }, [dispatch, user]);
   const calculateTotal = () => {
-    let total = items.reduce((total, item) => {
-      const price = item.product.salePercent
-        ? calculateSalePrice(item.product)
-        : item.product.price;
-      return total + price * item.quantity;
-    }, 0);
+    let total = price * quantity;
 
-    if (voucherData) {
-      total = total * (1 - voucherData.discount / 100);
+    if (voucherData?.discount) {
+      total *= 1 - voucherData.discount / 100;
     }
 
-    return total;
+    return Math.round(total);
   };
   const handleTotalFee = () => {
     const total = calculateTotal() + calculateShippingFee();
@@ -117,14 +116,11 @@ const OrderSummary = ({ items }) => {
   };
 
   const calculateDiscountValue = () => {
-    if (voucherData) {
-      const originalTotal = items.reduce((total, item) => {
-        const price = item.product.salePercent
-          ? calculateSalePrice(item.product)
-          : item.product.price;
-        return total + price * item.quantity;
-      }, 0);
-      return ((originalTotal - calculateTotal()) / originalTotal) * 100;
+    const originalTotal = price * quantity;
+
+    if (voucherData?.discount) {
+      const discountedTotal = calculateTotal();
+      return ((originalTotal - discountedTotal) / originalTotal) * 100;
     }
     return 0;
   };
@@ -173,24 +169,22 @@ const OrderSummary = ({ items }) => {
         maxWidth: "1200px",
       }}
     >
-      <div
-        style={{
-          color: "#fff",
-          border: "1px solid #759af9",
-          borderRadius: "15px",
-          padding: "20px",
-          width: "auto",
-          marginBottom: "1rem",
-        }}
-      >
-        <h2 style={{ fontSize: "25px" }}>Order Summary</h2>
-        <div className="order-items">
+      <div className="design-summary">
+        <h2 style={{ fontSize: "25px" }}>Design Summary</h2>
+        <div className="design-items">
           <div style={{ fontSize: "16px", marginBottom: "10px" }}>
-            Order Items
+            Design Details
           </div>
-          <ShippingCard items={items} />
+          <DesignOrderCard
+            quantity={quantity}
+            setQuantity={setQuantity}
+            selectedSize={selectedSize}
+            setSelectedSize={setSelectedSize}
+            setPrice={setPrice}
+            design={design}
+          />
         </div>
-        <div className="gift-card-section">
+        <div className="card-section">
           <div style={{ fontSize: "16px", marginBottom: "10px" }}>
             Voucher code
             {!user && calculateTotal() < 400000 && (
@@ -199,7 +193,7 @@ const OrderSummary = ({ items }) => {
               </Typography>
             )}
           </div>
-          <div className="input-container">
+          <div className="design-input-container">
             <CustomSelect
               id="gift-card"
               onChange={(e) => setSelectedVoucher(e.target.value)}
@@ -230,14 +224,14 @@ const OrderSummary = ({ items }) => {
             </Button>
           </div>
         </div>
-        <div className="order-summary-details">
-          <div>
+        <div className="design-summary-details">
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
             <p style={{ fontSize: "16px", marginBottom: "10px" }}>Subtotal:</p>
             <Typography sx={{ color: "#C8FFF6" }}>
               {calculateTotal().toLocaleString()}đ
             </Typography>
           </div>
-          <div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
             <p style={{ fontSize: "16px", marginBottom: "10px" }}>
               Shipping Fee:
             </p>
@@ -245,7 +239,7 @@ const OrderSummary = ({ items }) => {
               {calculateShippingFee().toLocaleString()}đ
             </Typography>
           </div>
-          <div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
             <p style={{ fontSize: "16px", marginBottom: "10px" }}>
               Discount value:
             </p>
@@ -254,7 +248,7 @@ const OrderSummary = ({ items }) => {
             </Typography>
           </div>
           <div className="divider"></div>
-          <div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
             <h3>Total due:</h3>
             <Typography sx={{ color: "#C8FFF6" }}>
               {handleTotalFee().toLocaleString()}đ{" "}
@@ -280,4 +274,4 @@ const OrderSummary = ({ items }) => {
   );
 };
 
-export default OrderSummary;
+export default DesignOrderSummary;

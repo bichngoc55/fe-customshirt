@@ -1,27 +1,21 @@
-.order-summary-details {
+.design-summary-details {
   display: "flex";
   border-top: 1px solid #3e3e46;
-  flex-direction: column;
   justify-content: space-between;
   padding-top: 1rem;
   color: #fff;
   font-size: 0.875rem;
 }
-.order-summary-details > div {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-}
 .divider {
   border-top: 1px solid #3e3e46;
 }
-.order-items {
+.design-items {
   display: flex;
   flex-direction: column;
   /* gap: 1rem; */
   /* margin-bottom: -2rem; */
 }
-.order-summary {
+.design-summary {
   color: #fff;
   border: 1px solid #759af9;
   border-radius: 15px;

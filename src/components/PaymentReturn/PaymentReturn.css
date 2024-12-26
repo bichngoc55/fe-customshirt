@@ -1,0 +1,54 @@
+/* components/PaymentReturn/PaymentReturn.css */
+.payment-return-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: "Montserrat", sans-serif;
+}
+
+.payment-return-paper {
+  width: 100%;
+  padding: 40px;
+  text-align: center;
+}
+
+.payment-return-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.payment-return-progress {
+  color: #1976d2;
+}
+
+.payment-return-icon {
+  font-size: 60px !important;
+}
+
+.payment-return-icon.success {
+  color: #2e7d32;
+}
+
+.payment-return-icon.error {
+  color: #d32f2f;
+}
+
+.payment-return-title {
+  font-weight: 600 !important;
+}
+
+.payment-return-title.success {
+  color: #2e7d32;
+}
+
+.payment-return-title.error {
+  color: #d32f2f;
+}
+
+.payment-return-subtitle {
+  color: #666;
+}

@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Modified getVouchers to handle user and order total
 export const getVouchers = createAsyncThunk(
   "vouchers/getVouchers",
   async ({ userId, orderTotal } = {}, { rejectWithValue }) => {
@@ -17,6 +16,7 @@ export const getVouchers = createAsyncThunk(
       }
 
       const response = await axios.get(url);
+      console.log("voucher trong get Voucher slice: ", response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data.message);
@@ -24,7 +24,6 @@ export const getVouchers = createAsyncThunk(
   }
 );
 
-// New thunk for creating birthday voucher
 export const createBirthdayVoucher = createAsyncThunk(
   "vouchers/createBirthdayVoucher",
   async (userId, { rejectWithValue }) => {
@@ -40,7 +39,6 @@ export const createBirthdayVoucher = createAsyncThunk(
   }
 );
 
-// Modified validateVoucher to include user info
 export const validateVoucher = createAsyncThunk(
   "vouchers/validateVoucher",
   async ({ code, userId }, { rejectWithValue }) => {
@@ -58,7 +56,6 @@ export const validateVoucher = createAsyncThunk(
   }
 );
 
-// Keep other existing thunks...
 export const createVoucher = createAsyncThunk(
   "vouchers/createVoucher",
   async (voucherData, { rejectWithValue }) => {
@@ -136,6 +133,7 @@ const voucherSlice = createSlice({
     error: null,
     birthdayVoucher: null,
     totalValueVoucher: null,
+    isApplicable: false,
   },
   reducers: {
     clearError: (state) => {
@@ -147,7 +145,6 @@ const voucherSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Handle getVouchers
       .addCase(getVouchers.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -161,7 +158,6 @@ const voucherSlice = createSlice({
             : true,
         }));
 
-        // Handle special vouchers
         const birthdayVoucher = state.vouchers.find((v) =>
           v.code?.startsWith("BDAY-")
         );
@@ -177,19 +173,16 @@ const voucherSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Handle createBirthdayVoucher
       .addCase(createBirthdayVoucher.fulfilled, (state, action) => {
         state.loading = false;
         state.birthdayVoucher = action.payload.data;
         state.vouchers.push(action.payload.data);
       })
 
-      // Handle validateVoucher
       .addCase(validateVoucher.fulfilled, (state, action) => {
         state.loading = false;
         state.voucher = action.payload.data;
 
-        // Update voucher applicability in the list
         if (action.payload.data) {
           const index = state.vouchers.findIndex(
             (v) => v.code === action.payload.data.code
@@ -203,7 +196,6 @@ const voucherSlice = createSlice({
         }
       })
 
-      // Keep other existing cases...
       .addCase(createVoucher.pending, (state) => {
         state.loading = true;
         state.error = null;
