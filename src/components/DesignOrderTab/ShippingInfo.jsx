@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   TextField,
@@ -74,7 +74,7 @@ const StyledMenuItem = styled(MenuItem)({
   },
 });
 
-const ShippingInfo = ({ onNextStep }) => {
+const ShippingInfo = ({ price, setPrice, onNextStep }) => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
@@ -82,14 +82,7 @@ const ShippingInfo = ({ onNextStep }) => {
 
   const [availableDistricts, setAvailableDistricts] = useState([]);
   const dispatch = useDispatch();
-  //   const [formData, setFormData] = useState({
-  //     name: "",
-  //     email: "",
-  //     phone: "",
-  //     province: "",
-  //     district: "",
-  //     address: "",
-  //   });
+
   const [formData, setFormData] = useState(shippingData);
   const getLocationNames = (provinceId, districtId) => {
     const province = provinces.find((p) => p.idProvince === provinceId);
@@ -180,20 +173,6 @@ const ShippingInfo = ({ onNextStep }) => {
       onNextStep();
     }
   };
-
-  //   useEffect(() => {
-  //     const savedData = localStorage.getItem("shippingData");
-  //     if (savedData) {
-  //       const parsedData = JSON.parse(savedData);
-  //       setFormData(parsedData);
-  //       if (parsedData.province) {
-  //         const filteredDistricts = districts.filter(
-  //           (district) => district.idProvince === parsedData.province
-  //         );
-  //         setAvailableDistricts(filteredDistricts);
-  //       }
-  //     }
-  //   }, []);
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>

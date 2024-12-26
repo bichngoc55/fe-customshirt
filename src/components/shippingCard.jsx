@@ -70,9 +70,10 @@ const ShippingCard = ({ items }) => {
                     color: "white",
                     fontSize: "1rem",
                     marginLeft: "10px",
+
                     marginTop: "5px",
                   }}
-                  className="quantity-display"
+                  // className="quantity-display"
                 >
                   Size {item.selectedSize}
                 </span>
@@ -103,7 +104,16 @@ const ShippingCard = ({ items }) => {
                   <span className="original-price">{item.product.price}đ</span>
                 </>
               ) : (
-                <span>{item.product.price}đ</span>
+                <span
+                  style={{
+                    fontFamily: "Montserrat",
+                    color: "#C8FFF6",
+                    fontSize: "1.2rem",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {item.product.price.toLocaleString()}đ
+                </span>
               )}
             </div>
           </div>

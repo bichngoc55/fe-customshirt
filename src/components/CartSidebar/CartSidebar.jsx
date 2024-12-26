@@ -129,6 +129,8 @@ const CartSidebar = ({ open, onClose, setCartItems }) => {
   };
   const handleBuyNow = async () => {
     if (selectedItems?.length > 0) {
+      // console.log("selected items: " + JSON.stringify(selectedItems));
+
       navigate(`/checkout/${selectedItems[0]._id}/shipping`);
       onClose();
     } else {
