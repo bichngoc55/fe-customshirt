@@ -53,7 +53,20 @@ export const updateOrder = createAsyncThunk(
     }
   }
 );
-
+export const updateOrderShipping = createAsyncThunk(
+  "orders/updateOrderShipping",
+  async ({ id, shippingData }, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch(
+        `${API_URL}/orders/${id}/shipping`,
+        shippingData
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
 // Delete order
 export const deleteOrder = createAsyncThunk(
   "orders/deleteOrder",
@@ -225,7 +238,23 @@ const orderSlice = createSlice({
         state.autoRefuseStatus = "failed";
         state.error =
           action.payload?.message || "Failed to auto-refuse unconfirmed orders";
-      });
+      }).addCase(updateOrderShipping.pending, (state) => {
+        state.updateStatus = "loading";
+      })
+      .addCase(updateOrderShipping.fulfilled, (state, action) => {
+        state.updateStatus = "succeeded";
+        const index = state.orders.findIndex(
+          (order) => order._id === action.payload._id
+        );
+        if (index !== -1) {
+          state.orders[index] = action.payload;
+        }
+        state.error = null;
+      })
+      .addCase(updateOrderShipping.rejected, (state, action) => {
+        state.updateStatus = "failed";
+        state.error = action.payload?.message || "Failed to update shipping information";
+      })
   },
 });
 

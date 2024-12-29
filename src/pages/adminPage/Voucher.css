@@ -1,19 +1,15 @@
 .voucher-section2 {
   background-color: #151a27;
   padding: 30px;
+  margin-left: -100px;
+  margin-right: 80px;
   text-align: center;
+  margin-top: -30px;
   color: #ffffff;
   display: flex;
-  /* flex-direction: "row"; */
-  margin-left: -150px;
-}
-
-.voucher-section h2 {
-  font-size: 2.5rem;
-  /* margin-right: 1rem;
-   */
-  padding: 1rem;
-  margin-bottom: 20px;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden; /* Loại bỏ kéo ngang */
 }
 
 .add-voucher-btn {
@@ -35,29 +31,25 @@
 
 .voucher-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* Hiển thị 3 voucher trên 1 hàng */
-  gap: 20px;
-  justify-items: center; /* Canh giữa các phần tử */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Tự động điều chỉnh số cột */
+  gap: 60px;
+  width: 100%;
+  max-width: 1300px; /* Giới hạn chiều rộng tối đa */
+  margin: auto; /* Canh giữa */
 }
 
 .voucher-item {
-  background-color: #1b1b2f;
+  background-color: #131720;
   padding: 20px;
   border-radius: 10px;
+  margin-right: -30px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 300px;
   transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
 .voucher-item:hover {
-  transform: scale(1.02);
+  transform: scale(1.05);
   border: 1px solid #4caf50;
-}
-
-.voucher-item h3 {
-  font-size: 1.8rem;
-  margin-bottom: 10px;
 }
 
 .for-text {
@@ -78,7 +70,7 @@
   justify-content: flex-start;
 }
 
-.action-btn {
+.action-btn-voucher {
   display: flex;
   align-items: center;
   background: none;
@@ -91,11 +83,11 @@
   transition: color 0.2s;
 }
 
-.action-btn:hover {
+.action-btn-voucher:hover {
   color: #ffffff;
 }
 
-.action-btn svg {
+.action-btn-voucher svg {
   margin-right: 5px;
 }
 
@@ -103,4 +95,10 @@
 .for-products {
   font-size: 0.8rem;
   color: #a0a0a0;
+}
+
+@media (max-width: 768px) {
+  .voucher-grid {
+    grid-template-columns: 1fr; /* Chỉ hiển thị 1 voucher mỗi hàng trên màn hình nhỏ */
+  }
 }

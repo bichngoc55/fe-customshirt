@@ -4,30 +4,146 @@
     color: #C8FFF6;
     border-radius: 10px;
     border: 1px solid #C8FFF6;
-    margin-left: -50px;
-    margin-top: 20px;
+    margin-top: 40px;
     margin-bottom: 20px;
     font-size:13px;
+    margin-left: -40px;
+    margin-right: 90px;
   }
   
   .order-header {
-    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
   }
   
   .action-btn {
-    padding: 10px 12px;
-    margin-right: 10px;
-    border: none;
+    padding: 10px 20px;
+    border: 2px solid transparent; /* Thêm border */
     border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
     cursor: pointer;
-    background-color: #37C25E;
-    color: #ffffff;
-    font-weight: 700;
+    color: white;
+    display: inline-block;
   }
   
   .action-btn.delete-all {
-    background-color: #FF0004;
+    background-color: #FF4949;
+    color: white;
+    border-color: #FF4949; /* Màu viền đỏ */
   }
+  
+  .action-btn.delete-all:hover {
+    background-color: #f73636;
+    border-color: #f73636; /* Viền thay đổi theo hover */
+  }
+  
+  .action-btn:not(.delete-all) {
+    background-color: #2EBB77;
+    color:white;
+    border-color: #2EBB77; /* Màu viền xanh */
+  }
+  
+  .action-btn:not(.delete-all):hover {
+    background-color: #24a862;
+    border-color: #24a862; /* Viền thay đổi theo hover */
+  }
+  
+  .order-header .action-btn {
+    display: inline-block;
+    margin-right: 10px; /* Giãn cách giữa các nút */
+  }
+  
+  .sort-search {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+  }
+  
+  .sort-dropdown {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    background-color: #1d2330;
+    color: #a5f3eb;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .sort-dropdown:hover {
+    background-color: #29303f;
+  }
+  /* .looking-container{
+    display:"flex";
+    flex-direction: column;
+  }
+  
+  .looking-input {
+    padding: 8px 12px;
+    border: 1px solid #344055;
+    border-radius: 5px;
+    background-color: #1d2330;
+    color: #a5f3eb;
+    font-size: 14px;
+  }
+  
+  .looking-input:focus {
+    outline: none;
+    border-color: #58d8cc;
+  }
+  
+  .looking-icon {
+    display: flex;
+    align-items: center;
+    background-color: #1d2330;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    color: #a5f3eb;
+  }
+  
+  .looking-icon:hover {
+    background-color: #29303f;
+  } */
+  .looking-container {
+    display: flex;
+    flex-direction: row; /* Đặt lại thành row để các phần tử nằm ngang */
+    align-items: center; /* Căn giữa các phần tử theo trục dọc */
+    gap: 8px; /* Thêm khoảng cách giữa input và icon */
+}
+
+.looking-input {
+    padding: 8px 12px;
+    border: 1px solid #344055;
+    border-radius: 5px;
+    background-color: #1d2330;
+    color: #a5f3eb;
+    font-size: 14px;
+    flex: 1; /* Để input chiếm toàn bộ không gian còn lại */
+}
+
+.looking-input:focus {
+    outline: none;
+    border-color: #58d8cc;
+}
+
+.looking-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Căn giữa nội dung bên trong icon */
+    background-color: #1d2330;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    color: #a5f3eb;
+}
+
+.looking-icon:hover {
+    background-color: #29303f;
+}
+
   
   .order-table {
     width: 100%;
@@ -62,24 +178,19 @@
     font-size: 12px;
   }
   
-  .status-badge.pending {
+  .status-badge.pending, .status-badge.processing {
+    background-color: #F7D87A;
+    color: #000000;
+  }
+
+  .status-badge.refused, .status-badge.failed {
     background-color: #FF4949;
     color: #fff;
   }
   
-  .status-badge.confirmed {
+  .status-badge.confirmed, .status-badge.completed {
     background-color: #2EBB77;
     color: #fff;
-  }
-  
-  .status-badge.paid {
-    background-color: #F7D87A;
-    color: #000000;
-  }
-  
-  .status-badge.unpaid {
-    background-color: #F5F5F5;
-    color: #000000;
   }
   
   .icon-btn {
@@ -105,4 +216,38 @@
     justify-content: center;
     align-items: center;
     gap: 5px;
+  }
+
+  input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    margin: 0;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+  
+  input[type="checkbox"]:checked {
+    background-color: #1976d2;
+    border-color: #1976d2;
+  }
+  
+  input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: white;
+  }
+  
+  input[type="checkbox"]:hover {
+    border-color: #1976d2;
   }
