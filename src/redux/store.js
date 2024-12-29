@@ -4,6 +4,7 @@ import authReducer from "./authSlice";
 import shippingReducer from "./shippingSlice";
 import orderReducer from "./orderSlice";
 import voucherReducer from "./voucherSlice";
+import designReducer from "./designSlice";
 import orderDetailReducer from "./orderDetailSlice";
 import { combineReducers } from "redux";
 import storage from "redux-persist/lib/storage";
@@ -25,6 +26,7 @@ const rootReducer = combineReducers({
   shipping: shippingReducer,
   orderDetails: orderDetailReducer,
   orders: orderReducer,
+  design: designReducer,
 });
 
 const persistConfig = {

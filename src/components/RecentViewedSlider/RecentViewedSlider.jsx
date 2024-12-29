@@ -8,9 +8,10 @@ import {
   styled,
 } from "@mui/material";
 import noImg from "../../assets/images/no_img.jpeg";
+import { Link, useNavigate } from "react-router-dom";
 
 const StyledCard = styled(Card)(({ theme }) => ({
-  backgroundColor: "#1a1a1a",
+  backgroundColor: "#4B545C",
   // width: 480,
   margin: "0 7px",
   display: "flex",
@@ -46,7 +47,7 @@ const ProductsContainer = styled(Box)({
 });
 
 const ProductImage = styled(CardMedia)({
-  height: 280,
+  height: 380,
   objectFit: "cover",
   borderRadius: "5px",
 });
@@ -77,6 +78,8 @@ const RecentViewedSlider = ({ user, product }) => {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [recentProducts, setRecentProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
   useEffect(() => {
     let isSubscribed = true;
 
@@ -85,7 +88,7 @@ const RecentViewedSlider = ({ user, product }) => {
 
       try {
         setIsLoading(true);
-        console.log("recent viewed,111 ", user?._id, product?._id);
+        // console.log("recent viewed,111 ", user?._id, product?._id);
 
         // Add to recent products
         const addResponse = await fetch(
@@ -116,7 +119,7 @@ const RecentViewedSlider = ({ user, product }) => {
         }
 
         const data = await fetchResponse.json();
-        console.log("recent viewed, ", data);
+        // console.log("recent viewed, ", data);
 
         const recentProductsData = await data.map((t) => t.shirtId).slice(0, 4);
         console.log("recent viewed,222 ", recentProductsData);
@@ -135,19 +138,16 @@ const RecentViewedSlider = ({ user, product }) => {
       isSubscribed = false;
     };
   }, [user?._id, product?._id]);
+  const formatPrice = (price) => {
+    if (price == null) return "0";
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
 
-  const handleScroll = (direction) => {
-    const container = document.getElementById("products-container");
-    const scrollAmount = 300;
-    if (container) {
-      if (direction === "left") {
-        container.scrollLeft -= scrollAmount;
-        setScrollPosition(container.scrollLeft - scrollAmount);
-      } else {
-        container.scrollLeft += scrollAmount;
-        setScrollPosition(container.scrollLeft + scrollAmount);
-      }
+  const calculateSalePrice = (product) => {
+    if (product.isSale) {
+      return product.price * (1 - product.salePercent / 100);
     }
+    return product.price;
   };
   return (
     <Box sx={{ mt: 4, mx: "8%" }}>
@@ -174,7 +174,14 @@ const RecentViewedSlider = ({ user, product }) => {
             </Typography>
           ) : recentProducts.length > 0 ? (
             recentProducts.map((recentProduct) => (
-              <StyledCard key={recentProduct._id}>
+              <StyledCard
+                key={recentProduct._id}
+                onClick={() =>
+                  navigate(`/collection/${recentProduct._id}`, {
+                    state: { recentProduct },
+                  })
+                }
+              >
                 <ProductImage
                   component="img"
                   image={recentProduct.imageUrl?.[0] || noImg}
@@ -199,13 +206,13 @@ const RecentViewedSlider = ({ user, product }) => {
                   </Typography>
 
                   <PriceContainer>
-                    {recentProduct.salePrice ? (
+                    {recentProduct.isSale ? (
                       <>
                         <OriginalPrice variant="body1">
-                          {recentProduct.price}VND
+                          {formatPrice(recentProduct.price)}VND
                         </OriginalPrice>
                         <SalePrice variant="body1">
-                          {recentProduct.salePrice} VND
+                          {formatPrice(calculateSalePrice(recentProduct))} VND
                         </SalePrice>
                       </>
                     ) : (

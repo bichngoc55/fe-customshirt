@@ -47,7 +47,7 @@ import { useSelector } from "react-redux";
 
 const generator = rough.generator();
 
-const createElement = (id, x1, y1, x2, y2, type) => {
+const createElement = (id, x1, y1, x2, y2, type, options = {}) => {
   switch (type) {
     case "line":
     case "rectangle":
@@ -62,6 +62,17 @@ const createElement = (id, x1, y1, x2, y2, type) => {
       return { id, type, x1, y1, x2, y2, text: "" };
     case "eraser":
       return { id, type, points: [{ x: x1, y: y1 }] };
+    case "image":
+      return {
+        id,
+        type,
+        x1,
+        y1,
+        x2,
+        y2,
+        image: options.image,
+        originalFile: options.originalFile,
+      };
     default:
       throw new Error(`Type not recognised: ${type}`);
   }
@@ -115,6 +126,7 @@ const positionWithinElement = (x, y, element) => {
         );
       });
       return betweenEraserPoints ? "inside" : null;
+
     default:
       throw new Error(`Type not recognised: ${type}`);
   }
@@ -249,6 +261,7 @@ const drawElement = (roughCanvas, context, element) => {
       context.fill(new Path2D(eraserStroke));
       context.globalCompositeOperation = "source-over";
       break;
+
     case "image":
       context.drawImage(
         element.image,
@@ -353,8 +366,6 @@ const DetailedDesignPage = () => {
 
   const initialDesign = location.state;
 
-  // const { design: initialProduct } = state;
-
   const [design, setDesign] = useState(
     initialDesign || { name: "Untitled", elements: [] }
   );
@@ -368,7 +379,6 @@ const DetailedDesignPage = () => {
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const colors = ["white", "black"];
   const [drawingTool, setDrawingTool] = useState("Pencil");
-  const [canvas, setCanvas] = useState(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
@@ -506,6 +516,7 @@ const DetailedDesignPage = () => {
       return;
     }
   };
+
   const blobToBase64 = async (blob) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -574,12 +585,58 @@ const DetailedDesignPage = () => {
       reader.readAsDataURL(image);
     }
   };
+  // const handleAddImage = (file) => {
+  //   const reader = new FileReader();
 
+  //   reader.onload = (e) => {
+  //     const img = new Image();
+  //     img.onload = () => {
+  //       const canvas = document.getElementById("canvas");
+  //       const rect = canvas.getBoundingClientRect();
+
+  //       // Default image size and position
+  //       const imgWidth = 200;
+  //       const imgHeight = (img.height / img.width) * imgWidth;
+  //       const x1 = rect.width / 2 - imgWidth / 2;
+  //       const y1 = rect.height / 2 - imgHeight / 2;
+
+  //       // Temporarily switch to selection tool when adding an image
+  //       const previousTool = tool;
+  //       setTool("selection");
+
+  //       const id = elements.length;
+  //       const imageElement = createElement(
+  //         id,
+  //         x1,
+  //         y1,
+  //         x1 + imgWidth,
+  //         y1 + imgHeight,
+  //         "image",
+  //         {
+  //           image: img,
+  //           originalFile: file,
+  //         }
+  //       );
+
+  //       setElements((prevState) => [...prevState, imageElement]);
+
+  //       // Automatically select the new image
+  //       setSelectedElement({
+  //         ...imageElement,
+  //         offsetX: imgWidth / 2,
+  //         offsetY: imgHeight / 2,
+  //       });
+  //       setAction("moving");
+  //     };
+  //     img.src = e.target.result;
+  //   };
+
+  //   reader.readAsDataURL(file);
+  // };
   useEffect(() => {
     const shirtImage = document.getElementById("shirt-image");
     if (shirtImage) {
       const rect = shirtImage.getBoundingClientRect();
-      // console.log("rect", rect);
       setCanvasBounds({
         left: rect.left,
         top: rect.top,
@@ -589,8 +646,7 @@ const DetailedDesignPage = () => {
     }
   }, [selectedColors]);
 
-  // not new
-  const handleSaveDesign = async (designData) => {
+  const handleSaveDesign = async () => {
     try {
       if (!user) {
         setSnackbarMessage("Please login before save design");
@@ -598,6 +654,10 @@ const DetailedDesignPage = () => {
         setOpenSnackbar(true);
         return;
       }
+      const canvas = document.getElementById("canvas");
+      var canvasAPI = canvas
+        .toDataURL("image/png")
+        .replace("image/png", "image/octet-stream");
       const schemaElements = elements
         .map((element) => {
           switch (element.type) {
@@ -648,6 +708,28 @@ const DetailedDesignPage = () => {
                   color: "black",
                 },
               };
+            case "image":
+              const canvas = document.createElement("canvas");
+              canvas.width = element.x2 - element.x1;
+              canvas.height = element.y2 - element.y1;
+              const context = canvas.getContext("2d");
+              context.drawImage(
+                element.image,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+              );
+              return {
+                type: "stickers",
+                content: "image",
+                properties: {
+                  position: { x: element.x1, y: element.y1 },
+                  width: element.x2 - element.x1,
+                  height: element.y2 - element.y1,
+                  src: canvasAPI,
+                },
+              };
             default:
               return null;
           }
@@ -655,10 +737,6 @@ const DetailedDesignPage = () => {
         .filter((element) => element !== null);
       // console.log("================================elements: ", elements);
 
-      const canvas = document.getElementById("canvas");
-      var canvasAPI = canvas
-        .toDataURL("image/png")
-        .replace("image/png", "image/octet-stream");
       const tempCanvas = document.createElement("canvas");
       const tempContext = tempCanvas.getContext("2d");
 
@@ -712,6 +790,24 @@ const DetailedDesignPage = () => {
     return dbElements
       .map((element, index) => {
         switch (element.type) {
+          case "stickers":
+            if (element.content === "image") {
+              const img = new Image();
+              img.src = element.properties.src;
+              return {
+                id: index,
+                type: "image",
+                x1: element.properties.position.x,
+                y1: element.properties.position.y,
+                x2: element.properties.position.x + element.properties.width,
+                y2: element.properties.position.y + element.properties.height,
+                image: img,
+                originalFile: null,
+                originalWidth: element.properties.width,
+                originalHeight: element.properties.height,
+              };
+            }
+            break;
           case "shape":
             if (element.content === "freehand") {
               return {
@@ -764,6 +860,7 @@ const DetailedDesignPage = () => {
               y2: element.properties.position.y + element.properties.height,
               text: element.content,
             };
+
           default:
             return null;
         }
@@ -797,6 +894,8 @@ const DetailedDesignPage = () => {
       const convertedElements = convertDbElementsToCanvasElements(
         design.elements
       );
+      console.log("image :", design);
+
       setElements(convertedElements, true);
       // console.log("den day r", convertedElements);
 
@@ -918,8 +1017,6 @@ const DetailedDesignPage = () => {
     if (action === "writing") return;
 
     const { clientX, clientY } = getMouseCoordinates(event);
-    // if (!isWithinCanvasBounds(clientX, clientY)) return;
-
     if (event.button === 1 || pressedKeys.has(" ")) {
       setAction("panning");
       setStartPanMousePosition({ x: clientX, y: clientY });
@@ -944,7 +1041,7 @@ const DetailedDesignPage = () => {
       const element = getElementAtPosition(clientX, clientY, elements);
       if (element) {
         if (element.type === "image") {
-          console.log("Image selected: 1", element);
+          // console.log("Image selected: 1", element);
 
           const offsetX = clientX - element.x1;
           const offsetY = clientY - element.y1;
@@ -954,7 +1051,7 @@ const DetailedDesignPage = () => {
             offsetX,
             offsetY,
           });
-          console.log("Image selected: 2", element);
+          // console.log("Image selected: 2", element);
         } else if (element.type === "pencil") {
           const xOffsets = element.points.map((point) => clientX - point.x);
           const yOffsets = element.points.map((point) => clientY - point.y);

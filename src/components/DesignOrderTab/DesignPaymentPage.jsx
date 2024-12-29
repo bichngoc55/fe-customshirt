@@ -6,41 +6,82 @@ import {
   RadioGroup,
   FormControlLabel,
   Modal,
+  TextField,
   Button,
+  IconButton,
+  Alert,
   Snackbar,
   Container,
-  Alert,
 } from "@mui/material";
+import { FaCcVisa } from "react-icons/fa";
+import { FaCcMastercard } from "react-icons/fa";
 import CircularProgress from "@mui/material/CircularProgress";
-import { useDispatch, useSelector } from "react-redux";
-import { resetShippingState } from "../../redux/shippingSlice";
-import { useNavigate } from "react-router-dom";
+
+import { styled } from "@mui/material/styles";
 import CheckoutStepper from "./CheckoutStepper";
-import { calculateDeliveryDate } from "../../utils/orderUtils";
+import { useDispatch, useSelector } from "react-redux";
+import { resetShippingState, setPaymentData } from "../../redux/shippingSlice";
+import { useNavigate } from "react-router-dom";
+import {
+  calculateDeliveryDate,
+  detectCardType,
+  generateTransactionId,
+} from "../../utils/orderUtils";
 
-const PaymentPage = ({ onPreviousStep }) => {
-  const { shippingData, deliveryData, totalFee, shippingFee, voucherData } =
-    useSelector((state) => state.shipping);
+// Styled components
+const StyledTextField = styled(TextField)({
+  background: "white",
+  borderRadius: "8px",
+  "& .MuiOutlinedInput-root": {
+    "& fieldset": {
+      borderColor: "transparent",
+    },
+    "&:hover fieldset": {
+      borderColor: "transparent",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "transparent",
+    },
+  },
+});
 
+const DesignPaymentPage = ({
+  selectedSize,
+  quantity,
+  price,
+  design,
+  onPreviousStep,
+  onNextStep,
+}) => {
+  const {
+    shippingData,
+    deliveryData,
+    paymentData,
+    totalFee,
+    shippingFee,
+    voucherData,
+  } = useSelector((state) => state.shipping);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const { user } = useSelector((state) => state.auths);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
-
   const dispatch = useDispatch();
-  const { selectedItems } = useSelector((state) => state.cart);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const [paymentMethod, setPaymentMethod] = useState("vnpay");
-
+  const [paymentMethod, setPaymentMethod] = useState(paymentData || null);
+  const [cardDetails, setCardDetails] = useState({
+    cardNumber: "",
+    expiry: "",
+    cvv: "",
+    cardHolder: "",
+  });
   const handleCloseSnackbar = (event, reason) => {
     if (reason === "clickaway") {
       return;
     }
     setOpenSnackbar(false);
   };
-
   const styles = {
     container: {
       minHeight: "100vh",
@@ -117,16 +158,17 @@ const PaymentPage = ({ onPreviousStep }) => {
       },
     },
   };
-
+  const handleCloseModal = () => {
+    setLoading(false);
+  };
   const resetAllData = () => {
     dispatch(resetShippingState());
-  };
-
-  const calculateSalePrice = (product) => {
-    if (product.isSale) {
-      return product.price * (1 - product.salePercent / 100);
-    }
-    return product.price;
+    setCardDetails({
+      cardNumber: "",
+      expiry: "",
+      cvv: "",
+      cardHolder: "",
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -134,48 +176,42 @@ const PaymentPage = ({ onPreviousStep }) => {
     setLoading(true);
 
     try {
-      if (!selectedItems || selectedItems.length === 0) {
-        throw new Error("No items in cart");
+      if (!design || design.length === 0) {
+        setSnackbarMessage("Design not found");
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
+        setLoading(false);
+        return;
       }
       if (!shippingData) {
         throw new Error("Shipping information is missing");
       }
 
-      // Prepare order details
-      const orderDetails = await Promise.all(
-        selectedItems.map(async (item) => {
-          if (!item?.product?._id) {
-            throw new Error("Invalid product information");
-          }
+      const orderDetail = {
+        itemType: "custom",
+        design: design._id,
+        productSize: selectedSize,
+        productColor: design.color,
+        productPrice: price,
+        productQuantity: quantity,
+      };
 
-          const orderDetail = {
-            itemType: "store",
-            product: item.product._id,
-            productSize: item.selectedSize,
-            productColor: item.selectedColor,
-            productPrice: item.quantity * calculateSalePrice(item.product),
-            productQuantity: item.quantity,
-          };
-
-          const response = await fetch(
-            "http://localhost:3005/orderDetails/add",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(orderDetail),
-            }
-          );
-
-          if (!response.ok) {
-            throw new Error("Failed to create order detail");
-          }
-
-          const data = await response.json();
-          return data._id;
-        })
+      const orderDetailResponse = await fetch(
+        "http://localhost:3005/orderDetails/add",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(orderDetail),
+        }
       );
+
+      if (!orderDetailResponse.ok) {
+        throw new Error("Failed to create order detail");
+      }
+
+      const createdOrderDetail = await orderDetailResponse.json();
 
       const initialOrderData = {
         userInfo: {
@@ -184,7 +220,7 @@ const PaymentPage = ({ onPreviousStep }) => {
           phone: shippingData.phone,
           email: shippingData.email,
         },
-        items: orderDetails,
+        items: createdOrderDetail._id,
         voucherId: {
           discount: voucherData?.discount,
           code: voucherData?.code,
@@ -194,7 +230,7 @@ const PaymentPage = ({ onPreviousStep }) => {
         shippingFee: shippingFee,
         shippingMethod: deliveryData,
         paymentDetails: {
-          method: paymentMethod === "cash" ? "Cash" : "Digital", 
+          method: paymentMethod === "cash" ? "Cash" : "Digital",
           status: "pending",
         },
         billingAddress: {
@@ -204,7 +240,7 @@ const PaymentPage = ({ onPreviousStep }) => {
         },
         branch: Math.floor(Math.random() * 3) + 1,
       };
- 
+
       const orderResponse = await fetch("http://localhost:3005/order/add", {
         method: "POST",
         headers: {
@@ -222,11 +258,10 @@ const PaymentPage = ({ onPreviousStep }) => {
       }
 
       const savedOrder = await orderResponse.json();
-      // console.log("Saved order: ", savedOrder);
- 
+      console.log("Saved order: ", savedOrder);
+
       if (paymentMethod === "cash") {
         navigate(`/checkout/${savedOrder?._id}/confirmation`);
-
         return;
       }
 
@@ -239,7 +274,7 @@ const PaymentPage = ({ onPreviousStep }) => {
           },
           body: JSON.stringify({
             total: totalFee,
-             
+
             orderInfo: `Payment for Order ${savedOrder._id}`,
             orderId: savedOrder._id,
           }),
@@ -250,13 +285,14 @@ const PaymentPage = ({ onPreviousStep }) => {
 
       if (paymentResult.paymentUrl) {
         window.location.href = paymentResult.paymentUrl;
-      } else { 
+      } else {
         setSnackbarMessage("Failed to generate payment URL!");
         setSnackbarSeverity("error");
         setOpenSnackbar(true);
         return;
       }
       resetAllData();
+
       setLoading(false);
     } catch (error) {
       console.error("Error in order submission:", error);
@@ -266,31 +302,19 @@ const PaymentPage = ({ onPreviousStep }) => {
       setLoading(false);
     }
   };
+  const handleCardDetailsChange = (field) => (event) => {
+    setCardDetails((prev) => ({
+      ...prev,
+      [field]: event.target.value,
+    }));
+  };
 
   return (
-    <Container maxWidth="lg" sx={{ minHeight: "100vh", padding: "24px" }}>
+    <Container maxWidth="lg" sx={styles.container}>
       <CheckoutStepper currentStep={3} />
 
-      <Box
-        sx={{
-          borderRadius: "15px",
-          border: "1px solid #759af9",
-          padding: "32px",
-          marginTop: "38px",
-          width: "100%",
-          maxWidth: "800px",
-        }}
-      >
-        <Typography
-          sx={{
-            color: "#C8FFF6",
-            fontSize: "28px",
-            fontWeight: "bold",
-            marginBottom: "32px",
-          }}
-        >
-          Payment Methods
-        </Typography>
+      <Box sx={styles.paymentBox}>
+        <Typography sx={styles.title}>Payment Methods</Typography>
 
         <form onSubmit={handleSubmit}>
           <RadioGroup
@@ -340,64 +364,29 @@ const PaymentPage = ({ onPreviousStep }) => {
             </Box>
           </RadioGroup>
 
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-end",
-              marginTop: "32px",
-            }}
-          >
+          <Box sx={styles.buttonContainer}>
             <Button
               onClick={onPreviousStep}
+              type="submit"
               variant="contained"
-              sx={{
-                backgroundColor: "#4ADE80",
-                color: "black",
-                padding: "12px 32px",
-                marginRight: "16px",
-                fontSize: "16px",
-                borderRadius: "8px",
-                "&:hover": {
-                  backgroundColor: "#3FCC73",
-                },
-              }}
+              sx={styles.button}
             >
               Back
             </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              sx={{
-                backgroundColor: "#4ADE80",
-                color: "black",
-                padding: "12px 32px",
-                fontSize: "16px",
-                borderRadius: "8px",
-                "&:hover": {
-                  backgroundColor: "#3FCC73",
-                },
-              }}
-            >
+            <Button type="submit" variant="contained" sx={styles.button}>
               Complete Order
             </Button>
           </Box>
         </form>
       </Box>
-
       {loading && (
         <Modal
-          open={loading}
-          onClose={() => setLoading(false)}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          onClose={handleCloseModal}
+          sx={{ display: "flex", alignItems: "center", alignContent: "center" }}
         >
           <CircularProgress />
         </Modal>
       )}
-
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}
@@ -416,4 +405,4 @@ const PaymentPage = ({ onPreviousStep }) => {
   );
 };
 
-export default PaymentPage;
+export default DesignPaymentPage;
