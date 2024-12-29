@@ -13,22 +13,29 @@
   background-size: cover;
   background-position: center;
   text-align: center;
+
   padding: 90px 0;
 }
 /* landing page cloud */
 cloud-container {
-  position: absolute;
+  position: relative;
   top: 0;
   left: 0;
   width: 100%;
+  overflow: hidden;
+
   height: 100%;
   opacity: 1;
 }
 
 .cloud {
   position: absolute;
-  opacity: 2;
+  opacity: 0.8;
+  animation: float 15s ease-in-out infinite;
+
   mix-blend-mode: screen;
+  transition: all 0.5s ease;
+  will-change: transform;
 }
 
 .cloud-2 {
@@ -253,7 +260,7 @@ cloud-container {
   top: 0%;
   left: 20%;
   z-index: -1;
-  width:60%;
+  width: 60%;
   height: 90%;
 }
 .star_2 {
@@ -261,7 +268,7 @@ cloud-container {
   top: 0%;
   right: 10%;
   z-index: -2;
-  width:100%;
+  width: 100%;
   height: 90%;
 }
 
@@ -275,7 +282,6 @@ cloud-container {
 
   /* box-shadow: 0 0 20px rgba(255, 255, 255, 0.5); */
 }
-
 
 /* h1 {
   font-size: 4rem;
@@ -298,7 +304,6 @@ cloud-container {
 .text-container {
   position: relative;
   margin-top: 5%;
-  
 }
 .custom-text {
   font-size: 5.5rem;
@@ -309,7 +314,7 @@ cloud-container {
   background-clip: text;
   color: transparent;
   margin: 0; /* Xóa bỏ khoảng cách margin mặc định */
-  line-height: 1.5; 
+  line-height: 1.5;
 }
 .o-container {
   position: relative;
@@ -345,8 +350,7 @@ cloud-container {
   margin-top: 0px;
 }
 .hehe {
-  display:flex;
-
+  display: flex;
 }
 .features p {
   font-size: 1rem;
@@ -366,32 +370,27 @@ cloud-container {
 }
 
 .feature-list span::before {
-  content: '✓ ';
-  color: #00c767; 
+  content: "✓ ";
+  color: #00c767;
   margin-right: 5px;
 }
 
 .design-now-btn {
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   padding: 10px 20px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 16px;
-  transition: all 0.3s ease; 
+  transition: all 0.3s ease;
 }
 
 .design-now-btn:hover {
-  background-color: #45a049; 
-  box-shadow: 0 0 20px rgba(0, 255, 0, 1);
-  transform: scale(1.5); 
+  background-color: #45a049;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+  transform: scale(1.1);
 }
-/* h1,
-h2,
-h3 {
-  margin-bottom: 20px;
-} */
 
 footer {
   /* background-image: url("path-to-your-footer-image.jpg"); */
@@ -593,8 +592,10 @@ footer {
 /* ... (previous styles remain the same) */
 
 .voucher-section {
-  background-color: (--background-color);
+  /* background-color: (--background-color); */
   padding: 10px 20px;
+  display: flex;
+  flex-direction: column;
   text-align: center;
 }
 
@@ -676,7 +677,7 @@ footer {
 .copy-btn svg,
 .apply-btn svg {
   margin-right: 5px;
-  color: #37c25e; 
+  color: #37c25e;
 }
 
 .validity,
@@ -691,6 +692,8 @@ footer {
   color: white;
   border: none;
   padding: 10px 30px;
+  width: "50px";
+
   font-size: 1rem;
   cursor: pointer;
   border-radius: 5px;
@@ -700,7 +703,7 @@ footer {
 .see-more-btn:hover {
   background-color: #4caf50;
   box-shadow: 0 0 20px rgba(0, 255, 0, 1);
-  transform: scale(1.05); 
+  transform: scale(1.05);
 }
 
 /* guidance section */
@@ -768,11 +771,15 @@ footer {
   align-items: center;
   font-size: 1.2rem;
   font-weight: bold;
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  line-height: 60px;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 65%, 50% 100%, 0% 65%);
   margin-right: 20px;
+  transition: background-color 0.3s ease;
   flex-shrink: 0;
 }
-
+.step-arrow:hover {
+  background-color: #d1d1d1;
+}
 .step-text h4 {
   font-size: 1.2rem;
   color: #ffffff;
@@ -890,61 +897,136 @@ footer {
   background-position: bottom;
   background-repeat: no-repeat;
 }
-
+/* feedback */
+.feedback-section {
+  background-color: (--background-color);
+  margin-top: -40px;
+  padding: 60px 20px;
+  text-align: center;
+}
+.feedback-section h2 {
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
 /* footer */
-/* Nature section at the bottom of the page */
-.nature-section {
-  position: relative;
-  width: 100%;
-  height: 200px; 
-  background-color: transparent; /* You can adjust this if needed */
-  overflow: hidden;
+
+.footer-content2 {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  align-items: flex-end; /* Align trees at the bottom */
+  margin-left: 10%;
+  z-index: 10 !important;
+  text-align: center;
+  width: 80%;
+  padding: 40px 0;
+  background-image: linear-gradient(to bottom, rgba(64, 70, 87, 0.8), #1a2131);
+  border-radius: 10px;
 }
 
-.grass-container {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  /* height: 100px;  */
-  
-}
-
-.grass-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.trees-container {
-  position: absolute;
-  bottom: 100px; /* Adjust so that trees appear just above the grass */
-  width: 100%;
+.nature-container {
   display: flex;
-  justify-content: space-around;
-  align-items: flex-end;
+  width: 140%;
+  background-color: "white";
+  height: 400px;
 }
 
-.tree-img {
-  width: 15%; /* Adjust based on the size of your tree images */
-  object-fit: contain;
-  z-index: 10;
+.left-tree {
+  height: 400px;
+  width: auto;
+  transform: translateY(-90%);
+}
+/* .tree4 {
+  width: 140%;
+  height: 600px;
+  left: -55%;
+  z-index: 2;
+  transform: translateY(30%) translateX(-5%);
+} */
+.tree3 {
+  bottom: 0%;
+  transform: translateX(-25%);
+  left: -55%;
+  width: 140%;
+  height: 800px;
+  top: 10%;
+  z-index: 5;
+}
+
+.right-trees {
+  position: absolute;
+  right: -10%;
+  height: 400px;
+  width: auto;
+  z-index: 5;
+}
+
+.tree1,
+.tree2 {
+  width: 40%;
+  height: 400px;
 }
 
 .tree1 {
+  height: 650px;
+  transform: translateX(15%) translateY(-38%);
+}
+.tree2 {
+  z-index: 105;
+  transform: translateX(70%) translateY(-50%);
+
+  z-index: 105;
+}
+.mountain-img {
+  height: 800px;
+  width: 120%;
+  left: 0;
+  top: -60%;
+}
+.mountain-container {
+  display: flex;
+  transform: translateX(-25%) translateY(16%);
+  z-index: 20000;
+  height: 600px;
+  width: 170%;
+}
+.mountain1 {
+  transform: scaleX(-1) translateX(10%);
+  height: 600px;
+  width: 180%;
+  margin: 0;
+}
+
+.mountain2 {
+  right: 0;
+  z-index: 20000;
+  width: 120%;
+  height: 600px;
+  margin: 0;
+  transform: translateX(-15%);
+}
+.mountain-star {
+  position: absolute;
+  width: 65%;
+  top: -0%;
+
+  z-index: -5;
   left: 10%;
 }
-
-.tree2 {
-  left: 40%;
+.grass1-img {
+  position: absolute;
+  width: 900px;
+  height: 300px;
+  transform: scaleX(-1) translateX(80%) translateY(-64%);
+  z-index: 100;
 }
-
-.tree-3 {
-  left: 70%;
+.grass2-img {
+  position: absolute;
+  width: 900px;
+  height: 350px;
+  transform: translateX(-15%) translateY(-64%);
 }
-
 .section-hidden {
   opacity: 0;
   transform: translateY(8rem);
@@ -954,21 +1036,4 @@ footer {
 .section-visible {
   opacity: 1;
   transform: translateY(0);
-}
-
-.cta-button {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  padding: 10px 30px;
-  font-size: 1rem;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s, box-shadow 0.5s;
-}
-
-.cta-button:hover {
-  background-color: #4caf50;
-  box-shadow: 0 0 20px rgba(0, 255, 0, 1);
-  transform: scale(1.05); 
 }
