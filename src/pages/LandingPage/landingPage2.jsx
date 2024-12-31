@@ -342,6 +342,7 @@ const LandingPage = () => {
           className="moon-img"
         />
       </div>
+      <meta name="google-adsense-account" content="ca-pub-8031141340234257"></meta>
       <header ref={addToRefs} className="hero section-hidden">
         <div className="cloud-container">
           <img src={cloud2Img} alt="cloud" className="cloud cloud-2" />
