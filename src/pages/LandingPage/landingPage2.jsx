@@ -24,6 +24,7 @@ import cloud13Img from "../../assets/images/cloud-new10.png";
 import { useNavigate } from "react-router-dom";
 import FeedbackSection from "../../components/feedbackSection";
 import axios from "axios";
+import GoogleAd from "../../components/GoogleAd/GoogleAd";
 
 const features = [
   {
@@ -580,7 +581,7 @@ const LandingPage = () => {
           />
         </div>
       </section>
-
+<GoogleAd></GoogleAd>
       <footer ref={addToRefs} className="section-hidden">
         <div className="footer-content2">
           <h2>ENJOY YOUR EXPERIENCE WITH OUR WEBSITE</h2>
