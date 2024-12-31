@@ -51,6 +51,9 @@
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
+    "globals": {
+    "adsbygoogle": "readonly"
+  },
     "extends": [
       "react-app",
       "react-app/jest"
