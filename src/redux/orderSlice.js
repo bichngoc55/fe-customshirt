@@ -105,6 +105,18 @@ export const updateDeliveryStatus = createAsyncThunk(
     }
   }
 );
+export const updateOrderStatus = createAsyncThunk(
+  "orders/updateOrderStatus", 
+  async ( id, status , { rejectWithValue }) => {
+    try {
+      console.log("status", status);
+      const response = await axios.put(`${API_URL}/${id}/status`, status);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
 
 const orderSlice = createSlice({
   name: "orders",
@@ -254,6 +266,21 @@ const orderSlice = createSlice({
       .addCase(updateOrderShipping.rejected, (state, action) => {
         state.updateStatus = "failed";
         state.error = action.payload?.message || "Failed to update shipping information";
+      })
+      .addCase(updateOrderStatus.fulfilled, (state, action) => {
+        action.payload.updatedOrders.forEach((updatedOrder) => {
+          const index = state.orders.findIndex(
+            (order) => order._id === updatedOrder._id
+          );
+          if (index !== -1) {
+            state.orders[index] = updatedOrder;
+          }
+        });
+        state.error = null;
+      })
+      .addCase(updateOrderStatus.rejected, (state, action) => {
+        state.error =
+          action.payload?.message || "Failed to update delivery status";
       })
   },
 });

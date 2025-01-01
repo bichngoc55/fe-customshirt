@@ -234,6 +234,7 @@ const Message = () => {
     if (price == null) return "0";
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
+  console.log("message sender: ", messages )
   return (
     <div className="page-container">
       <div className="message-container">

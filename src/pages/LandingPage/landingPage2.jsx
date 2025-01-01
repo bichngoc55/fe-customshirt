@@ -27,6 +27,7 @@ import axios from "axios";
 import GoogleAd from "../../components/GoogleAd/GoogleAd";
 import AdSense from "../../components/GoogleAd/GoogleAd";
 import DevAdsense from "../../components/GoogleAd/GoogleAd";
+import AdComponent from "../../components/AdsHorizontal/adsHorizontal";
 
 const features = [
   {
@@ -449,6 +450,9 @@ const LandingPage = () => {
         </div>
         <img src={cloud13Img} alt="cloud" className="cloud cloud-13" />
       </section>
+      {/* <div>
+      <AdComponent />
+      </div> */}
       {/* about us section */}
       <section ref={addToRefs} className="about-us section-hidden">
         <h2>ABOUT US</h2>
