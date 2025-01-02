@@ -27,21 +27,26 @@ import axios from "axios";
 import GoogleAd from "../../components/GoogleAd/GoogleAd";
 import AdSense from "../../components/GoogleAd/GoogleAd";
 import DevAdsense from "../../components/GoogleAd/GoogleAd";
+import AdComponent from "../../components/AdsHorizontal/adsHorizontal";
+import WhatshotIcon from '@mui/icons-material/Whatshot';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import PaletteIcon from '@mui/icons-material/Palette';
+import DoomDoom from "./doomdoom.jpg";
 
 const features = [
   {
-    icon: <AccessibleForwardIcon />,
+    icon: <WhatshotIcon />,
     title: "Trending Collection",
     description:
       "we offer many different types of fashionable pre-designed T-Shirts",
   },
   {
-    icon: <AccessibleForwardIcon />,
+    icon: <MonetizationOnIcon />,
     title: "NFTs Integration",
     description: "for an exclusive and unique T-shirt designs",
   },
   {
-    icon: <AccessibleForwardIcon />,
+    icon: <PaletteIcon />,
     title: "AI & Paint Tools",
     description: "creative and easy T-shirt design",
   },
@@ -342,6 +347,7 @@ const LandingPage = () => {
           className="moon-img"
         />
       </div>
+      <meta name="google-adsense-account" content="ca-pub-8031141340234257"></meta>
       <header ref={addToRefs} className="hero section-hidden">
         <div className="cloud-container">
           <img src={cloud2Img} alt="cloud" className="cloud cloud-2" />
@@ -404,12 +410,12 @@ const LandingPage = () => {
             <h2>Best Selling T-Shirt</h2>
             <p>Start buying your favourite trending T-Shirt</p>
             {/* <button className="see-more-btn">See more</button> */}
-            <BtnComponent
+            {/* <BtnComponent
               handleClick={() => {}}
               value={"See more"}
               width={110}
               height={35}
-            ></BtnComponent>
+            ></BtnComponent> */}
           </div>
         </div>
         <div className="t-shirt-grid">
@@ -448,6 +454,9 @@ const LandingPage = () => {
         </div>
         <img src={cloud13Img} alt="cloud" className="cloud cloud-13" />
       </section>
+      {/* <div>
+      <AdComponent />
+      </div> */}
       {/* about us section */}
       <section ref={addToRefs} className="about-us section-hidden">
         <h2>ABOUT US</h2>
@@ -502,7 +511,9 @@ const LandingPage = () => {
         <p className="guidance-description">Easy and simple process</p>
         <h3 className="process-title">Personalized Design Process</h3>
         <div className="guidance-content">
-          <div className="t-shirt-preview"></div>
+          <div className="t-shirt-preview">
+          <img src={DoomDoom} alt="" />
+          </div>
           <div className="steps-container">
             {steps.map((step, index) => (
               <div key={index} className="step-item">

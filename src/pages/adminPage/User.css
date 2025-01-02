@@ -1,100 +1,99 @@
 .user-table {
-    background-color: #131720;
-    border-radius: 10px;
-    padding: 10px;
-    width: 100%;
-    margin-top: 30px;
-    border: 1px solid #759AF9;
-    margin-bottom: 30px;
-    overflow: auto; /* Cho phép cuộn ngang và dọc */
-    max-height: 500px; /* Chiều cao tối đa để kích hoạt cuộn dọc */
+  background-color: #131720;
+  border-radius: 10px;
+  padding: 10px;
+  width: 100%;
+  margin-top: 30px;
+  border: 1px solid #759AF9;
+  margin-bottom: 30px;
+  overflow: auto; /* Cho phép cuộn ngang và dọc */
+  max-height: 1500px; /* Chiều cao tối đa để kích hoạt cuộn dọc */
 }
 
 .user-table table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 800px; /* Đảm bảo kích thước bảng tối thiểu để cuộn ngang */
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px; /* Đảm bảo kích thước bảng tối thiểu để cuộn ngang */
 }
 
 .user-table th,
 .user-table td {
-    color: #fff;
-    text-align: center;
-    padding: 10px 20px;
-    box-sizing: border-box;
-    white-space: nowrap; /* Ngăn ngắt dòng để kích hoạt cuộn ngang */
+  color: #fff;
+  text-align: center;
+  padding: 10px 20px;
+  box-sizing: border-box;
+  white-space: nowrap; /* Ngăn ngắt dòng để kích hoạt cuộn ngang */
 }
-  
-  .account-status {
-    display: inline-block;
-    padding: 5px 20px;
-    border-radius: 20px;
+
+.account-status {
+  display: inline-block;
+  padding: 5px 20px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.status-active {
+  background-color: #2EBB77;
+  color: white;
+}
+
+.status-down {
+  background-color: #FF4949;
+  color: white;
+}
+
+.user-details {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #7c7c8a;
+}
+
+.action-btn-more {
+  position: relative;
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 20px;
+  right: -20px;
+  background-color: #2d2d3e;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.dropdown-menu.active {
+  display: block;
+}
+
+.dropdown-item {
+  padding: 10px 20px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dropdown-item.chat:hover {
+  background-color: #2EBB77;
+}
+
+.dropdown-item.report:hover {
+  background-color: #FF4949;
+}
+
+@media (max-width: 768px) {
+  .user-table table {
     font-size: 12px;
-    font-weight: bold;
   }
-  
-  .status-active {
-    background-color: #2EBB77;
-    color: white;
-  }
-  
-  .status-down {
-    background-color: #FF4949;
-    color: white;
-  }
-  
-  .user-details {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .user-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #7c7c8a;
-  }
-  
-  .action-btn-more {
-    position: relative;
-    cursor: pointer;
-  }
-  
-  .dropdown-menu {
-    display: none;
-    position: absolute;
-    top: 20px;
-    right: -20px;
-    background-color: #2d2d3e;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 1;
-  }
-  
-  .dropdown-menu.active {
-    display: block;
-  }
-  
-  .dropdown-item {
-    padding: 10px 20px;
-    color: white;
-    font-size: 14px;
-    cursor: pointer;
-    text-align: left;
-  }
-  
-  .dropdown-item.chat:hover {
-    background-color: #2EBB77;
-  }
-  
-  .dropdown-item.report:hover {
-    background-color: #FF4949;
-  }
-  
-  @media (max-width: 768px) {
-    .user-table table {
-      font-size: 12px;
-    }
-  }
-  
+}

@@ -9,6 +9,11 @@ import {
   Person as OrderIcon, 
 } from "@mui/icons-material";
 import axios from "axios";
+// import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+
 
 const TopRowCard = styled(Card)(({ theme }) => ({
   backgroundColor: "#131720",
@@ -97,10 +102,17 @@ const Analytics = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [user, setUser] = useState({ username: "Guest" });
+  const [shirt, setShirt] = useState();
+  const navigate = useNavigate();
   const [orderStats, setOrderStats] = useState({ totalOrders: 0, weeklyGrowth: '0%' });
   const [leastQuantityProducts, setLeastQuantityProducts] = useState([]);
   const [topProducts, setTopProducts] = useState([]);
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [revenueData, setRevenueData] = useState({ monthlyData: [], earnings: { total: 0, growth: 0 } });
+  const [dailyRevenue, setDailyRevenue] = useState({ revenue: 0, growth: 0, orderCount: 0 });
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -113,6 +125,34 @@ const Analytics = () => {
     };
     fetchUser();
   }, []);
+  
+  // useEffect(() => {
+  //   const fetchUser = async () => {
+  //     try {
+  //       const response = await axios.get("http://localhost:3005/shirt/");
+  //       const shirtData = response.shirtData.shirt[0];  
+  //       setShirt(shirtData);
+  //     } catch (error) {
+  //       console.error("Failed to fetch user:", error);
+  //     }
+  //   };
+  //   fetchUser();
+  // }, []);
+  useEffect(() => {
+    const fetchDailyRevenue = async () => {
+        try {
+            const dailyData = await dashboardService.getDailyRevenue(selectedDate);
+            setDailyRevenue(dailyData);
+        } catch (error) {
+            console.error('Failed to fetch daily revenue:', error);
+        }
+    };
+
+    if (selectedDate) {
+        fetchDailyRevenue();
+    }
+}, [selectedDate]);
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       setIsLoading(true);
@@ -124,18 +164,21 @@ const Analytics = () => {
           orderStatsData,
           leastQuantityData,
           topProductsData,
-          revenueData
+          revenueData,
+          getDailyRevenue
         ] = await Promise.all([
           dashboardService.getTotalOrdersStats(),
           dashboardService.getLeastQuantityProducts(),
           dashboardService.getTopProducts(),
-          dashboardService.getRevenueData()
+          dashboardService.getRevenueData(selectedYear),
+          dashboardService.getDailyRevenue(selectedDate)
         ]);
         // Update state with fetched data
         setOrderStats(orderStatsData);
         setLeastQuantityProducts(leastQuantityData);
         setTopProducts(topProductsData);
         setRevenueData(revenueData);
+        setDailyRevenue(dailyRevenue);
       } catch (error) {
         setError('Failed to fetch dashboard data. Please try again later.');
         console.error('Dashboard data fetch error:', error);
@@ -146,29 +189,43 @@ const Analytics = () => {
 
     fetchDashboardData();
   }, []);
+  useEffect(() => {
+    const fetchRevenueData = async () => {
+        try {
+            const revenueData = await dashboardService.getRevenueData(selectedYear);
+            setRevenueData(revenueData);
+        } catch (error) {
+            console.error('Failed to fetch revenue data:', error);
+        }
+    };
 
-  const lineChartData = {
-    xAxis: [{
-      data: revenueData.monthlyData.map(item => item.month),
-      scaleType: 'band',
-    }],
-    series: [{
-      data: revenueData.monthlyData.map(item => item.revenue),
-      color: '#4fd1c5',
-      area: true,
-    }],
-  };
+    if (selectedYear) {
+        fetchRevenueData();
+    }
+    }, [selectedYear]);
+      const lineChartData = {
+        xAxis: [{
+          data: revenueData.monthlyData.map(item => item.month),
+          scaleType: 'band',
+        }],
+        series: [{
+          data: revenueData.monthlyData.map(item => item.revenue),
+          color: '#4fd1c5',
+          area: true,
+        }],
+      };
 
-  if (error) {
-    return (
-      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-        <Typography color="error" sx={{ mb: 2, fontFamily: 'Montserrat' }}>{error}</Typography>
-        <Button onClick={() => window.location.reload()}>
-          Retry
-        </Button>
-      </Box>
-    );
-  }
+      if (error) {
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography color="error" sx={{ mb: 2, fontFamily: 'Montserrat' }}>{error}</Typography>
+            <Button onClick={() => window.location.reload()}>
+              Retry
+            </Button>
+          </Box>
+        );
+      }
+  console.log("leastQuantityData", leastQuantityProducts)
 
   return (
     <div className="analytics-container">
@@ -189,17 +246,49 @@ const Analytics = () => {
           <Grid item xs={12} md={4.5}>
             <TopRowCard>
               <Typography variant="h6" sx={{ mb: 2, fontFamily: 'Montserrat', fontSize: 17, fontWeight: 600, color: "#a6f4ea", }}>Least Quantity Product</Typography>
-              {leastQuantityProducts.map((product) => (
-                <Box key={product.id} sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-                  <Box sx={{ display: "flex", gap: 2, flex: 1 }}>
-                    <Typography sx={{ fontFamily: 'Montserrat', color: "white", fontSize: 12, fontWeight: 600 }}>#{product.id}</Typography>
-                    <Typography sx={{ fontFamily: 'Montserrat', fontSize: 12 }}>{product.name}</Typography>
-                  </Box>
-                  <Typography sx={{ fontFamily: 'Montserrat', color: "#a6f4ea", ml: 2, fontSize: 12, fontWeight: 600 }}>
-                    {product.quantity}
+              {leastQuantityProducts.map((product,  index) => (
+              <Box 
+                key={product.id} 
+                sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
+              >
+                <Box 
+                  sx={{ display: "flex", gap: 2, flex: 1 }}
+                >
+                  <Typography 
+                    sx={{ fontFamily: 'Montserrat', color: "white", fontSize: 12, fontWeight: 600 }}
+                  >
+                    #{index + 1}
+                  </Typography>
+                  <Typography 
+                  onClick={()=> navigate(`/collection/${product?.id}`)}
+                    sx={{ 
+                      fontFamily: 'Montserrat', 
+                      fontSize: 12, 
+                      color: '#759AF9', 
+                      cursor: 'pointer', 
+                      textDecoration: 'none',
+                      "&:hover": {
+                        textDecoration: "underline",
+                        color: "#a6f4ea"
+                      }
+                    }}
+                  >
+                    {product.name}
                   </Typography>
                 </Box>
-              ))}
+                <Typography 
+                  sx={{ 
+                    fontFamily: 'Montserrat', 
+                    color: "#a6f4ea", 
+                    ml: 2, 
+                    fontSize: 12, 
+                    fontWeight: 600 
+                  }}
+                >
+                  {product.quantity}
+                </Typography>
+              </Box>
+            ))}
             </TopRowCard>
           </Grid>
 
@@ -229,11 +318,21 @@ const Analytics = () => {
           <Grid item xs={12} md={4.5}>
             <TopRowCard>
               <Typography variant="h6" sx={{ mb: 2, fontFamily: 'Montserrat', fontSize: 17, fontWeight: 600, color: "#a6f4ea", }}>Top Products</Typography>
-              {topProducts.map((product) => (
+              {topProducts.map((product, index) => (
                 <Box key={product.id} sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
                   <Box sx={{ display: "flex", gap: 2 }}>
-                    <Typography sx={{ fontFamily: 'Montserrat', color: "white", fontSize: 12, fontWeight: 600 }}>#{product.id}</Typography>
-                    <Typography sx={{ fontFamily: 'Montserrat', fontSize: 12 }}>{product.name}</Typography>
+                    <Typography sx={{ fontFamily: 'Montserrat', color: "white", fontSize: 12, fontWeight: 600 }}>#{index + 1}</Typography>
+                    <Typography onClick={()=> navigate(`/collection/${product?.id}`)} sx={{ 
+                      fontFamily: 'Montserrat', 
+                      fontSize: 12, 
+                      color: '#759AF9', 
+                      cursor: 'pointer', 
+                      textDecoration: 'none',
+                      "&:hover": {
+                        textDecoration: "underline",
+                        color: "#a6f4ea"
+                      }
+                    }}>{product.name}</Typography>
                   </Box>
                   <ProgressBar value={(product.sales / Math.max(...topProducts.map(p => p.sales))) * 100}>
                     <Box className="progress" />
@@ -270,6 +369,24 @@ const Analytics = () => {
                   >
                     Monthly
                   </Button>
+                  <select
+                value={selectedYear}
+                onChange={(e) => {setSelectedYear(parseInt(e.target.value))   }}
+                style={{
+                  backgroundColor: "#759AF9",
+                  color: "#131720",
+                  padding: "8px 16px",
+                  borderRadius: "4px",
+                  border: "none",
+                  fontFamily: 'Montserrat',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                {Array.from({ length: 5 }, (_, i) => currentYear - i).map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
                 </Box>
               </Box>
               <LineChart
@@ -321,34 +438,44 @@ const Analytics = () => {
 
           {/* Earnings - chiếm 35% chiều ngang */}
           <Grid item xs={12} md={4}>
-            <BottomRowCard>
-              <Typography variant="h6" sx={{ mb: 2, fontFamily: 'Montserrat', fontSize: 17, fontWeight: 600, color: "#a6f4ea", }}>Earnings</Typography>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography sx={{ color: "white", fontFamily: 'Montserrat' }}>Total Expense</Typography>
-                <Button 
-                  variant="contained" 
-                  size="small"
-                  sx={{ 
-                    bgcolor: "rgba(255,255,255,0.1)",
-                    fontFamily: 'Montserrat',
-                    "&:hover": { bgcolor: "rgba(255,255,255,0.2)" }
-                  }}
-                >
-                  Today
-                </Button>
-              </Box>
-              <Typography variant="h5" sx={{ mt: 2, fontFamily: 'Montserrat' }}>
-                {new Intl.NumberFormat('vi-VN', { 
-                  style: 'currency', 
-                  currency: 'VND'
-                }).format(revenueData.earnings.total)}
-              </Typography>
-              <Typography sx={{ color: "white", variant: "body2", fontFamily: 'Montserrat' }}>
-                Profit is {revenueData.earnings.growth}% More
-                <br />than last Month
-              </Typography>
-              <GaugeChart value={revenueData.earnings.growth} />
-            </BottomRowCard>
+          <BottomRowCard>
+    <Typography variant="h6" sx={{ mb: 2, fontFamily: 'Montserrat', fontSize: 17, fontWeight: 600, color: "#a6f4ea" }}>
+        Daily Earnings
+    </Typography>
+    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Typography sx={{ color: "white", fontFamily: 'Montserrat' }}>Total Revenue</Typography>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <DatePicker
+                value={selectedDate}
+                onChange={(newDate) => setSelectedDate(newDate)}
+                sx={{
+                    marginLeft: '50px',
+                    '& .MuiInputBase-root': {
+                        color: 'white',
+                        bgcolor: 'rgba(255,255,255,0.1)',
+                        borderRadius: '4px',
+                        '&:hover': {
+                            bgcolor: 'rgba(255,255,255,0.2)',
+                        },
+                    },
+                    '& .MuiOutlinedInput-notchedOutline': {
+                        border: 'none',
+                    },
+                }}
+            />
+        </LocalizationProvider>
+    </Box>
+    <Typography variant="h5" sx={{ mt: 2, fontFamily: 'Montserrat' }}>
+        {new Intl.NumberFormat('vi-VN', { 
+            style: 'currency', 
+            currency: 'VND'
+        }).format(dailyRevenue.revenue)}
+    </Typography>
+    <Typography sx={{ color: "#a6f4ea", mt: 2, fontFamily: 'Montserrat' }}>
+        Total Orders: {dailyRevenue.orderCount}
+    </Typography>
+</BottomRowCard>
+
           </Grid>
         </Grid>
       </Box>

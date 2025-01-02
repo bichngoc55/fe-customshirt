@@ -13,14 +13,17 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { logoutUser } from "../../redux/authSlice";
 import { useDispatch } from 'react-redux';
 import { Box, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from "@mui/material";
+import axios from "axios";
 
 const DashBoard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedItem, setSelectedItem] = useState(null);
   const [openSignoutDialog, setOpenSignoutDialog] = useState(false);
+  const [firstUser,setFirstUser]= useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const dispatch = useDispatch();
+
   const handleItemClick = (item) => {
     setSelectedItem(item.key);
     navigate(item.path);
@@ -39,32 +42,64 @@ const DashBoard = () => {
       await dispatch(logoutUser());
       navigate("/login");
   };
+  
   const handleClose = () => {
     setAnchorEl(null);
   };
-
+  const fetchUsers = async () => {
+    try {
+        const response = await axios.get("http://localhost:3005/user/");
+        const users = response.data.users; 
+        
+        if (users.length > 0 ) {
+            // navigate(`/message/${users[0]._id}`);
+            setFirstUser(users[0]._id);
+        }
+      
+       
+    } catch (error) {
+        console.error("Error fetching users:", error);
+    }
+};
+fetchUsers();
   const mainMenuItems = [
-    { key: "dashboard", path: "/admin", Icon: AnalyticsIcon, label: "Dashboard" },
-    { key: "user", path: "/admin/user", Icon: UserIcon, label: "User" },
-    { key: "order", path: "/admin/order", Icon: OrderIcon, label: "Order" },
-    { key: "voucher", path: "/admin/voucher", Icon: OrderIcon, label: "Voucher" },
-    { key: "message", path: "/admin/message", Icon: MessageIcon, label: "Message" },
+    { key: "dashboard", path: "/admin", Icon: AnalyticsIcon, label: "Dashboard", exact: true },
+    { key: "user", path: "/admin/user", Icon: UserIcon, label: "User", exact: true },
+    { key: "order", path: "/admin/order", Icon: OrderIcon, label: "Order", exact: true },
+    { key: "voucher", path: "/admin/voucher", Icon: OrderIcon, label: "Voucher", exact: true },
+    { key: "message", path: `/admin/message/${firstUser}`, Icon: MessageIcon, label: "Message", exact: false },
   ];
 
   const bottomMenuItems = [
-    { key: "settings", path: "/admin/settings", Icon: SettingsIcon, label: "Settings" },
-    { key: "signout", path: "/admin/signout", Icon: SignOutIcon, label: "Signout" },
+    { key: "settings", path: "/admin/settings", Icon: SettingsIcon, label: "Settings", exact: true },
+    { key: "signout", path: "/admin/signout", Icon: SignOutIcon, label: "Signout", exact: true },
   ];
 
   useEffect(() => {
     const currentPath = location.pathname;
-    const currentItem = [...mainMenuItems, ...bottomMenuItems].find(
-      (item) => item.path === currentPath
-    );
-    if (currentItem) {
-      setSelectedItem(currentItem.key);
-    }
-  }, [location]);
+    
+    const findMatchingItem = () => {
+      const allItems = [...mainMenuItems, ...bottomMenuItems];
+      
+      // First try to find an exact match
+      const exactMatch = allItems.find(
+        item => item.exact && item.path === currentPath
+      );
+      if (exactMatch) return exactMatch.key;
+      
+      // Then look for prefix matches for non-exact routes
+      const prefixMatch = allItems.find(
+        item => !item.exact && currentPath.startsWith(item.path)
+      );
+      if (prefixMatch) return prefixMatch.key;
+      
+      // If no match found, default to null
+      return null;
+    };
+
+    const matchedKey = findMatchingItem();
+    setSelectedItem(matchedKey);
+  }, [location.pathname]);
 
   return (
     <Box sx={{ display: "flex", height: "80vh", fontWeight: 700, }}>
@@ -89,15 +124,6 @@ const DashBoard = () => {
               selected={selectedItem === item.key}
               Icon={<item.Icon />}
               onClick={() => handleItemClick(item)}
-              // sx={{
-              //   fontFamily: 'Montserrat, sans-serif',
-              //   fontSize: '24px',
-              //   fontWeight: 600,
-              //   lineHeight: '29.26px',
-              //   textAlign: 'center',
-              //   textUnderlinePosition: 'from-font',
-              //   textDecorationSkipInk: 'none',
-              // }}
             />
           ))}
         </div>
@@ -114,7 +140,6 @@ const DashBoard = () => {
         </div>
       </div>
 
-      {/* Signout Confirmation Dialog */}
       <Dialog
         open={openSignoutDialog}
         onClose={handleCloseDialog}
