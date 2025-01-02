@@ -137,9 +137,12 @@ const validateOrderData = (formData) => {
   
   const ModalUpdateOrder = ({ isOpen, onClose, order, onUpdate,  districts }) => {
     const [formData, setFormData] = useState({
-      province: order?.billingAddress.province,
-      district: order?.billingAddress.district,
-      details: order?.billingAddress.details,
+      // province: order?.billingAddress.province,
+      // district: order?.billingAddress.district,
+      // details: order?.billingAddress.details,
+      province: "",
+      district: "",
+      details: "",
     });
    
     const [availableDistricts, setAvailableDistricts] = useState([]);
@@ -153,7 +156,6 @@ const validateOrderData = (formData) => {
     });
 
     useEffect(() => {
-        console.log("HEHHEHE", order?.billingAddress.province )
         if (order?.billingAddress) {
           setFormData({
             province: order.billingAddress.province || "",

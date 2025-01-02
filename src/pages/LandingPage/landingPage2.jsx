@@ -28,21 +28,27 @@ import GoogleAd from "../../components/GoogleAd/GoogleAd";
 import AdSense from "../../components/GoogleAd/GoogleAd";
 import DevAdsense from "../../components/GoogleAd/GoogleAd";
 import AdComponent from "../../components/AdsHorizontal/adsHorizontal";
+ 
+import WhatshotIcon from '@mui/icons-material/Whatshot';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import PaletteIcon from '@mui/icons-material/Palette';
+import DoomDoom from "./doomdoom.jpg";
+ 
 
 const features = [
   {
-    icon: <AccessibleForwardIcon />,
+    icon: <WhatshotIcon />,
     title: "Trending Collection",
     description:
       "we offer many different types of fashionable pre-designed T-Shirts",
   },
   {
-    icon: <AccessibleForwardIcon />,
+    icon: <MonetizationOnIcon />,
     title: "NFTs Integration",
     description: "for an exclusive and unique T-shirt designs",
   },
   {
-    icon: <AccessibleForwardIcon />,
+    icon: <PaletteIcon />,
     title: "AI & Paint Tools",
     description: "creative and easy T-shirt design",
   },
@@ -406,12 +412,12 @@ const LandingPage = () => {
             <h2>Best Selling T-Shirt</h2>
             <p>Start buying your favourite trending T-Shirt</p>
             {/* <button className="see-more-btn">See more</button> */}
-            <BtnComponent
+            {/* <BtnComponent
               handleClick={() => {}}
               value={"See more"}
               width={110}
               height={35}
-            ></BtnComponent>
+            ></BtnComponent> */}
           </div>
         </div>
         <div className="t-shirt-grid">
@@ -507,7 +513,9 @@ const LandingPage = () => {
         <p className="guidance-description">Easy and simple process</p>
         <h3 className="process-title">Personalized Design Process</h3>
         <div className="guidance-content">
-          <div className="t-shirt-preview"></div>
+          <div className="t-shirt-preview">
+          <img src={DoomDoom} alt="" />
+          </div>
           <div className="steps-container">
             {steps.map((step, index) => (
               <div key={index} className="step-item">

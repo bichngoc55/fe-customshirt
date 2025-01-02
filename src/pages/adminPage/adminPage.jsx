@@ -18,7 +18,7 @@ const AdminPage = () => {
         <Route path="/user" element={<User />} />
         <Route path="/order" element={<Order />} />
         <Route path="/voucher" element={<Voucher />} />
-        <Route path="/message" element={<Message />} />
+        <Route path="/message/:userId" element={<Message />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
     </Box>

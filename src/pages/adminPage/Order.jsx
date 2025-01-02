@@ -15,7 +15,7 @@ const Order = () => {
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [currentOrderId, setCurrentOrderId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState("");
+  const [sortField, setSortField] = useState("date");  // Set default sort to date
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
@@ -33,7 +33,6 @@ const Order = () => {
     setSelectedOrders(
       selectedOrders.length === orders.length ? [] : orders.map(order => order._id)
     );
-
   };
 
   const deleteSelectedOrders = () => {
@@ -51,13 +50,14 @@ const Order = () => {
     setCurrentOrderId(null);
   };
 
-  const changeStatus = (newStatus) => {
+  const changeStatus = async (newStatus) => {
     if (currentOrderId) {
-      dispatch(updateOrder({
+     await  dispatch(updateOrder({
         id: currentOrderId,
         orderData: { orderStatus: newStatus }
       }));
     }
+    // dispatch(fetchOrders());
     handleMenuClose();
   };
 
@@ -84,9 +84,13 @@ const Order = () => {
     ) || [];
 
     if (sortField === "total") {
-      filtered.sort((a, b) => a.total - b.total);
+      filtered.sort((a, b) => b.total - a.total);  // Sort by total descending
     } else if (sortField === "date") {
-      filtered.sort((a, b) => new Date(b.deliveryDate) - new Date(a.deliveryDate));
+      filtered.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateB - dateA;  // Sort by createdAt descending (newest first)
+      });
     }
 
     return filtered;
@@ -110,7 +114,7 @@ const Order = () => {
           </button>
         </div>
         <div className="sort-search">
-          <select onChange={(e) => handleSort(e.target.value)} className="sort-dropdown">
+          <select onChange={(e) => handleSort(e.target.value)} value={sortField} className="sort-dropdown">
             <option value="date">Ngày đặt hàng</option>
             <option value="total">Tổng tiền</option>
           </select>
@@ -122,9 +126,6 @@ const Order = () => {
               onChange={handleSearch}
               className="looking-input"
             />
-            {/* <div className="looking-icon">
-              <i className="fa fa-search"></i>
-            </div> */}
           </div>
         </div>
       </div>
@@ -200,7 +201,7 @@ const Order = () => {
         onClose={() => setIsUpdateModalOpen(false)}
         order={selectedOrder}
         onUpdate={(id, orderData) => dispatch(updateOrder({ id, orderData }))}
-/>
+      />
     </div>
   );
 };

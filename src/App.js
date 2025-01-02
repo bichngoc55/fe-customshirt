@@ -19,7 +19,7 @@ import DesignPage from "./pages/DesignPage/designPage";
 import AdminPage from "./pages/adminPage/adminPage";
 import TShirtDetails from "./pages/TShirtDetails/TShirtDetails";
 import ShippingPage from "./pages/ShippingPage/ShippingPage";
-import Message from "./pages/Message/Message";
+// import Message from "./pages/Message/Message";
 import Confirm from "./components/OrderTab/Confirm";
 import DetailedDesignPage from "./pages/DetailedDesignPage/DetailedDesignPage";
 import DesignShippingPage from "./pages/DesignShippingPage/DesignShippingPage";
@@ -27,6 +27,8 @@ import DesignConfirm from "./components/DesignOrderTab/DesignConfirm";
 import DesignDeliverPage from "./components/DesignOrderTab/DesignDeliverPage";
 import ShippingInfo from "./components/OrderTab/ShippingInfo";
 import DesignPaymentPage from "./components/DesignOrderTab/DesignPaymentPage";
+import MessageAdmin from "./pages/adminPage/Message";
+import MessageCustomer from "./pages/Message/Message";
 import PaymentReturn from "./components/PaymentReturn/PaymentReturn";
 import { useEffect } from "react";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
@@ -73,9 +75,13 @@ function App() {
             )}
 
             <Route path="/checkout/:id/confirmation" element={<Confirm />} />
+ 
+            {token && <Route path="/message/:id" element={<MessageAdmin />} />}
+            {token && <Route path="/message/customer/:id" element={<MessageCustomer />} />}
+ 
             <Route path="/forget-password" element={<RequestReset />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
-
+ 
             {token && <Route path="/message/:id" element={<Message />} />}
             <Route
               path="/design/payment/:id/*"

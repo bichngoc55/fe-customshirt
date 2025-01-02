@@ -35,8 +35,8 @@ const UserTable = () => {
     setActiveDropdown(activeDropdown === index ? null : index);
   };
 
-  const handleChat = () => {
-    navigate("/admin/message");
+  const handleChat = (id) => {
+    navigate(`/admin/message/${id}`);
   };
   const handleCloseSnackbar = (event, reason) => {
     if (reason === "clickaway") {
@@ -121,7 +121,7 @@ const UserTable = () => {
                     <span>•••</span>
                     {activeDropdown === index && (
                       <div className="dropdown-menu active">
-                        <div className="dropdown-item chat" onClick={handleChat}>
+                        <div className="dropdown-item chat" onClick={()=> handleChat(user?._id)}>
                           Chat
                         </div>
                         <div

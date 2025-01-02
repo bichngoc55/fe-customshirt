@@ -68,7 +68,7 @@ export const NavBar = () => {
     setAnchorEl(event.currentTarget);
   };
   const handleNavigateToMessage = () => {
-    navigate(`/message/${user?._id}`);
+    navigate(`/message/customer/${user?._id}`);
   };
   const handleLogout = async () => {
     handleClose();
