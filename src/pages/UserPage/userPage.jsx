@@ -2,10 +2,10 @@ import React from "react";
 import { TextField, styled } from "@mui/material";
 import MyDesign from "./mydesign";
 import { Routes, Route, useParams } from "react-router-dom";
-import NFTCollection from "./NFTCollection";
+// import NFTCollection from "./NFTCollection";
 import Profile from "./profilePage";
 import SharedTabs from "./SharedTabs";
-import MyOrder from "./myOrder"; 
+import MyOrder from "./myOrder";
 
 const UserProfile = () => {
   const { id } = useParams();
@@ -23,7 +23,7 @@ const UserProfile = () => {
         <Route path="/" element={<Profile />} />
         <Route path="/design" element={<MyDesign />} />
         <Route path="/order" element={<MyOrder />} />
-        <Route path="/collection" element={<NFTCollection />} />
+        {/* <Route path="/collection" element={<NFTCollection />} /> */}
       </Routes>
     </div>
   );

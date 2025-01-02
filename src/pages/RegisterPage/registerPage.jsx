@@ -4,81 +4,165 @@ import InputForm from "../../components/inputForm/inputForm";
 import BtnComponent from "../../components/btnComponent/btnComponent";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-function RegisterPage() {
+import { registerUser } from "../../redux/authSlice";
+
+const RegisterPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const isMobile = useMediaQuery("(max-width:768px)");
+
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
-  const [registerStatus, setRegisterStatus] = useState(null);
-  const isMobile = useMediaQuery("(max-width:768px)");
+  // const [registerStatus, setRegisterStatus] = useState(null);
+
   const [errors, setErrors] = useState({
+    username: "",
     email: "",
     password: "",
     general: "",
   });
-  const dispatch = useDispatch();
-  const validateForm = () => {
-    let tempErrors = {
-      username: "",
-      email: "",
-      password: "",
-      general: "",
-    };
-    let isValid = true;
 
-    if (!email) {
-      tempErrors.email = "Email is required";
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      tempErrors.email = "Please enter a valid email address";
-      isValid = false;
+  const validateField = (name, value) => {
+    switch (name) {
+      case "username":
+        return !value ? "Username is required" : "";
+      case "email":
+        return !value
+          ? "Email is required"
+          : !/\S+@\S+\.\S+/.test(value)
+          ? "Please enter a valid email address"
+          : "";
+      case "password":
+        return !value
+          ? "Password is required"
+          : value.length < 6
+          ? "Password must be at least 6 characters"
+          : "";
+      default:
+        return "";
     }
-    if (!username) {
-      tempErrors.username = "Username is required";
-      isValid = false;
-    }
-    if (!password) {
-      tempErrors.password = "Password is required";
-      isValid = false;
-    } else if (password.length < 6) {
-      tempErrors.password = "Password must be at least 6 characters";
-      isValid = false;
-    }
-
-    setErrors(tempErrors);
-    return isValid;
   };
 
+  const handleChange = (field) => (e) => {
+    const value = e.target.value;
+    switch (field) {
+      case "username":
+        setUsername(value);
+        break;
+      case "email":
+        setEmail(value);
+        break;
+      case "password":
+        setPassword(value);
+        break;
+    }
+    setErrors((prev) => ({
+      ...prev,
+      [field]: validateField(field, value),
+    }));
+  };
+
+  // const handleRegisterClick = async (e) => {
+  //   e.preventDefault();
+
+  //   const validationErrors = {
+  //     username: validateField("username", username),
+  //     email: validateField("email", email),
+  //     password: validateField("password", password),
+  //   };
+
+  //   setErrors(validationErrors);
+
+  //   if (Object.values(validationErrors).some((error) => error)) {
+  //     return;
+  //   }
+
+  //   } catch (error) {
+  //     setErrors((prev) => ({
+  //       ...prev,
+  //       general: "Registration failed. Please try again.",
+  //     }));
+  //   }
+  // };
   const handleRegisterClick = async (e) => {
+    e.preventDefault();
+
+    const validationErrors = {
+      username: validateField("username", username),
+      email: validateField("email", email),
+      password: validateField("password", password),
+    };
+
+    setErrors(validationErrors);
+
+    if (Object.values(validationErrors).some((error) => error)) {
+      return;
+    }
+
     try {
-      e.preventDefault();
-      if (!validateForm()) {
-        return;
-      }
-      const newUser = { username: username, email: email, password: password };
-      const response = await fetch(
-        `http://localhost:${process.env.PORT}/auth/register`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newUser),
-        }
-      );
-      const data = await response.json();
-      console.log(JSON.stringify(data));
-      if (data.error) {
-        setRegisterStatus(data.error.message);
-      } else {
-        setRegisterStatus(data.message);
-        navigate("/login");
-      }
+      await dispatch(
+        registerUser({
+          username,
+          email,
+          password,
+        })
+      ).unwrap();
+
+      navigate("/login");
     } catch (error) {
-      console.error(error);
-      setRegisterStatus("An error occurred while registering.");
+      // Handle specific error fields
+      setErrors((prev) => ({
+        ...prev,
+        [error.field]: error.message,
+        general: error.field === "general" ? error.message : "",
+      }));
     }
   };
+
+  const renderInput = (label, field, type = "text") => (
+    <Box>
+      <Box sx={{ marginBottom: "25px", marginTop: "10px" }}>
+        <Typography
+          sx={{
+            color: "white",
+            fontFamily: "Montserrat",
+            fontSize: "clamp(14px, 2vw, 16px)",
+            marginLeft: "4%",
+            marginBottom: "10px",
+          }}
+        >
+          {label}
+        </Typography>
+        <InputForm
+          type={type}
+          placeholder={label}
+          value={
+            field === "username"
+              ? username
+              : field === "email"
+              ? email
+              : password
+          }
+          onChange={handleChange(field)}
+          width="100%"
+          height="35px"
+        />
+      </Box>
+      {errors[field] && (
+        <Typography
+          sx={{
+            color: "#cc0000",
+            fontSize: "12px",
+            // marginTop: "4px",
+            marginLeft: "4%",
+          }}
+        >
+          {errors[field]}
+        </Typography>
+      )}
+    </Box>
+  );
 
   return (
     <Box
@@ -192,126 +276,29 @@ function RegisterPage() {
             style={{
               display: "flex",
               flexDirection: "column",
-              //   gap: "5px",
               width: "100%",
               maxWidth: "300px",
               marginBottom: "60px",
             }}
           >
-            <Box sx={{ marginTop: "5%", marginBottom: "20px" }}>
-              <Typography
-                sx={{
-                  color: "white",
-                  fontFamily: "Montserrat",
-                  fontSize: "clamp(14px, 2vw, 16px)",
-                  marginLeft: "4%",
-                  marginBottom: "10px",
-                }}
-              >
-                Username
-              </Typography>
-              <InputForm
-                placeholder="Username"
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  if (errors.username) {
-                    setErrors({ ...errors, username: "" });
-                  }
-                }}
-                width="100%"
-                height="35px"
-              />
-            </Box>
-            {errors.username && (
+            {renderInput("Username", "username")}
+            {renderInput("Email", "email")}
+            {renderInput("Password", "password", "password")}
+
+            {errors.general === "Rejected" && (
               <Typography
                 sx={{
                   color: "#cc0000",
                   fontSize: "12px",
                   marginTop: "4px",
                   marginLeft: "4%",
+                  textAlign: "center",
                 }}
               >
-                {errors.username}
+                {"Please try again."}
               </Typography>
             )}
 
-            <Box sx={{ marginTop: "15px", marginBottom: "20px" }}>
-              <Typography
-                sx={{
-                  color: "white",
-                  fontFamily: "Montserrat",
-                  fontSize: "clamp(14px, 2vw, 16px)",
-                  marginLeft: "4%",
-                  marginBottom: "10px",
-                }}
-              >
-                Email
-              </Typography>
-              <InputForm
-                placeholder="Email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (errors.email) {
-                    setErrors({ ...errors, email: "" });
-                  }
-                }}
-                width="100%"
-                height="35px"
-              />
-            </Box>
-            {errors.email && (
-              <Typography
-                sx={{
-                  color: "#cc0000",
-                  fontSize: "12px",
-                  marginTop: "4px",
-                  marginLeft: "4%",
-                }}
-              >
-                {errors.email}
-              </Typography>
-            )}
-
-            <Box sx={{ marginTop: "", marginBottom: "20px" }}>
-              <Typography
-                sx={{
-                  color: "white",
-                  fontFamily: "Montserrat",
-                  fontSize: "clamp(14px, 2vw, 16px)",
-                  marginLeft: "4%",
-                  marginBottom: "10px",
-                }}
-              >
-                Password
-              </Typography>
-              <InputForm
-                placeholder="Password"
-                type="password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (errors.password) {
-                    setErrors({ ...errors, password: "" });
-                  }
-                }}
-                width="100%"
-                height="35px"
-              />
-            </Box>
-            {errors.password && (
-              <Typography
-                sx={{
-                  color: "#cc0000",
-                  fontSize: "12px",
-                  marginTop: "4px",
-                  marginLeft: "4%",
-                }}
-              >
-                {errors.password}
-              </Typography>
-            )}
             <Box
               sx={{
                 display: "flex",
@@ -323,10 +310,11 @@ function RegisterPage() {
                 width="100"
                 height={40}
                 handleClick={handleRegisterClick}
-                value={"Register"}
+                value="Register"
               />
             </Box>
           </form>
+
           {isMobile && (
             <Typography
               sx={{
@@ -337,13 +325,13 @@ function RegisterPage() {
                 fontSize: "clamp(14px, 2vw, 16px)",
               }}
             >
-              Do not have an account?{" "}
+              Already have an account?{" "}
               <span
                 className="signup-link"
                 onClick={() => navigate("/login")}
                 style={{ cursor: "pointer" }}
               >
-                Sign up
+                Sign in
               </span>{" "}
               now
             </Typography>
@@ -352,6 +340,6 @@ function RegisterPage() {
       </Box>
     </Box>
   );
-}
+};
 
 export default RegisterPage;

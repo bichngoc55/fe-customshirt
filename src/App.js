@@ -29,6 +29,8 @@ import ShippingInfo from "./components/OrderTab/ShippingInfo";
 import DesignPaymentPage from "./components/DesignOrderTab/DesignPaymentPage";
 import PaymentReturn from "./components/PaymentReturn/PaymentReturn";
 import { useEffect } from "react";
+import ResetPassword from "./pages/ResetPassword/ResetPassword";
+import RequestReset from "./pages/RequestReset/RequestReset";
 
 // const stripePromise = loadStripe(process.env.STRIPE_PUBLISHABLE_KEY);
 function ScrollToTop() {
@@ -71,6 +73,8 @@ function App() {
             )}
 
             <Route path="/checkout/:id/confirmation" element={<Confirm />} />
+            <Route path="/forget-password" element={<RequestReset />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
 
             {token && <Route path="/message/:id" element={<Message />} />}
             <Route

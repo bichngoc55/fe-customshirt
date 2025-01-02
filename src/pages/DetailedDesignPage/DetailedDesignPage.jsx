@@ -21,6 +21,8 @@ import {
   Select,
   Modal,
   Switch,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
@@ -47,36 +49,36 @@ import { useSelector } from "react-redux";
 
 const generator = rough.generator();
 
-const createElement = (id, x1, y1, x2, y2, type, options = {}) => {
-  switch (type) {
-    case "line":
-    case "rectangle":
-      const roughElement =
-        type === "line"
-          ? generator.line(x1, y1, x2, y2)
-          : generator.rectangle(x1, y1, x2 - x1, y2 - y1);
-      return { id, x1, y1, x2, y2, type, roughElement };
-    case "pencil":
-      return { id, type, points: [{ x: x1, y: y1 }] };
-    case "text":
-      return { id, type, x1, y1, x2, y2, text: "" };
-    case "eraser":
-      return { id, type, points: [{ x: x1, y: y1 }] };
-    case "image":
-      return {
-        id,
-        type,
-        x1,
-        y1,
-        x2,
-        y2,
-        image: options.image,
-        originalFile: options.originalFile,
-      };
-    default:
-      throw new Error(`Type not recognised: ${type}`);
-  }
-};
+// const createElement = (id, x1, y1, x2, y2, type, options = {}) => {
+//   switch (type) {
+//     case "line":
+//     case "rectangle":
+//       const roughElement =
+//         type === "line"
+//           ? generator.line(x1, y1, x2, y2)
+//           : generator.rectangle(x1, y1, x2 - x1, y2 - y1);
+//       return { id, x1, y1, x2, y2, type, roughElement };
+//     case "pencil":
+//       return { id, type, points: [{ x: x1, y: y1 }] };
+//     case "text":
+//       return { id, type, x1, y1, x2, y2, text: "" };
+//     case "eraser":
+//       return { id, type, points: [{ x: x1, y: y1 }] };
+//     case "image":
+//       return {
+//         id,
+//         type,
+//         x1,
+//         y1,
+//         x2,
+//         y2,
+//         image: options.image,
+//         originalFile: options.originalFile,
+//       };
+//     default:
+//       throw new Error(`Type not recognised: ${type}`);
+//   }
+// };
 
 const nearPoint = (x, y, x1, y1, name) => {
   return Math.abs(x - x1) < 5 && Math.abs(y - y1) < 5 ? name : null;
@@ -234,47 +236,47 @@ const getSvgPathFromStroke = (stroke) => {
   return d.join(" ");
 };
 
-const drawElement = (roughCanvas, context, element) => {
-  switch (element.type) {
-    case "line":
-    case "rectangle":
-      roughCanvas.draw(element.roughElement);
-      break;
-    case "pencil":
-      const stroke = getSvgPathFromStroke(getStroke(element.points));
-      context.fill(new Path2D(stroke));
-      break;
-    case "text":
-      context.textBaseline = "top";
-      context.font = "24px sans-serif";
-      context.fillText(element.text, element.x1, element.y1);
-      break;
-    case "eraser":
-      context.globalCompositeOperation = "destination-out";
-      const eraserStroke = getSvgPathFromStroke(
-        getStroke(element.points, {
-          size: 10,
-          thinning: 0.5,
-          smoothing: 0.5,
-        })
-      );
-      context.fill(new Path2D(eraserStroke));
-      context.globalCompositeOperation = "source-over";
-      break;
+// const drawElement = (roughCanvas, context, element) => {
+//   switch (element.type) {
+//     case "line":
+//     case "rectangle":
+//       roughCanvas.draw(element.roughElement);
+//       break;
+//     case "pencil":
+//       const stroke = getSvgPathFromStroke(getStroke(element.points));
+//       context.fill(new Path2D(stroke));
+//       break;
+//     case "text":
+//       context.textBaseline = "top";
+//       context.font = "24px sans-serif";
+//       context.fillText(element.text, element.x1, element.y1);
+//       break;
+//     case "eraser":
+//       context.globalCompositeOperation = "destination-out";
+//       const eraserStroke = getSvgPathFromStroke(
+//         getStroke(element.points, {
+//           size: 10,
+//           thinning: 0.5,
+//           smoothing: 0.5,
+//         })
+//       );
+//       context.fill(new Path2D(eraserStroke));
+//       context.globalCompositeOperation = "source-over";
+//       break;
 
-    case "image":
-      context.drawImage(
-        element.image,
-        element.x1,
-        element.y1,
-        element.x2 - element.x1,
-        element.y2 - element.y1
-      );
-      break;
-    default:
-      throw new Error(`Type not recognised: ${element.type}`);
-  }
-};
+//     case "image":
+//       context.drawImage(
+//         element.image,
+//         element.x1,
+//         element.y1,
+//         element.x2 - element.x1,
+//         element.y2 - element.y1
+//       );
+//       break;
+//     default:
+//       throw new Error(`Type not recognised: ${element.type}`);
+//   }
+// };
 
 const adjustmentRequired = (type) =>
   ["line", "rectangle", "text", "image"].includes(type);
@@ -385,7 +387,16 @@ const DetailedDesignPage = () => {
   const [selectedColors, setSelectedColors] = useState(
     design?.color || "white"
   );
-
+  // cuu
+  //  const [selectedColors, setSelectedColors] = useState("white");
+  const [strokeColor, setStrokeColor] = useState("#000000");
+  const [fontSize, setFontSize] = useState("24px");
+  const [strokeWidth, setStrokeWidth] = useState(2);
+  const [eraserSize, setEraserSize] = useState(20);
+  const lineWidthOptions = [1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 20];
+  const eraserSizeOptions = [10, 20, 30, 40, 50, 60];
+  const [fontFamily, setFontFamily] = useState("Arial");
+  // het cuu
   const [hoveredSticker, setHoveredSticker] = useState(null);
   const { user } = useSelector((state) => state.auths);
   const [canvasBounds, setCanvasBounds] = useState({
@@ -400,6 +411,152 @@ const DetailedDesignPage = () => {
     }
     setOpenSnackbar(false);
   };
+  const drawElement = (roughCanvas, context, element) => {
+    switch (element.type) {
+      case "line":
+      case "rectangle":
+        context.strokeStyle = element.strokeColor || strokeColor;
+        // Set line width for rough.js elements
+        if (element.strokeWidth) {
+          roughCanvas.generator.defaultOptions.strokeWidth =
+            element.strokeWidth;
+        }
+        roughCanvas.draw(element.roughElement);
+        // Reset to default
+        roughCanvas.generator.defaultOptions.strokeWidth = 1;
+        break;
+      case "pencil":
+        context.beginPath();
+        context.strokeStyle = element.strokeColor || strokeColor;
+        context.fillStyle = element.strokeColor || strokeColor;
+        context.lineWidth = element.strokeWidth || strokeWidth;
+        const stroke = getSvgPathFromStroke(
+          getStroke(element.points, {
+            size: element.strokeWidth || strokeWidth,
+            thinning: 0.5,
+            smoothing: 0.5,
+            streamline: 0.5,
+          })
+        );
+        context.fill(new Path2D(stroke));
+        break;
+      case "text":
+        context.textBaseline = "top";
+        context.font = `${element.fontSize || fontSize} ${
+          element.fontFamily || fontFamily
+        }`;
+        context.fillStyle = element.strokeColor || strokeColor;
+        context.fillText(element.text, element.x1, element.y1);
+        break;
+      case "eraser":
+        context.globalCompositeOperation = "destination-out";
+        context.beginPath();
+        const eraserStroke = getSvgPathFromStroke(
+          getStroke(element.points, {
+            size: element.eraserSize || eraserSize,
+            thinning: 0,
+            smoothing: 0.5,
+            streamline: 0.5,
+          })
+        );
+        context.fill(new Path2D(eraserStroke));
+        context.globalCompositeOperation = "source-over";
+        break;
+      case "image":
+        context.drawImage(
+          element.image,
+          element.x1,
+          element.y1,
+          element.x2 - element.x1,
+          element.y2 - element.y1
+        );
+        break;
+      default:
+        throw new Error(`Type not recognised: ${element.type}`);
+    }
+  };
+  const createElement = (id, x1, y1, x2, y2, type) => {
+    switch (type) {
+      case "line":
+      case "rectangle":
+        const roughElement =
+          type === "line"
+            ? generator.line(x1, y1, x2, y2)
+            : generator.rectangle(x1, y1, x2 - x1, y2 - y1);
+        return {
+          id,
+          x1,
+          y1,
+          x2,
+          y2,
+          type,
+          roughElement,
+          strokeColor,
+          strokeWidth,
+        };
+      case "pencil":
+        return {
+          id,
+          type,
+          points: [{ x: x1, y: y1 }],
+          strokeColor,
+          strokeWidth,
+        };
+      case "text":
+        return {
+          id,
+          type,
+          x1,
+          y1,
+          x2,
+          y2,
+          text: "",
+          strokeColor,
+          fontSize,
+          fontFamily,
+        };
+      case "eraser":
+        return {
+          id,
+          type,
+          points: [{ x: x1, y: y1 }],
+          eraserSize,
+        };
+      case "image":
+        return {
+          id,
+          type,
+          x1,
+          y1,
+          x2,
+          y2,
+          image: new Image(),
+        };
+      default:
+        throw new Error(`Type not recognised: ${type}`);
+    }
+  };
+  const fontOptions = [
+    { value: "Arial", label: "Arial" },
+    { value: "Times New Roman", label: "Times New Roman" },
+    { value: "Courier New", label: "Courier New" },
+    { value: "Georgia", label: "Georgia" },
+    { value: "Verdana", label: "Verdana" },
+    { value: "Helvetica", label: "Helvetica" },
+  ];
+
+  const fontSizeOptions = [
+    "12px",
+    "14px",
+    "16px",
+    "18px",
+    "20px",
+    "24px",
+    "28px",
+    "32px",
+    "36px",
+    "48px",
+  ];
   // copy
   const copyToClipboard = async (image) => {
     try {
@@ -585,54 +742,6 @@ const DetailedDesignPage = () => {
       reader.readAsDataURL(image);
     }
   };
-  // const handleAddImage = (file) => {
-  //   const reader = new FileReader();
-
-  //   reader.onload = (e) => {
-  //     const img = new Image();
-  //     img.onload = () => {
-  //       const canvas = document.getElementById("canvas");
-  //       const rect = canvas.getBoundingClientRect();
-
-  //       // Default image size and position
-  //       const imgWidth = 200;
-  //       const imgHeight = (img.height / img.width) * imgWidth;
-  //       const x1 = rect.width / 2 - imgWidth / 2;
-  //       const y1 = rect.height / 2 - imgHeight / 2;
-
-  //       // Temporarily switch to selection tool when adding an image
-  //       const previousTool = tool;
-  //       setTool("selection");
-
-  //       const id = elements.length;
-  //       const imageElement = createElement(
-  //         id,
-  //         x1,
-  //         y1,
-  //         x1 + imgWidth,
-  //         y1 + imgHeight,
-  //         "image",
-  //         {
-  //           image: img,
-  //           originalFile: file,
-  //         }
-  //       );
-
-  //       setElements((prevState) => [...prevState, imageElement]);
-
-  //       // Automatically select the new image
-  //       setSelectedElement({
-  //         ...imageElement,
-  //         offsetX: imgWidth / 2,
-  //         offsetY: imgHeight / 2,
-  //       });
-  //       setAction("moving");
-  //     };
-  //     img.src = e.target.result;
-  //   };
-
-  //   reader.readAsDataURL(file);
-  // };
   useEffect(() => {
     const shirtImage = document.getElementById("shirt-image");
     if (shirtImage) {
@@ -803,8 +912,7 @@ const DetailedDesignPage = () => {
                 y2: element.properties.position.y + element.properties.height,
                 image: img,
                 originalFile: null,
-                originalWidth: element.properties.width,
-                originalHeight: element.properties.height,
+                scaleFactor: 1,
               };
             }
             break;
@@ -817,6 +925,8 @@ const DetailedDesignPage = () => {
                   x: point.x,
                   y: point.y,
                 })),
+                strokeColor: element.properties.color,
+                strokeWidth: element.properties.strokeWidth,
               };
             } else if (element.content === "line") {
               return {
@@ -832,6 +942,8 @@ const DetailedDesignPage = () => {
                   element.properties.position.x + element.properties.width,
                   element.properties.position.y + element.properties.height
                 ),
+                strokeColor: element.properties.color,
+                strokeWidth: element.properties.strokeWidth,
               };
             } else if (element.content === "rectangle") {
               return {
@@ -847,6 +959,8 @@ const DetailedDesignPage = () => {
                   element.properties.width,
                   element.properties.height
                 ),
+                strokeColor: element.properties.color,
+                strokeWidth: element.properties.strokeWidth,
               };
             }
             break;
@@ -859,6 +973,9 @@ const DetailedDesignPage = () => {
               x2: element.properties.position.x + element.properties.width,
               y2: element.properties.position.y + element.properties.height,
               text: element.content,
+              fontSize: element.properties.fontSize,
+              fontFamily: element.properties.font.split(" ")[1],
+              strokeColor: element.properties.color,
             };
 
           default:
@@ -1228,8 +1345,82 @@ const DetailedDesignPage = () => {
       document.removeEventListener("keydown", deleteHandler);
     };
   }, [elements, selectedElement, canvasBounds, action]);
+  const StyleControls = () => {
+    return (
+      <Box
+        sx={{ display: "flex", alignItems: "center", g: 2, marginLeft: "20px" }}
+      >
+        <input
+          type="color"
+          value={strokeColor}
+          onChange={(e) => setStrokeColor(e.target.value)}
+          style={{ width: 20, height: 20 }}
+        />
+
+        <StyledSelect
+          value={fontFamily}
+          onChange={(e) => setFontFamily(e.target.value)}
+          sx={{ minWidth: 120, marginLeft: "20px" }}
+        >
+          {fontOptions.map((font) => (
+            <MenuItem key={font.value} value={font.value}>
+              {font.label}
+            </MenuItem>
+          ))}
+        </StyledSelect>
+
+        <StyledSelect
+          value={fontSize}
+          onChange={(e) => setFontSize(e.target.value)}
+          sx={{ minWidth: 80, marginLeft: "20px" }}
+        >
+          {fontSizeOptions.map((size) => (
+            <MenuItem key={size} value={size}>
+              {size}
+            </MenuItem>
+          ))}
+        </StyledSelect>
+        {(tool === "line" || tool === "rectangle" || tool === "pencil") && (
+          <FormControl sx={{ minWidth: 120, marginLeft: "20px" }}>
+            <InputLabel sx={{ color: "white" }}>Line Width</InputLabel>
+            <StyledSelect
+              value={strokeWidth}
+              onChange={(e) => setStrokeWidth(e.target.value)}
+            >
+              {lineWidthOptions.map((width) => (
+                <MenuItem key={width} value={width}>
+                  {width}px
+                </MenuItem>
+              ))}
+            </StyledSelect>
+          </FormControl>
+        )}
+
+        {/* Eraser Size Control - Only show when eraser is selected */}
+        {tool === "eraser" && (
+          <FormControl sx={{ minWidth: 120, marginLeft: "20px" }}>
+            <InputLabel sx={{ color: "white", marginLeft: "20px" }}>
+              Eraser Size
+            </InputLabel>
+            <StyledSelect
+              value={eraserSize}
+              onChange={(e) => setEraserSize(e.target.value)}
+            >
+              {eraserSizeOptions.map((size) => (
+                <MenuItem key={size} value={size}>
+                  {size}px
+                </MenuItem>
+              ))}
+            </StyledSelect>
+          </FormControl>
+        )}
+      </Box>
+    );
+  };
   return (
     <Box className="design-page">
+      <StyleControls />
+
       <Box className="upper-part">
         <IconButton className="back-button">
           <ArrowBackOutlinedIcon sx={{ color: "white" }} />

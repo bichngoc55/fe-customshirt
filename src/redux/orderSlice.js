@@ -27,6 +27,19 @@ export const fetchOrders = createAsyncThunk(
     }
   }
 );
+// Fetch all orders by id
+export const fetchOrdersDetails = createAsyncThunk(
+  "orders/fetchOrdersDetails",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API_URL}/customer/${id}`);
+      console.log("cuu toi vs: ", response.data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
 
 // Create new order
 export const createOrder = createAsyncThunk(
@@ -225,6 +238,29 @@ const orderSlice = createSlice({
         state.autoRefuseStatus = "failed";
         state.error =
           action.payload?.message || "Failed to auto-refuse unconfirmed orders";
+      })
+      // Add Fetch Orders Details
+      .addCase(fetchOrdersDetails.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchOrdersDetails.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        // const orderIndex = state.orders.findIndex(
+        //   (order) => order._id === action.payload._id
+        // );
+        // if (orderIndex !== -1) {
+        //   state.orders[orderIndex] = action.payload;
+        // } else {
+        //   state.orders.push(action.payload);
+        // }
+        console.log("action payload: ", action.payload);
+        state.orders = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchOrdersDetails.rejected, (state, action) => {
+        state.status = "failed";
+        state.error =
+          action.payload?.message || "Failed to fetch order details";
       });
   },
 });
