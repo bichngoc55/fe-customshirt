@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Button, Modal, Typography } from "@mui/material";
+import { Box, Button, Modal } from "@mui/material";
 
 const ModalDeleteConfirm = ({
   isOpenModal,
@@ -39,7 +39,7 @@ const ModalDeleteConfirm = ({
         >
           Are you sure you want to{" "}
           <span style={{ color: "red", fontWeight: "bold" }}>delete</span> this
-          product?
+          ?
         </div>
         <Button
           variant="outlined"

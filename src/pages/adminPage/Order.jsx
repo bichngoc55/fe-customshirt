@@ -1,39 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Order.css";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchOrders, deleteOrder, updateOrder } from "../../redux/orderSlice";
+import ModalUpdateOrder from "../../components/ModalUpdateOrder/ModalUpdateOrder";
 
 const Order = () => {
-  const [orders, setOrders] = useState([
-    { id: "OD001", phone: "033678051", date: "02/11/2024", total: 150000, status: "Chờ xác nhận", payment: "Đã thanh toán" },
-    { id: "OD002", phone: "033678051", date: "02/11/2024", total: 200000, status: "Đã xác nhận", payment: "Chưa thanh toán" },
-    { id: "OD003", phone: "033678051", date: "02/11/2024", total: 300000, status: "Đã xác nhận", payment: "Chưa thanh toán" },
-    { id: "OD004", phone: "033678051", date: "02/11/2024", total: 4000000, status: "Chờ xác nhận", payment: "Đã thanh toán" },
-    { id: "OD005", phone: "033678051", date: "02/11/2024", total: 250000, status: "Đã xác nhận", payment: "Chưa thanh toán" },
-  ]);
-
+  const dispatch = useDispatch();
+  const { orders, status } = useSelector((state) => state.orders);
   const [selectedOrders, setSelectedOrders] = useState([]);
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [currentOrderId, setCurrentOrderId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortField, setSortField] = useState("");
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  useEffect(() => {
+    dispatch(fetchOrders());
+  }, [dispatch]);
 
   const toggleSelectOrder = (id) => {
-    setSelectedOrders((prev) =>
-      prev.includes(id) ? prev.filter((orderId) => orderId !== id) : [...prev, id]
+    setSelectedOrders(prev =>
+      prev.includes(id) ? prev.filter(orderId => orderId !== id) : [...prev, id]
     );
   };
 
   const selectAllOrders = () => {
-    if (selectedOrders.length === orders.length) {
-      setSelectedOrders([]);
-    } else {
-      setSelectedOrders(orders.map((order) => order.id));
-    }
+    setSelectedOrders(
+      selectedOrders.length === orders.length ? [] : orders.map(order => order._id)
+    );
+
   };
 
   const deleteSelectedOrders = () => {
-    setOrders(orders.filter((order) => !selectedOrders.includes(order.id)));
+    selectedOrders.forEach(id => dispatch(deleteOrder(id)));
     setSelectedOrders([]);
   };
 
@@ -48,86 +52,155 @@ const Order = () => {
   };
 
   const changeStatus = (newStatus) => {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === currentOrderId ? { ...order, status: newStatus } : order
-      )
-    );
+    if (currentOrderId) {
+      dispatch(updateOrder({
+        id: currentOrderId,
+        orderData: { orderStatus: newStatus }
+      }));
+    }
     handleMenuClose();
   };
+
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSort = (field) => {
+    setSortField(field);
+  };
+
+  const handleEditClick = (order) => {
+    setSelectedOrder(order);
+    setIsUpdateModalOpen(true);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('vi-VN');
+  };
+
+  const getFilteredAndSortedOrders = () => {
+    let filtered = orders?.filter(order => 
+      order.userInfo.phone.includes(searchQuery)
+    ) || [];
+
+    if (sortField === "total") {
+      filtered.sort((a, b) => a.total - b.total);
+    } else if (sortField === "date") {
+      filtered.sort((a, b) => new Date(b.deliveryDate) - new Date(a.deliveryDate));
+    }
+
+    return filtered;
+  };
+
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
+
+  const filteredOrders = getFilteredAndSortedOrders();
 
   return (
     <div className="order-container">
       <div className="order-header">
-        <button onClick={selectAllOrders} className="action-btn">
-          {selectedOrders.length === orders.length ? "Bỏ chọn tất cả" : "Chọn tất cả"}
-        </button>
-        <button onClick={deleteSelectedOrders} className="action-btn delete-all">
-          Xóa
-        </button>
+        <div>
+          <button onClick={selectAllOrders} className="action-btn">
+            {selectedOrders.length === orders?.length ? "Bỏ chọn tất cả" : "Chọn tất cả"}
+          </button>
+          <button onClick={deleteSelectedOrders} className="action-btn delete-all">
+            Xóa
+          </button>
+        </div>
+        <div className="sort-search">
+          <select onChange={(e) => handleSort(e.target.value)} className="sort-dropdown">
+            <option value="date">Ngày đặt hàng</option>
+            <option value="total">Tổng tiền</option>
+          </select>
+          <div className="looking-container">
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo SĐT"
+              value={searchQuery}
+              onChange={handleSearch}
+              className="looking-input"
+            />
+            {/* <div className="looking-icon">
+              <i className="fa fa-search"></i>
+            </div> */}
+          </div>
+        </div>
       </div>
+
       <table className="order-table">
         <thead>
           <tr>
-            <th>
-              
-            </th>
+            <th></th>
             <th>Mã đơn hàng</th>
-            <th>SĐT khách hàng</th>
+            <th>Khách hàng</th>
+            <th>SĐT</th>
             <th>Ngày đặt hàng</th>
+            <th>Phương thức thanh toán</th>
             <th>Tổng tiền</th>
-            <th>Trạng thái</th>
+            <th>Trạng thái đơn hàng</th>
             <th>Thanh toán</th>
             <th>Tùy chọn</th>
           </tr>
         </thead>
         <tbody>
-          {orders.map((order) => (
-            <tr key={order.id}>
+          {filteredOrders.map((order) => (
+            <tr key={order._id}>
               <td>
                 <input
                   type="checkbox"
-                  checked={selectedOrders.includes(order.id)}
-                  onChange={() => toggleSelectOrder(order.id)}
+                  checked={selectedOrders.includes(order._id)}
+                  onChange={() => toggleSelectOrder(order._id)}
                 />
               </td>
-              <td>{order.id}</td>
-              <td>{order.phone}</td>
-              <td>{order.date}</td>
-              <td>{order.total.toLocaleString("vi-VN")}</td>
+              <td>{order._id.slice(-6)}</td>
+              <td>{order.userInfo.name}</td>
+              <td>{order.userInfo.phone}</td>
+              <td>{formatDate(order.createdAt)}</td>
+              <td>{order.paymentDetails.method}</td>
+              <td>{(order.total + order.shippingFee).toLocaleString("vi-VN")}đ</td>
               <td>
                 <span
-                  className={`status-badge ${order.status === "Chờ xác nhận" ? "pending" : "confirmed"}`}
-                  onClick={(event) => handleStatusClick(event, order.id)}
+                  className={`status-badge ${order.orderStatus}`}
+                  onClick={(event) => handleStatusClick(event, order._id)}
                 >
-                  {order.status}
+                  {order.orderStatus}
                 </span>
               </td>
               <td>
-                <span
-                  className={`status-badge ${order.payment === "Đã thanh toán" ? "paid" : "unpaid"}`}
-                >
-                  {order.payment}
+                <span className={`status-badge ${order.paymentDetails.status}`}>
+                  {order.paymentDetails.status}
                 </span>
               </td>
               <td className="action-column">
-                <EditIcon className="icon-btn edit-btn" />
-                <DeleteIcon className="icon-btn delete-btn" />
+                <EditIcon className="icon-btn edit-btn"
+                onClick={() => handleEditClick(order)} />
+                <DeleteIcon 
+                  className="icon-btn delete-btn" 
+                  onClick={() => dispatch(deleteOrder(order._id))}
+                />
               </td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      {/* Menu thay đổi trạng thái */}
-      <Menu
-        anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
+      <Menu 
+        anchorEl={menuAnchor} 
+        open={Boolean(menuAnchor)} 
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={() => changeStatus("Chờ xác nhận")}>Chờ xác nhận</MenuItem>
-        <MenuItem onClick={() => changeStatus("Đã xác nhận")}>Đã xác nhận</MenuItem>
+        <MenuItem onClick={() => changeStatus("processing")}>processing</MenuItem>
+        <MenuItem onClick={() => changeStatus("confirmed")}>confirmed</MenuItem>
+        <MenuItem onClick={() => changeStatus("refused")}>refused</MenuItem>
       </Menu>
+      <ModalUpdateOrder
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        order={selectedOrder}
+        onUpdate={(id, orderData) => dispatch(updateOrder({ id, orderData }))}
+/>
     </div>
   );
 };

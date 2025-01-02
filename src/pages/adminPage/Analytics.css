@@ -1,76 +1,114 @@
-/* Analytics.css */
-
 .analytics-container {
+    font-family: 'Montserrat', sans-serif;
     color: #ffffff;
-    background-color: #0f1421;
+    background-color: #151A27;
     padding: 20px;
-    font-family: Arial, sans-serif;
-}
-
-.analytics-container h2 {
+    margin-left: -60px;
+    margin-top:10px;
+  }
+  
+  .header {
+    margin-bottom: 20px;
+  }
+  
+  .header h1 {
     font-size: 24px;
-    color: #C8FFF6;
-}
-
-.analytics-container p {
-    font-size: 14px;
-    color: #AAAAAA;
-}
-
-.stats-section {
+    margin: 0;
+  }
+  
+  .header p {
+    color: #b3b3b3;
+    margin: 5px 0 20px;
+  }
+  
+  .cards {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 20px;
-}
-
-.stat-card {
-    background-color: #1b2434;
-    border: 1px solid #759AF9;
-    border-radius: 10px;
-    padding: 20px;
-    width: 30%;
-    text-align: center;
-}
-
-.stat-card h3 {
-    font-size: 16px;
-    color: #C8FFF6;
-    margin-bottom: 10px;
-}
-
-.stat-card p {
-    font-size: 24px;
-    font-weight: bold;
-    color: #ffffff;
-}
-
-.stat-card small {
-    font-size: 12px;
-    color: #4CAF50;
-}
-
-.charts-section {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
-}
-
-.chart-card {
-    background-color: #1b2434;
-    border: 1px solid #759AF9;
-    border-radius: 10px;
+  }
+  
+  .card {
+    background-color: #131720;
+    border-radius: 8px;
     padding: 20px;
-}
-
-.chart-card h3 {
-    font-size: 16px;
-    color: #C8FFF6;
-    margin-bottom: 15px;
     text-align: center;
-}
-
-.chart-card p {
-    text-align: center;
+    flex: 1;
+  }
+  
+  .card h2 {
+    font-size: 24px;
+    margin: 0 0 10px;
+  }
+  
+  .card span {
+    display: block;
+    font-size: 14px;
+    color: #a1a1a1;
+    margin-top: 5px;
+  }
+  
+  .card .stat-change {
+    color: #4caf50;
+  }
+  
+  .card .stat-change.negative {
+    color: #f44336;
+  }
+  
+  .revenue-section,
+  .earnings-section {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  
+  .revenue-chart,
+  .earnings {
+    flex: 1;
+    background-color: #131720;
+    border-radius: 8px;
+    padding: 20px;
+  }
+  
+  .chart {
+    position: relative;
+  }
+  
+  .chart span {
+    display: block;
     font-size: 12px;
-    color: #AAAAAA;
-}
+    color: #a1a1a1;
+    margin-top: 5px;
+  }
+  
+  .products-table {
+    margin-top: 20px;
+    background-color: #131720;
+    border-radius: 8px;
+    padding: 20px;
+  }
+  
+  .products-table table {
+    width: 100%;
+    border-spacing: 0;
+  }
+  
+  .products-table th,
+  .products-table td {
+    text-align: left;
+    padding: 10px;
+    color: #ffffff;
+  }
+  
+  .products-table th {
+    background-color: #131720;
+  }
+  
+  .products-table tr:nth-child(even) {
+    background-color: #131720;
+  }
+  
+  .products-table tr:hover {
+    background-color: #131720;
+  }

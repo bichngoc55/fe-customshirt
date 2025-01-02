@@ -10,6 +10,7 @@ import CenterFocusWeakIcon from "@mui/icons-material/CenterFocusWeak";
 import { useSelector } from "react-redux";
 import { Backdrop, CircularProgress } from "@mui/material";
 import SearchResultModal from "../../components/imageSearchResultModal/ImageSearchResultModal";
+import DevAdsense from "../../components/GoogleAd/GoogleAd";
 
 const CollectionPage = () => {
   const [price, setPrice] = useState(0);
@@ -463,6 +464,7 @@ const CollectionPage = () => {
               </div>
             </>
           )}
+          <DevAdsense/>
           {isOpenModal && (
             <ModalAddProduct
               isModalOpen={isOpenModal}

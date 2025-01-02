@@ -24,6 +24,10 @@ import cloud13Img from "../../assets/images/cloud-new10.png";
 import { useNavigate } from "react-router-dom";
 import FeedbackSection from "../../components/feedbackSection";
 import axios from "axios";
+import GoogleAd from "../../components/GoogleAd/GoogleAd";
+import AdSense from "../../components/GoogleAd/GoogleAd";
+import DevAdsense from "../../components/GoogleAd/GoogleAd";
+import AdComponent from "../../components/AdsHorizontal/adsHorizontal";
 
 const features = [
   {
@@ -339,6 +343,7 @@ const LandingPage = () => {
           className="moon-img"
         />
       </div>
+      <meta name="google-adsense-account" content="ca-pub-8031141340234257"></meta>
       <header ref={addToRefs} className="hero section-hidden">
         <div className="cloud-container">
           <img src={cloud2Img} alt="cloud" className="cloud cloud-2" />
@@ -445,6 +450,9 @@ const LandingPage = () => {
         </div>
         <img src={cloud13Img} alt="cloud" className="cloud cloud-13" />
       </section>
+      {/* <div>
+      <AdComponent />
+      </div> */}
       {/* about us section */}
       <section ref={addToRefs} className="about-us section-hidden">
         <h2>ABOUT US</h2>
@@ -579,8 +587,16 @@ const LandingPage = () => {
             className="star-img"
           />
         </div>
-      </section>
+      </section> 
+      <div>
+      {/* <AdSense /> */}
+      <DevAdsense />
 
+      </div>
+
+      {/* <script>
+          {(adsbygoogle = window.adsbygoogle || []).push({})}
+      </script> */}
       <footer ref={addToRefs} className="section-hidden">
         <div className="footer-content2">
           <h2>ENJOY YOUR EXPERIENCE WITH OUR WEBSITE</h2>

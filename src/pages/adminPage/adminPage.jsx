@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import User from "./User";
 import Order from "./Order";
 import Voucher from "./Voucher";
+import "./adminPage.css"
 import { Box } from "@mui/material";
 import Message from "./Message";
 import Analytics from "./Analytics";

@@ -3,164 +3,98 @@
     border-radius: 10px;
     padding: 10px;
     width: 100%;
-    max-width: 900px;
     margin-top: 30px;
     border: 1px solid #759AF9;
-    overflow: hidden;
     margin-bottom: 30px;
-}
-
-.user-table-container {
-    display: flex;
-    justify-content: center;
-    margin: 0 auto;
-    padding: 20px 0;
+    overflow: auto; /* Cho phép cuộn ngang và dọc */
+    max-height: 500px; /* Chiều cao tối đa để kích hoạt cuộn dọc */
 }
 
 .user-table table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 800px; /* Đảm bảo kích thước bảng tối thiểu để cuộn ngang */
 }
 
-.user-table thead, .user-table tbody {
-    display: block;
-}
-
-.user-table thead {
-    width: 100%;
-}
-
-.user-table tbody {
-    max-height: 450px; /* Adjust this to control the scrollable area */
-    overflow-y: auto;
-    display: block;
-    width: 100%;
-}
-
-.user-table th, .user-table td {
+.user-table th,
+.user-table td {
     color: #fff;
     text-align: center;
     padding: 10px 20px;
-    width: calc(25% - 1px); /* Fixed width for column alignment */
     box-sizing: border-box;
+    white-space: nowrap; /* Ngăn ngắt dòng để kích hoạt cuộn ngang */
 }
-
-.user-table thead tr {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
-}
-
-.user-table tbody tr {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
-}
-
-.account-status {
+  
+  .account-status {
     display: inline-block;
     padding: 5px 20px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: bold;
-}
-
-.status-active {
+  }
+  
+  .status-active {
     background-color: #2EBB77;
     color: white;
-}
-
-.status-down {
+  }
+  
+  .status-down {
     background-color: #FF4949;
     color: white;
-}
-
-.user-details {
+  }
+  
+  .user-details {
     display: flex;
     align-items: center;
-}
-
-.user-avatar {
+    gap: 10px;
+  }
+  
+  .user-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     background-color: #7c7c8a;
-    margin-right: 20px;
-}
-
-.action-btn-more {
+  }
+  
+  .action-btn-more {
     position: relative;
     cursor: pointer;
-}
-
-.dropdown-menu {
+  }
+  
+  .dropdown-menu {
     display: none;
     position: absolute;
     top: 20px;
-    right:-20px;
+    right: -20px;
     background-color: #2d2d3e;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     z-index: 1;
-}
-
-.dropdown-menu.active {
+  }
+  
+  .dropdown-menu.active {
     display: block;
-}
-
-.dropdown-item {
+  }
+  
+  .dropdown-item {
     padding: 10px 20px;
     color: white;
     font-size: 14px;
     cursor: pointer;
     text-align: left;
-    background-color: #2d2d3e;
-}
-
-.dropdown-item.chat:hover {
+  }
+  
+  .dropdown-item.chat:hover {
     background-color: #2EBB77;
-}
-
-.dropdown-item.report:hover {
+  }
+  
+  .dropdown-item.report:hover {
     background-color: #FF4949;
-}
-
-.view-more {
-    text-align: center;
-    margin-top: 30px;
-}
-
-.view-more button {
-    background-color: #C8FFF6;
-    color: black;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 15px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 15px;
-    margin-bottom: 20px;
-}
-
-.view-more button:hover {
-    background-color: #2EBB77;
-}
-
-@media (max-width: 768px) {
-    .user-table th,
-    .user-table td {
-        padding: 8px 10px;
-        font-size: 12px;
+  }
+  
+  @media (max-width: 768px) {
+    .user-table table {
+      font-size: 12px;
     }
-
-    .user-avatar {
-        width: 30px;
-        height: 30px;
-        margin-right: 10px;
-    }
-
-    .view-more button {
-        padding: 8px 15px;
-        font-size: 13px;
-    }
-}
+  }
+  

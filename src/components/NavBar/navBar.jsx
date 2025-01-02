@@ -54,6 +54,7 @@ export const NavBar = () => {
 
   useEffect(() => {
     setIsAdmin(user?.role === "admin");
+    
   }, [user]);
 
   const toggleMenu = () => {
@@ -105,6 +106,7 @@ export const NavBar = () => {
     { text: "Voucher", path: "/admin/voucher" },
     { text: "Settings", path: "/admin/settings" },
   ];
+  // console.log("user ", user )
   return (
     <>
       <div className="container">
@@ -160,7 +162,8 @@ export const NavBar = () => {
                 onClick={handleNavigateToMessage}
               />
             </Badge>
-            <Avatar src={user?.avaURL} alt="" />
+            <Avatar src={user?.
+avaURL}  alt="" />
             <div className="user" onClick={handleClick}>
               {user?.username}
             </div>

@@ -3,9 +3,9 @@
     background-color: #131720;
     border-radius: 10px;
     width: 100%;
-    max-width: 550px; /* Reduced width slightly */
+    max-width: 550px; 
     margin: 20px auto;
-    padding: 25px 15px; /* Adjusted padding */
+    padding: 25px 15px;
     border: 1px solid #759AF9;
     color: white;
     margin-left: 120px;
@@ -30,16 +30,32 @@
     margin-bottom: 20px;
 }
 
-.avatar {
+.avatar-container {
+    position: relative;
     width: 80px;
     height: 80px;
-    border-radius: 50%;
-    background-color: #ffffff;
+    margin: 0 auto;
+  }
+  
+  .camera-icon {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.7);
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+    border-radius: 50%;
+  }
+  
+  .camera-icon.show {
+    opacity: 1;
+  }
 .profile-picture p {
     color: white; /* Changed text color */
     font-size: 12px;
