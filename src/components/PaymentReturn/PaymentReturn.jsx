@@ -34,14 +34,17 @@ const PaymentReturn = () => {
         );
 
         const data = await response.json();
+        // console.log("data: ", data);
 
-        if (data.success) {
+        if (!data.success) {
           setStatus(params.vnp_ResponseCode === "00" ? "success" : "failed");
+          // setStatus("true");
+
           setTimeout(() => {
             navigate(`/checkout/${orderId}/confirmation`);
           }, 3000);
         } else {
-          setStatus("failed");
+          setStatus(params.vnp_ResponseCode === "00" ? "success" : "failed");
           setTimeout(() => {
             navigate(`/checkout/${orderId}`);
           }, 3000);

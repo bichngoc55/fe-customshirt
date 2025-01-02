@@ -19,6 +19,8 @@ import {
   Alert,
   Modal,
   Switch,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 import "./designPage.css";
 import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
@@ -45,26 +47,6 @@ import { useSelector } from "react-redux";
 
 const generator = rough.generator();
 
-const createElement = (id, x1, y1, x2, y2, type) => {
-  switch (type) {
-    case "line":
-    case "rectangle":
-      const roughElement =
-        type === "line"
-          ? generator.line(x1, y1, x2, y2)
-          : generator.rectangle(x1, y1, x2 - x1, y2 - y1);
-      return { id, x1, y1, x2, y2, type, roughElement };
-    case "pencil":
-      return { id, type, points: [{ x: x1, y: y1 }] };
-    case "text":
-      return { id, type, x1, y1, x2, y2, text: "" };
-    case "eraser":
-      return { id, type, points: [{ x: x1, y: y1 }] };
-    default:
-      throw new Error(`Type not recognised: ${type}`);
-  }
-};
-
 const nearPoint = (x, y, x1, y1, name) => {
   return Math.abs(x - x1) < 5 && Math.abs(y - y1) < 5 ? name : null;
 };
@@ -79,29 +61,28 @@ const onLine = (x1, y1, x2, y2, x, y, maxDistance = 1) => {
 
 const positionWithinElement = (x, y, element) => {
   const { type, x1, x2, y1, y2 } = element;
+
+  const minX = Math.min(x1, x2);
+  const maxX = Math.max(x1, x2);
+  const minY = Math.min(y1, y2);
+  const maxY = Math.max(y1, y2);
+
+  const handelDistance = 10;
+
   switch (type) {
     case "line":
-      const on = onLine(x1, y1, x2, y2, x, y);
-      const start = nearPoint(x, y, x1, y1, "start");
-      const end = nearPoint(x, y, x2, y2, "end");
+      const on = onLine(x1, y1, x2, y2, x, y, 5);
+      const start = nearPoint(x, y, x1, y1, "start", handelDistance);
+      const end = nearPoint(x, y, x2, y2, "end", handelDistance);
       return start || end || on;
-    case "image":
     case "rectangle":
-      const topLeft = nearPoint(x, y, x1, y1, "tl");
-      const topRight = nearPoint(x, y, x2, y1, "tr");
-      const bottomLeft = nearPoint(x, y, x1, y2, "bl");
-      const bottomRight = nearPoint(x, y, x2, y2, "br");
-      const inside = x >= x1 && x <= x2 && y >= y1 && y <= y2 ? "inside" : null;
+      const topLeft = nearPoint(x, y, minX, minY, "tl", handelDistance);
+      const topRight = nearPoint(x, y, maxX, minY, "tr", handelDistance);
+      const bottomLeft = nearPoint(x, y, minX, maxY, "bl", handelDistance);
+      const bottomRight = nearPoint(x, y, maxX, maxY, "br", handelDistance);
+      const inside =
+        x >= minX && x <= maxX && y >= minY && y <= maxY ? "inside" : null;
       return topLeft || topRight || bottomLeft || bottomRight || inside;
-    // case "pencil":
-    //   const betweenAnyPoint = element.points.some((point, index) => {
-    //     const nextPoint = element.points[index + 1];
-    //     if (!nextPoint) return false;
-    //     return (
-    //       onLine(point.x, point.y, nextPoint.x, nextPoint.y, x, y, 5) != null
-    //     );
-    //   });
-    //   return betweenAnyPoint ? "inside" : null;
     case "pencil":
       const betweenAnyPoint = element.points.some((point, index) => {
         const nextPoint = element.points[index + 1];
@@ -112,25 +93,47 @@ const positionWithinElement = (x, y, element) => {
       });
       return betweenAnyPoint ? "inside" : null;
     case "text":
-      return x >= x1 && x <= x2 && y >= y1 && y <= y2 ? "inside" : null;
-    case "eraser":
-      const betweenEraserPoints = element.points.some((point, index) => {
-        const nextPoint = element.points[index + 1];
-        if (!nextPoint) return false;
-        return (
-          onLine(point.x, point.y, nextPoint.x, nextPoint.y, x, y, 10) != null
-        );
-      });
-      return betweenEraserPoints ? "inside" : null;
+    case "image":
+      // For text and images, check if point is inside or near corners
+      const withinBounds = x >= minX && x <= maxX && y >= minY && y <= maxY;
+      if (withinBounds) {
+        // Check corners first
+        const corner =
+          nearPoint(x, y, minX, minY, "tl", handelDistance) ||
+          nearPoint(x, y, maxX, minY, "tr", handelDistance) ||
+          nearPoint(x, y, minX, maxY, "bl", handelDistance) ||
+          nearPoint(x, y, maxX, maxY, "br", handelDistance);
+        return corner || "inside";
+      }
+      return null;
     default:
-      throw new Error(`Type not recognised: ${type}`);
+      return null;
   }
 };
+
 const distance = (a, b) =>
   Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
 
 const getElementAtPosition = (x, y, elements) => {
-  return elements
+  const adjustedElements = elements.map((element) => {
+    if (element.type === "text" || element.type === "image") {
+      // For text and images, use their actual dimensions
+      return {
+        ...element,
+        x1: element.x1,
+        y1: element.y1,
+        x2: element.x2,
+        y2: element.y2,
+      };
+    } else if (element.type === "line" || element.type === "rectangle") {
+      // For shapes, ensure coordinates are ordered
+      const { x1, y1, x2, y2 } = adjustElementCoordinates(element);
+      return { ...element, x1, y1, x2, y2 };
+    }
+    return element;
+  });
+
+  return adjustedElements
     .map((element) => ({
       ...element,
       position: positionWithinElement(x, y, element),
@@ -227,46 +230,6 @@ const getSvgPathFromStroke = (stroke) => {
 
   d.push("Z");
   return d.join(" ");
-};
-const drawElement = (roughCanvas, context, element) => {
-  switch (element.type) {
-    case "line":
-    case "rectangle":
-      roughCanvas.draw(element.roughElement);
-      break;
-    case "pencil":
-      const stroke = getSvgPathFromStroke(getStroke(element.points));
-      context.fill(new Path2D(stroke));
-      break;
-    case "text":
-      context.textBaseline = "top";
-      context.font = "24px sans-serif";
-      context.fillText(element.text, element.x1, element.y1);
-      break;
-    case "eraser":
-      context.globalCompositeOperation = "destination-out";
-      const eraserStroke = getSvgPathFromStroke(
-        getStroke(element.points, {
-          size: 10,
-          thinning: 0.5,
-          smoothing: 0.5,
-        })
-      );
-      context.fill(new Path2D(eraserStroke));
-      context.globalCompositeOperation = "source-over";
-      break;
-    case "image":
-      context.drawImage(
-        element.image,
-        element.x1,
-        element.y1,
-        element.x2 - element.x1,
-        element.y2 - element.y1
-      );
-      break;
-    default:
-      throw new Error(`Type not recognised: ${element.type}`);
-  }
 };
 
 // const adjustmentRequired = (type) => ["line", "rectangle"].includes(type);
@@ -367,7 +330,13 @@ const DesignPage = () => {
   const colors = ["white", "black"];
   const [drawingTool, setDrawingTool] = useState("pencil");
   const [selectedColors, setSelectedColors] = useState("white");
-  // const canvasInitializedRef = useRef(false);
+  const [strokeColor, setStrokeColor] = useState("#000000");
+  const [fontSize, setFontSize] = useState("24px");
+  const [strokeWidth, setStrokeWidth] = useState(2);
+  const [eraserSize, setEraserSize] = useState(20);
+  const lineWidthOptions = [1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 20];
+  const eraserSizeOptions = [10, 20, 30, 40, 50, 60];
+  const [fontFamily, setFontFamily] = useState("Arial");
   const [hoveredSticker, setHoveredSticker] = useState(null);
   const { user } = useSelector((state) => state.auths);
   const [canvasBounds, setCanvasBounds] = useState({
@@ -379,6 +348,152 @@ const DesignPage = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
+  const drawElement = (roughCanvas, context, element) => {
+    switch (element.type) {
+      case "line":
+      case "rectangle":
+        context.strokeStyle = element.strokeColor || strokeColor;
+        // Set line width for rough.js elements
+        if (element.strokeWidth) {
+          roughCanvas.generator.defaultOptions.strokeWidth =
+            element.strokeWidth;
+        }
+        roughCanvas.draw(element.roughElement);
+        // Reset to default
+        roughCanvas.generator.defaultOptions.strokeWidth = 1;
+        break;
+      case "pencil":
+        context.beginPath();
+        context.strokeStyle = element.strokeColor || strokeColor;
+        context.fillStyle = element.strokeColor || strokeColor;
+        context.lineWidth = element.strokeWidth || strokeWidth;
+        const stroke = getSvgPathFromStroke(
+          getStroke(element.points, {
+            size: element.strokeWidth || strokeWidth,
+            thinning: 0.5,
+            smoothing: 0.5,
+            streamline: 0.5,
+          })
+        );
+        context.fill(new Path2D(stroke));
+        break;
+      case "text":
+        context.textBaseline = "top";
+        context.font = `${element.fontSize || fontSize} ${
+          element.fontFamily || fontFamily
+        }`;
+        context.fillStyle = element.strokeColor || strokeColor;
+        context.fillText(element.text, element.x1, element.y1);
+        break;
+      case "eraser":
+        context.globalCompositeOperation = "destination-out";
+        context.beginPath();
+        const eraserStroke = getSvgPathFromStroke(
+          getStroke(element.points, {
+            size: element.eraserSize || eraserSize,
+            thinning: 0,
+            smoothing: 0.5,
+            streamline: 0.5,
+          })
+        );
+        context.fill(new Path2D(eraserStroke));
+        context.globalCompositeOperation = "source-over";
+        break;
+      case "image":
+        context.drawImage(
+          element.image,
+          element.x1,
+          element.y1,
+          element.x2 - element.x1,
+          element.y2 - element.y1
+        );
+        break;
+      default:
+        throw new Error(`Type not recognised: ${element.type}`);
+    }
+  };
+  const createElement = (id, x1, y1, x2, y2, type) => {
+    switch (type) {
+      case "line":
+      case "rectangle":
+        const roughElement =
+          type === "line"
+            ? generator.line(x1, y1, x2, y2)
+            : generator.rectangle(x1, y1, x2 - x1, y2 - y1);
+        return {
+          id,
+          x1,
+          y1,
+          x2,
+          y2,
+          type,
+          roughElement,
+          strokeColor,
+          strokeWidth,
+        };
+      case "pencil":
+        return {
+          id,
+          type,
+          points: [{ x: x1, y: y1 }],
+          strokeColor,
+          strokeWidth,
+        };
+      case "text":
+        return {
+          id,
+          type,
+          x1,
+          y1,
+          x2,
+          y2,
+          text: "",
+          strokeColor,
+          fontSize,
+          fontFamily,
+        };
+      case "eraser":
+        return {
+          id,
+          type,
+          points: [{ x: x1, y: y1 }],
+          eraserSize,
+        };
+      case "image":
+        return {
+          id,
+          type,
+          x1,
+          y1,
+          x2,
+          y2,
+          image: new Image(),
+        };
+      default:
+        throw new Error(`Type not recognised: ${type}`);
+    }
+  };
+  const fontOptions = [
+    { value: "Arial", label: "Arial" },
+    { value: "Times New Roman", label: "Times New Roman" },
+    { value: "Courier New", label: "Courier New" },
+    { value: "Georgia", label: "Georgia" },
+    { value: "Verdana", label: "Verdana" },
+    { value: "Helvetica", label: "Helvetica" },
+  ];
+
+  const fontSizeOptions = [
+    "12px",
+    "14px",
+    "16px",
+    "18px",
+    "20px",
+    "24px",
+    "28px",
+    "32px",
+    "36px",
+    "48px",
+  ];
   // copy
   const copyToClipboard = async (image) => {
     try {
@@ -453,6 +568,7 @@ const DesignPage = () => {
     { name: "eraser", icon: <AutoFixNormalIcon /> },
     { name: "rectangle", icon: <StarBorderIcon /> },
   ];
+
   const pasteImg = async (event) => {
     try {
       const clipboardItems = await navigator.clipboard.read();
@@ -468,21 +584,25 @@ const DesignPage = () => {
 
           const img = new Image();
           img.onload = () => {
-            const id = elements.length;
-            const maxWidth = canvasBounds.width * 0.5;
-            const maxHeight = canvasBounds.height * 0.5;
+            const shirtImage = document.getElementById("shirt-image");
+            const shirtRect = shirtImage.getBoundingClientRect();
+
+            const maxWidth = shirtRect.width * 0.5;
+            const maxHeight = shirtRect.height * 0.5;
             const scaleFactor = Math.min(
               maxWidth / img.width,
               maxHeight / img.height
             );
+            const x1 = (shirtRect.width - img.width * scaleFactor) / 2;
+            const y1 = (shirtRect.height - img.height * scaleFactor) / 2;
 
             const imageElement = {
-              id,
+              id: elements.length,
               type: "image",
-              x1: canvasBounds.width / 2 - (img.width * scaleFactor) / 2,
-              y1: canvasBounds.height / 2 - (img.height * scaleFactor) / 2,
-              x2: canvasBounds.width / 2 + (img.width * scaleFactor) / 2,
-              y2: canvasBounds.height / 2 + (img.height * scaleFactor) / 2,
+              x1: x1,
+              y1: y1,
+              x2: x1 + img.width * scaleFactor,
+              y2: y1 + img.height * scaleFactor,
               image: img,
               scaleFactor,
             };
@@ -490,7 +610,6 @@ const DesignPage = () => {
             setElements((prevElements) => [...prevElements, imageElement]);
           };
           img.src = `data:${imageTypes[0]};base64,${base64Image}`;
-
           break;
         }
       }
@@ -498,7 +617,6 @@ const DesignPage = () => {
       setSnackbarMessage("Failed to paste image from clipboard.");
       setSnackbarSeverity("warning");
       setOpenSnackbar(true);
-      return;
     }
   };
   const blobToBase64 = async (blob) => {
@@ -605,9 +723,9 @@ const DesignPage = () => {
                 type: "text",
                 content: element.text,
                 properties: {
-                  font: "24px sans-serif",
-                  fontSize: 24,
-                  color: "black",
+                  font: `${element.fontSize} ${element.fontFamily}`,
+                  fontSize: element.fontSize,
+                  color: element.strokeColor,
                   position: { x: element.x1, y: element.y1 },
                   width: element.x2 - element.x1,
                   height: element.y2 - element.y1,
@@ -634,7 +752,8 @@ const DesignPage = () => {
                   position: { x: element.x1, y: element.y1 },
                   width: element.x2 - element.x1,
                   height: element.y2 - element.y1,
-                  color: "black",
+                  color: element.strokeColor,
+                  strokeWidth: element.strokeWidth,
                 },
               };
             case "line":
@@ -646,7 +765,8 @@ const DesignPage = () => {
                   position: { x: element.x1, y: element.y1 },
                   width: element.x2 - element.x1,
                   height: element.y2 - element.y1,
-                  color: "black",
+                  color: element.strokeColor,
+                  strokeWidth: element.strokeWidth,
                 },
               };
             case "pencil":
@@ -656,15 +776,16 @@ const DesignPage = () => {
                 properties: {
                   shapeType: "pencil",
                   points: element.points,
-                  color: "black",
+                  color: element.strokeColor,
+                  strokeWidth: element.strokeWidth,
                 },
               };
-
             default:
               return null;
           }
         })
-        .filter((element) => element !== null); 
+        .filter((element) => element !== null);
+
       const tempCanvas = document.createElement("canvas");
       const tempContext = tempCanvas.getContext("2d");
 
@@ -687,20 +808,30 @@ const DesignPage = () => {
         .toDataURL("image/png")
         .replace("image/png", "image/octet-stream");
 
-      // console.log("================================preview: ", previewImage);
+      const blob = await (await fetch(previewImage)).blob();
+
+      const formData = new FormData();
+      formData.append("file", blob);
+      formData.append("upload_preset", "domdom");
+      formData.append("cloud_name", "dejoc5koc");
+
+      const uploadResponse = await axios.post(
+        `https://api.cloudinary.com/v1_1/dejoc5koc/image/upload`,
+        formData
+      );
 
       const designPayload = {
         name: designTitle,
         creator: user?._id,
         color: selectedColors,
-        // canvasPreview: canvasAPI,
         elements: schemaElements,
         previewImage: previewImage,
+        cloudinaryImage: uploadResponse.data.secure_url,
         price: 0,
         isNFT: false,
         mintingStatus: "not_minted",
       };
-      // console.log("================================payload: ", designPayload);
+
       const response = await axios.post(
         "http://localhost:3005/design/add",
         designPayload
@@ -791,6 +922,58 @@ const DesignPage = () => {
     }
   }, [action, selectedElement]);
 
+  // const updateElement = (id, x1, y1, x2, y2, type, options) => {
+  //   const elementsCopy = [...elements];
+
+  //   // Ensure the element exists before updating
+  //   if (!elementsCopy[id]) {
+  //     console.error(`Element with id ${id} not found`);
+  //     return;
+  //   }
+
+  //   switch (type) {
+  //     case "line":
+  //     case "rectangle":
+  //       elementsCopy[id] = createElement(id, x1, y1, x2, y2, type);
+  //       break;
+  //     case "pencil":
+  //       elementsCopy[id].points = [
+  //         ...elementsCopy[id].points,
+  //         { x: x2, y: y2 },
+  //       ];
+  //       break;
+  //     case "text":
+  //       const textWidth = document
+  //         .getElementById("canvas")
+  //         .getContext("2d")
+  //         .measureText(options.text || "").width;
+  //       const textHeight = 24;
+  //       elementsCopy[id] = {
+  //         ...createElement(id, x1, y1, x1 + textWidth, y1 + textHeight, type),
+  //         text: options.text || elementsCopy[id].text || "",
+  //       };
+  //       break;
+  //     case "eraser":
+  //       elementsCopy[id].points = [
+  //         ...elementsCopy[id].points,
+  //         { x: x2, y: y2 },
+  //       ];
+  //       break;
+  //     case "image":
+  //       elementsCopy[id] = {
+  //         ...elementsCopy[id],
+  //         x1,
+  //         y1,
+  //         x2,
+  //         y2,
+  //       };
+  //       break;
+  //     default:
+  //       throw new Error(`Type not recognised: ${type}`);
+  //   }
+
+  //   setElements(elementsCopy, true);
+  // };
   const updateElement = (id, x1, y1, x2, y2, type, options) => {
     const elementsCopy = [...elements];
 
@@ -806,6 +989,10 @@ const DesignPage = () => {
         elementsCopy[id] = createElement(id, x1, y1, x2, y2, type);
         break;
       case "pencil":
+        // Initialize points array if it doesn't exist
+        if (!elementsCopy[id].points) {
+          elementsCopy[id].points = [];
+        }
         elementsCopy[id].points = [
           ...elementsCopy[id].points,
           { x: x2, y: y2 },
@@ -815,14 +1002,18 @@ const DesignPage = () => {
         const textWidth = document
           .getElementById("canvas")
           .getContext("2d")
-          .measureText(options.text || "").width;
+          .measureText(options?.text || "").width;
         const textHeight = 24;
         elementsCopy[id] = {
           ...createElement(id, x1, y1, x1 + textWidth, y1 + textHeight, type),
-          text: options.text || elementsCopy[id].text || "",
+          text: options?.text || elementsCopy[id].text || "",
         };
         break;
       case "eraser":
+        // Initialize points array if it doesn't exist
+        if (!elementsCopy[id].points) {
+          elementsCopy[id].points = [];
+        }
         elementsCopy[id].points = [
           ...elementsCopy[id].points,
           { x: x2, y: y2 },
@@ -856,44 +1047,17 @@ const DesignPage = () => {
     if (action === "writing") return;
 
     const { clientX, clientY } = getMouseCoordinates(event);
-    // if (!isWithinCanvasBounds(clientX, clientY)) return;
 
     if (event.button === 1 || pressedKeys.has(" ")) {
       setAction("panning");
       setStartPanMousePosition({ x: clientX, y: clientY });
       return;
     }
-    if (tool === "eraser") {
-      const id = elements.length;
-      const element = createElement(
-        id,
-        clientX,
-        clientY,
-        clientX,
-        clientY,
-        "eraser"
-      );
-      setElements((prevState) => [...prevState, element]);
-      setSelectedElement(element);
-      setAction("drawing");
-      return;
-    }
+
     if (tool === "selection") {
       const element = getElementAtPosition(clientX, clientY, elements);
       if (element) {
-        if (element.type === "image") {
-          console.log("Image selected: 1", element);
-
-          const offsetX = clientX - element.x1;
-          const offsetY = clientY - element.y1;
-
-          setSelectedElement({
-            ...element,
-            offsetX,
-            offsetY,
-          });
-          console.log("Image selected: 2", element);
-        } else if (element.type === "pencil") {
+        if (element.type === "pencil" || element.type === "eraser") {
           const xOffsets = element.points.map((point) => clientX - point.x);
           const yOffsets = element.points.map((point) => clientY - point.y);
           setSelectedElement({ ...element, xOffsets, yOffsets });
@@ -902,7 +1066,6 @@ const DesignPage = () => {
           const offsetY = clientY - element.y1;
           setSelectedElement({ ...element, offsetX, offsetY });
         }
-        setElements((prevState) => prevState);
 
         if (element.position === "inside") {
           setAction("moving");
@@ -920,14 +1083,17 @@ const DesignPage = () => {
         clientY,
         tool
       );
+
+      // Initialize points array for pencil and eraser
+      if (tool === "pencil" || tool === "eraser") {
+        element.points = [{ x: clientX, y: clientY }];
+      }
+
       setElements((prevState) => [...prevState, element]);
       setSelectedElement(element);
-      console.log("co chay vao day ko 1", element);
-
       setAction(tool === "text" ? "writing" : "drawing");
     }
   };
-
   const handleMouseMove = (event) => {
     const { clientX, clientY } = getMouseCoordinates(event);
 
@@ -938,13 +1104,10 @@ const DesignPage = () => {
         x: panOffset.x + deltaX,
         y: panOffset.y + deltaY,
       });
+      setStartPanMousePosition({ x: clientX, y: clientY });
       return;
     }
-    if (action === "drawing" && tool === "eraser") {
-      const index = elements.length - 1;
-      const { x1, y1 } = elements[index];
-      updateElement(index, x1, y1, clientX, clientY, tool);
-    }
+
     if (tool === "selection") {
       const element = getElementAtPosition(clientX, clientY, elements);
       event.target.style.cursor = element
@@ -954,10 +1117,28 @@ const DesignPage = () => {
 
     if (action === "drawing") {
       const index = elements.length - 1;
-      const { x1, y1 } = elements[index];
-      updateElement(index, x1, y1, clientX, clientY, tool);
+      const element = elements[index];
+
+      if (element.type === "pencil" || element.type === "eraser") {
+        // For pencil and eraser, add new point to the points array
+        const newPoint = { x: clientX, y: clientY };
+        const elementsCopy = [...elements];
+        elementsCopy[index] = {
+          ...element,
+          points: [...element.points, newPoint],
+        };
+        setElements(elementsCopy, true);
+      } else {
+        // For other tools, update coordinates
+        const { x1, y1 } = element;
+        updateElement(index, x1, y1, clientX, clientY, tool);
+      }
     } else if (action === "moving") {
-      if (selectedElement.type === "pencil") {
+      if (
+        selectedElement.type === "pencil" ||
+        selectedElement.type === "eraser"
+      ) {
+        // Move all points for pencil/eraser
         const newPoints = selectedElement.points.map((_, index) => ({
           x: clientX - selectedElement.xOffsets[index],
           y: clientY - selectedElement.yOffsets[index],
@@ -969,6 +1150,7 @@ const DesignPage = () => {
         };
         setElements(elementsCopy, true);
       } else {
+        // Move other elements
         const { id, x1, x2, y1, y2, type, offsetX, offsetY } = selectedElement;
         const width = x2 - x1;
         const height = y2 - y1;
@@ -996,9 +1178,9 @@ const DesignPage = () => {
       updateElement(id, x1, y1, x2, y2, type);
     }
   };
-
   const handleMouseUp = (event) => {
     const { clientX, clientY } = getMouseCoordinates(event);
+
     if (selectedElement) {
       if (
         selectedElement.type === "text" &&
@@ -1011,6 +1193,8 @@ const DesignPage = () => {
 
       const index = selectedElement.id;
       const { id, type } = elements[index];
+
+      // Only adjust coordinates for elements that need it
       if (
         (action === "drawing" || action === "resizing") &&
         adjustmentRequired(type)
@@ -1023,9 +1207,40 @@ const DesignPage = () => {
     if (action === "writing") return;
 
     setAction("none");
-    // cant resize image
-    // setSelectedElement(null);
+    if (tool === "selection") {
+      setSelectedElement(null);
+    }
   };
+
+  // const handleMouseUp = (event) => {
+  //   const { clientX, clientY } = getMouseCoordinates(event);
+  //   if (selectedElement) {
+  //     if (
+  //       selectedElement.type === "text" &&
+  //       clientX - selectedElement.offsetX === selectedElement.x1 &&
+  //       clientY - selectedElement.offsetY === selectedElement.y1
+  //     ) {
+  //       setAction("writing");
+  //       return;
+  //     }
+
+  //     const index = selectedElement.id;
+  //     const { id, type } = elements[index];
+  //     if (
+  //       (action === "drawing" || action === "resizing") &&
+  //       adjustmentRequired(type)
+  //     ) {
+  //       const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[index]);
+  //       updateElement(id, x1, y1, x2, y2, type);
+  //     }
+  //   }
+
+  //   if (action === "writing") return;
+
+  //   setAction("none");
+  //   // cant resize image
+  //   // setSelectedElement(null);
+  // };
 
   const handleBlur = (event) => {
     const { id, x1, y1, type } = selectedElement;
@@ -1074,15 +1289,89 @@ const DesignPage = () => {
       document.removeEventListener("keydown", deleteHandler);
     };
   }, [elements, selectedElement, canvasBounds, action]);
+  const StyleControls = () => {
+    return (
+      <Box
+        sx={{ display: "flex", alignItems: "center", g: 2, marginLeft: "20px" }}
+      >
+        <input
+          type="color"
+          value={strokeColor}
+          onChange={(e) => setStrokeColor(e.target.value)}
+          style={{ width: 20, height: 20 }}
+        />
 
+        <StyledSelect
+          value={fontFamily}
+          onChange={(e) => setFontFamily(e.target.value)}
+          sx={{ minWidth: 120, marginLeft: "20px" }}
+        >
+          {fontOptions.map((font) => (
+            <MenuItem key={font.value} value={font.value}>
+              {font.label}
+            </MenuItem>
+          ))}
+        </StyledSelect>
+
+        <StyledSelect
+          value={fontSize}
+          onChange={(e) => setFontSize(e.target.value)}
+          sx={{ minWidth: 80, marginLeft: "20px" }}
+        >
+          {fontSizeOptions.map((size) => (
+            <MenuItem key={size} value={size}>
+              {size}
+            </MenuItem>
+          ))}
+        </StyledSelect>
+        {(tool === "line" || tool === "rectangle" || tool === "pencil") && (
+          <FormControl sx={{ minWidth: 120, marginLeft: "20px" }}>
+            <InputLabel sx={{ color: "white" }}>Line Width</InputLabel>
+            <StyledSelect
+              value={strokeWidth}
+              onChange={(e) => setStrokeWidth(e.target.value)}
+            >
+              {lineWidthOptions.map((width) => (
+                <MenuItem key={width} value={width}>
+                  {width}px
+                </MenuItem>
+              ))}
+            </StyledSelect>
+          </FormControl>
+        )}
+
+        {/* Eraser Size Control - Only show when eraser is selected */}
+        {tool === "eraser" && (
+          <FormControl sx={{ minWidth: 120, marginLeft: "20px" }}>
+            <InputLabel sx={{ color: "white", marginLeft: "20px" }}>
+              Eraser Size
+            </InputLabel>
+            <StyledSelect
+              value={eraserSize}
+              onChange={(e) => setEraserSize(e.target.value)}
+            >
+              {eraserSizeOptions.map((size) => (
+                <MenuItem key={size} value={size}>
+                  {size}px
+                </MenuItem>
+              ))}
+            </StyledSelect>
+          </FormControl>
+        )}
+      </Box>
+    );
+  };
   return (
     <Box className="design-page">
+      <StyleControls />
+      {/* <WidthControls /> */}
+
       <Box className="upper-part">
         <IconButton className="back-button">
           <ArrowBackOutlinedIcon sx={{ color: "white" }} />
         </IconButton>
         <div className="bar">
-          <div className="zoom-controls">
+          <div style={{ display: "flex", flexDirection: "row" }}>
             <IconButton className="zoom-out">
               <ZoomOutOutlinedIcon sx={{ color: "white" }} />
             </IconButton>
@@ -1090,6 +1379,7 @@ const DesignPage = () => {
               <ZoomInOutlinedIcon sx={{ color: "white" }} />
             </IconButton>
           </div>
+
           <input
             type="text"
             className="design-title"
@@ -1304,7 +1594,6 @@ const DesignPage = () => {
                 pointerEvents: "auto",
                 zIndex: 10,
               }}
-              
             >
               Canvas
             </canvas>

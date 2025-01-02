@@ -31,8 +31,8 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
     padding: "0 0px",
   },
 }));
-export const NavBar = ({ user }) => {
-  const { token } = useSelector((state) => state.auths);
+export const NavBar = () => {
+  const { user, token } = useSelector((state) => state.auths);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -95,7 +95,7 @@ export const NavBar = ({ user }) => {
     { text: "Profile", path: `/${user?._id}/profile` },
     { text: "My Design", path: `/${user?._id}/profile/design` },
     { text: "My Order", path: `/${user?._id}/profile/order` },
-    { text: "NFT Collections", path: `/${user?._id}/profile/collection` },
+    // { text: "NFT Collections", path: `/${user?._id}/profile/collection` },
   ];
   const dropdownAdminItems = [
     { text: "Dashboard", path: "/admin" },
