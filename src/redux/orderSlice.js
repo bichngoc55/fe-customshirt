@@ -27,6 +27,19 @@ export const fetchOrders = createAsyncThunk(
     }
   }
 );
+// Fetch all orders by id
+export const fetchOrdersDetails = createAsyncThunk(
+  "orders/fetchOrdersDetails",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API_URL}/customer/${id}`);
+      console.log("cuu toi vs: ", response.data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
 
 // Create new order
 export const createOrder = createAsyncThunk(
@@ -99,6 +112,18 @@ export const updateDeliveryStatus = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.put(`${API_URL}/delivery-status`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+export const updateOrderStatus = createAsyncThunk(
+  "orders/updateOrderStatus", 
+  async ( id, status , { rejectWithValue }) => {
+    try {
+      console.log("status", status);
+      const response = await axios.put(`${API_URL}/${id}/status`, status);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -238,6 +263,30 @@ const orderSlice = createSlice({
         state.autoRefuseStatus = "failed";
         state.error =
           action.payload?.message || "Failed to auto-refuse unconfirmed orders";
+      })
+      // Add Fetch Orders Details
+      .addCase(fetchOrdersDetails.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchOrdersDetails.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        // const orderIndex = state.orders.findIndex(
+        //   (order) => order._id === action.payload._id
+        // );
+        // if (orderIndex !== -1) {
+        //   state.orders[orderIndex] = action.payload;
+        // } else {
+        //   state.orders.push(action.payload);
+        // }
+        console.log("action payload: ", action.payload);
+        state.orders = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchOrdersDetails.rejected, (state, action) => {
+        state.status = "failed";
+        state.error =
+          action.payload?.message || "Failed to fetch order details";
+      });
       }).addCase(updateOrderShipping.pending, (state) => {
         state.updateStatus = "loading";
       })
@@ -254,6 +303,21 @@ const orderSlice = createSlice({
       .addCase(updateOrderShipping.rejected, (state, action) => {
         state.updateStatus = "failed";
         state.error = action.payload?.message || "Failed to update shipping information";
+      })
+      .addCase(updateOrderStatus.fulfilled, (state, action) => {
+        action.payload.updatedOrders.forEach((updatedOrder) => {
+          const index = state.orders.findIndex(
+            (order) => order._id === updatedOrder._id
+          );
+          if (index !== -1) {
+            state.orders[index] = updatedOrder;
+          }
+        });
+        state.error = null;
+      })
+      .addCase(updateOrderStatus.rejected, (state, action) => {
+        state.error =
+          action.payload?.message || "Failed to update delivery status";
       })
   },
 });

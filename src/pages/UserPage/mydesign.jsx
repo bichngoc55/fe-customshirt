@@ -18,13 +18,29 @@ import {
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { useDispatch, useSelector } from "react-redux";
 import noImg from "../../assets/images/no_img.jpeg";
-import { useSDK } from "@metamask/sdk-react";
+// import { useSDK } from "@metamask/sdk-react";
 import axios from "axios";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../../redux/authSlice";
 import BtnComponent from "../../components/btnComponent/btnComponent";
+import {
+  ConnectButton,
+  useActiveAccount,
+  useSendTransaction,
+} from "thirdweb/react";
+import { createThirdwebClient, getContract } from "thirdweb";
+// import { mintTo } from "thirdweb/extensions/erc721";
+// import { lineaSepolia } from "thirdweb/chains";
+// import { useReadContract } from "thirdweb/react";
+
+// Initialize ThirdWeb client
+export const client = createThirdwebClient({
+  clientId:
+    process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID ||
+    "5a5bd55ce38291fd0a5c589c6a14cccc",
+});
 
 const StyledCardMedia = styled(CardMedia)(({ theme }) => ({
   position: "relative",
@@ -36,7 +52,11 @@ const StyledCardMedia = styled(CardMedia)(({ theme }) => ({
     },
   },
 }));
-
+// const contract = getContract({
+//   client,
+//   chain: lineaSepolia,
+//   address: "0x86F60bEb8b0d8316Ff2FaC9B4228e57D0d3096fb",
+// });
 const CardActions = styled(Box)(({ theme }) => ({
   position: "absolute",
   top: "10px",
@@ -49,8 +69,7 @@ const CardActions = styled(Box)(({ theme }) => ({
 }));
 const MyDesign = () => {
   const { user, token } = useSelector((state) => state.auths);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [account, setAccount] = useState("");
+  // const [account, setAccount] = useState("");
   const [designs, setDesigns] = useState([]);
   const navigate = useNavigate();
   const [deletingDesign, setDeletingDesign] = useState(null);
@@ -59,6 +78,14 @@ const MyDesign = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
+  //  thirdweb
+  const [isMinting, setIsMinting] = useState(false);
+
+  const account = useActiveAccount();
+  const { mutate: sendTransaction } = useSendTransaction();
+  // Initialize contract
+
+  // console.log("contrac", contract);
   useEffect(() => {
     const fetchDesign = async () => {
       if (user) {
@@ -69,16 +96,13 @@ const MyDesign = () => {
               Authorization: `Bearer ${token}`,
             },
           });
-          // console.log("hehe: ", result);
           if (result.data.success) {
             setDesigns(result.data.designs);
           } else {
-            // console.log("Failed to fetch designs");
             dispatch(logoutUser());
             navigate("/login");
           }
         } catch (error) {
-          // console.error("Error fetching designs:", error);
           dispatch(logoutUser());
           navigate("/login");
         }
@@ -87,20 +111,6 @@ const MyDesign = () => {
 
     fetchDesign();
   }, [user?._id, token]);
-
-  // const [account, setAccount] = useState<string>();
-  const { sdk, connected, connecting, provider, chainId } = useSDK();
-
-  const connect = async () => {
-    try {
-      const accounts = await sdk?.connect();
-      console.log(accounts);
-      setAccount(accounts?.[0]);
-      setIsAuthenticated(true);
-    } catch (err) {
-      console.warn("failed to connect..", err);
-    }
-  };
   const handleDelete = (design) => {
     setDeletingDesign(design);
     setShowDeleteConfirm(true);
@@ -128,31 +138,126 @@ const MyDesign = () => {
   };
 
   const handleUpdate = (design) => {
-    console.log("Design: ", design);
+    // console.log("Design: ", design);
     navigate(`/design/${design._id}`, { state: design });
   };
 
-  const mintNFT = async () => {
-    if (isAuthenticated && account) {
-      try {
-        const response = await axios.post(
-          "http://localhost:3000/api/mint-nft",
-          {
-            userAddress: account,
-            tokenURI: "https://your-metadata-url.com/metadata.json",
-          }
-        );
+  // const mintNFT = async (design) => {
+  //   try {
+  //     if (!account?.address) {
+  //       setSnackbarMessage("Please connect your wallet first");
+  //       setSnackbarSeverity("warning");
+  //       setOpenSnackbar(true);
+  //       return;
+  //     }
 
-        if (response.data.success) {
-          alert("NFT Minted Successfully!");
-        } else {
-          alert("Minting failed.");
-        }
-      } catch (error) {
-        console.error("Error minting NFT:", error);
-      }
-    }
-  };
+  //     setIsMinting(true);
+  //     setSnackbarMessage("Starting NFT minting process...");
+  //     setSnackbarSeverity("info");
+  //     setOpenSnackbar(true);
+  //     try {
+  //       const contractType = await contract.read.supportsInterface(
+  //         "0x80ac58cd"
+  //       );
+  //       // console.log("Contract supports ERC721:", contractType);
+  //     } catch (err) {
+  //       console.error("Failed to verify contract:", err);
+  //       throw new Error("Contract verification failed");
+  //     }
+
+  //     const transactionPayload = mintTo({
+  //       contract,
+  //       to: account.address,
+  //       nft: {
+  //         name: `Design #${design?._id}`,
+  //         description: "Custom Design NFT",
+  //         image: design.cloudinaryImage,
+  //         attributes: [
+  //           {
+  //             trait_type: "Designer",
+  //             value: user.name,
+  //           },
+  //           {
+  //             trait_type: "Created",
+  //             value: new Date(design.createdAt).toISOString(),
+  //           },
+  //         ],
+  //       },
+  //     });
+
+  //     // console.log(
+  //     //   "Transaction payload:",
+  //     //   JSON.stringify(transactionPayload, null, 2)
+  //     // );
+
+  //     // const result = await sendTransaction(transactionPayload);
+  //     const { transactionHash } = await sendTransaction({
+  //       account,
+  //       transactionPayload,
+  //     });
+  //     // console.log(
+  //     //   "Mint transaction result:",
+  //     //   JSON.stringify(transactionHash, null, 2)
+  //     // );
+
+  //     if (!transactionHash) {
+  //       throw new Error("Transaction failed - no result returned");
+  //     }
+
+  //     // Wait a bit for transaction to be mined
+  //     await new Promise((resolve) => setTimeout(resolve, 5000));
+
+  //     const nftData = {
+  //       // tokenId: result?.id ? result.id.toString() : "pending",
+  //       contractAddress: contract.address,
+  //       mintTransactionHash: transactionHash,
+  //       metadata: {
+  //         name: `Design #${design?._id}`,
+  //         description: "Custom Design NFT",
+  //         image: design.cloudinaryImage,
+  //         attributes: [
+  //           {
+  //             trait_type: "Designer",
+  //             value: user.name,
+  //           },
+  //           {
+  //             trait_type: "Created",
+  //             value: new Date(design.createdAt).toISOString(),
+  //           },
+  //         ],
+  //       },
+  //       network: "linea-sepolia",
+  //     };
+
+  //     // console.log("NFT data to be saved:", JSON.stringify(nftData, null, 2));
+
+  //     await axios.post(
+  //       `http://localhost:3005/nft/mint`,
+  //       {
+  //         designId: design._id,
+  //         nftData,
+  //         mintedBy: user._id,
+  //       },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+
+  //     setSnackbarMessage("NFT minted successfully!");
+  //     setSnackbarSeverity("success");
+  //     setOpenSnackbar(true);
+  //   } catch (error) {
+  //     console.error("Minting error:", error);
+  //     setSnackbarMessage("Failed to mint NFT");
+  //     setSnackbarSeverity("error");
+  //     setOpenSnackbar(true);
+  //   } finally {
+  //     setIsMinting(false);
+  //   }
+  // };
+  const mintNFT = async (design) => {};
   const getImageSrc = (base64String) => {
     if (base64String && typeof base64String === "string") {
       return base64String.startsWith("data:image/")
@@ -263,6 +368,22 @@ const MyDesign = () => {
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>
+                    <Button
+                      onClick={() => mintNFT(design)}
+                      disabled={isMinting || !account?.address}
+                      sx={{
+                        backgroundColor: "#8CFFB3",
+                        color: "black",
+                        "&:hover": {
+                          backgroundColor: "#7DEEA2",
+                        },
+                        "&:disabled": {
+                          backgroundColor: "#CCCCCC",
+                        },
+                      }}
+                    >
+                      {isMinting ? "Minting..." : "Mint NFT"}
+                    </Button>
                     <BtnComponent
                       handleClick={() => {
                         if (user === null) {
@@ -318,8 +439,15 @@ const MyDesign = () => {
             </Grid>
           </Grid>
         )}
+
         <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-          {!connected ? (
+          <ConnectButton client={client} />
+          {/* <p>Wallet address: {account.address}</p>
+      <p>
+        Wallet balance: {balance?.displayValue} {balance?.symbol}
+      </p> */}
+
+          {/* {!connected ? (
             <Button
               onClick={connect}
               sx={{
@@ -334,7 +462,7 @@ const MyDesign = () => {
             <Typography>
               Connected: {account.slice(0, 6)}...{account.slice(-4)}
             </Typography>
-          )}
+          )} */}
         </Box>
       </Box>
       {/* Delete Confirmation Modal */}

@@ -9,112 +9,86 @@ import { loginUser } from "../../redux/authSlice.js";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const isMobile = useMediaQuery("(max-width:768px)");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginStatus, setLoginStatus] = useState(null);
-  const isMobile = useMediaQuery("(max-width:768px)");
-  const dispatch = useDispatch();
+
   const [errors, setErrors] = useState({
     email: "",
     password: "",
     general: "",
   });
-  const validateForm = () => {
-    let tempErrors = {
-      email: "",
-      password: "",
-      general: "",
-    };
-    let isValid = true;
 
-    if (!email) {
-      tempErrors.email = "Email is required";
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      tempErrors.email = "Please enter a valid email address";
-      isValid = false;
+  const validateField = (name, value) => {
+    if (name === "email") {
+      if (!value) return "Email is required";
+      if (!/\S+@\S+\.\S+/.test(value))
+        return "Please enter a valid email address";
     }
-
-    if (!password) {
-      tempErrors.password = "Password is required";
-      isValid = false;
-    } else if (password.length < 6) {
-      tempErrors.password = "Password must be at least 6 characters";
-      isValid = false;
+    if (name === "password") {
+      if (!value) return "Password is required";
+      if (value.length < 6) return "Password must be at least 6 characters";
     }
+    return "";
+  };
 
-    setErrors(tempErrors);
-    return isValid;
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setEmail(value);
+    setErrors((prev) => ({
+      ...prev,
+      email: validateField("email", value),
+    }));
+  };
+
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    setPassword(value);
+    setErrors((prev) => ({
+      ...prev,
+      password: validateField("password", value),
+    }));
   };
 
   const handleLoginClick = async (e) => {
     e.preventDefault();
-    if (!validateForm()) {
+
+    const emailError = validateField("email", email);
+    const passwordError = validateField("password", password);
+
+    setErrors({
+      email: emailError,
+      password: passwordError,
+      general: "",
+    });
+
+    if (emailError || passwordError) {
       return;
     }
 
-    const newUser = { email: email, password: password };
     try {
-      const result = await dispatch(loginUser(newUser));
-      console.log("result trong login : ", result);
+      const result = await dispatch(loginUser({ email, password }));
       if (result.error) {
-        console.log(result.error.message);
-        setErrors({
-          ...errors,
+        setErrors((prev) => ({
+          ...prev,
           general: result.error.message || "Login failed. Please try again.",
-        });
+        }));
         setLoginStatus(result.error.message);
       } else {
-        console.log(result.message);
         setLoginStatus(result.message);
         navigate("/");
       }
     } catch (err) {
-      console.error(err);
-      setErrors({
-        ...errors,
+      setErrors((prev) => ({
+        ...prev,
         general: "An unexpected error occurred. Please try again later.",
-      });
+      }));
     }
   };
-  const forgotPassword = async (e) => {
-    e.preventDefault();
-    if (!email) {
-      setErrors({
-        ...errors,
-        email: "Please enter your email to reset password",
-      });
-      return;
-    }
 
-    try {
-      const response = await fetch(
-        "http://localhost:3000/auth/forgotPassword",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email: email.trim() }),
-        }
-      );
-      const data = await response.json();
-
-      if (response.ok) {
-        alert("Password reset instructions have been sent to your email");
-      } else {
-        setErrors({
-          ...errors,
-          general: data.message || "Failed to process password reset",
-        });
-      }
-    } catch (error) {
-      setErrors({
-        ...errors,
-        general: "Failed to connect to the server. Please try again later.",
-      });
-    }
-  };
   return (
     <Box
       className="container"
@@ -242,16 +216,11 @@ const LoginPage = () => {
             >
               Email
             </Typography>
-            <Box sx={{ marginBottom: "8%" }}>
+            <Box sx={{ marginBottom: "5%" }}>
               <InputForm
                 placeholder="Enter your email here..."
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (errors.email) {
-                    setErrors({ ...errors, email: "" });
-                  }
-                }}
+                onChange={handleEmailChange}
                 width="300px"
                 height="35px"
               />
@@ -261,7 +230,7 @@ const LoginPage = () => {
                 sx={{
                   color: "#cc0000",
                   fontSize: "12px",
-                  marginTop: "4px",
+                  // marginTop: "4px",
                   marginLeft: "4%",
                 }}
               >
@@ -280,15 +249,10 @@ const LoginPage = () => {
             </Typography>
             <Box sx={{ marginBottom: "5%" }}>
               <InputForm
+                type="password"
                 placeholder="Enter your password here..."
                 value={password}
-                type="password"
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (errors.password) {
-                    setErrors({ ...errors, password: "" });
-                  }
-                }}
+                onChange={handlePasswordChange}
                 width="300px"
                 height="35px"
               />
@@ -298,13 +262,37 @@ const LoginPage = () => {
                 sx={{
                   color: "#cc0000",
                   fontSize: "12px",
-                  marginTop: "4px",
+                  // marginTop: "4px",
                   marginLeft: "4%",
                 }}
               >
                 {errors.password}
               </Typography>
             )}
+            {errors.general === "Rejected" && (
+              <Typography
+                sx={{
+                  color: "#cc0000",
+                  fontSize: "12px",
+                  marginTop: "4px",
+                  marginLeft: "4%",
+                  // textAlign: "center",
+                }}
+              >
+                {"Invalid password or email address. Please try again."}
+              </Typography>
+            )}
+            <Typography
+              onClick={() => navigate("/forget-password")}
+              sx={{
+                color: "white",
+                fontSize: "12px",
+                marginTop: "4px",
+                marginLeft: "4%",
+              }}
+            >
+              {"Forget password"}
+            </Typography>
             <Box
               sx={{
                 display: "flex",
@@ -316,10 +304,11 @@ const LoginPage = () => {
                 width="100"
                 height={40}
                 handleClick={handleLoginClick}
-                value={"Login"}
+                value="Login"
               />
             </Box>
           </form>
+
           {isMobile && (
             <Typography
               sx={{

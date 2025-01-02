@@ -28,10 +28,12 @@ import GoogleAd from "../../components/GoogleAd/GoogleAd";
 import AdSense from "../../components/GoogleAd/GoogleAd";
 import DevAdsense from "../../components/GoogleAd/GoogleAd";
 import AdComponent from "../../components/AdsHorizontal/adsHorizontal";
+ 
 import WhatshotIcon from '@mui/icons-material/Whatshot';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import PaletteIcon from '@mui/icons-material/Palette';
 import DoomDoom from "./doomdoom.jpg";
+ 
 
 const features = [
   {

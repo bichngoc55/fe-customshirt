@@ -28,7 +28,40 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 //     }
 //   }
 // );
+export const registerUser = createAsyncThunk(
+  "auth/registerUser",
+  async (userData, { rejectWithValue }) => {
+    try {
+      const response = await fetch("http://localhost:3005/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
 
+      const data = await response.json();
+
+      if (!response.ok) {
+        return rejectWithValue({
+          message: data.msg || data.message,
+          field:
+            data.message === "Invalid email"
+              ? "email"
+              : data.msg === "User already exists"
+              ? "email"
+              : data.msg === "Password must be at least 6 characters"
+              ? "password"
+              : "general",
+        });
+      }
+
+      return data;
+    } catch (error) {
+      return rejectWithValue({ message: error.message, field: "general" });
+    }
+  }
+);
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (credentials, { rejectWithValue }) => {
@@ -98,6 +131,7 @@ export const authSlice = createSlice({
         state.isFetching = false;
         state.error = null;
       })
+
       .addCase(loginUser.rejected, (state, action) => {
         state.isFetching = false;
         state.error = action.payload;
@@ -110,11 +144,34 @@ export const authSlice = createSlice({
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.error = action.payload;
+      })
+      // .addCase(registerUser.pending, (state) => {
+      //   state.isFetching = true;
+      //   state.error = null;
+      // })
+      // .addCase(registerUser.fulfilled, (state, action) => {
+      //   state.user = action.payload.user;
+      //   state.token = action.payload.token;
+      //   state.role = action.payload.user.role;
+      //   state.isFetching = false;
+      //   state.error = null;
+      // })
+      // .addCase(registerUser.rejected, (state, action) => {
+      //   state.isFetching = false;
+      //   state.error = action.payload;
+      // });
+      .addCase(registerUser.pending, (state) => {
+        state.isFetching = true;
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state) => {
+        state.isFetching = false;
+        state.error = null;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.isFetching = false;
+        state.error = action.payload.message;
       });
-    //   .addCase(refreshAccessToken.fulfilled, (state, action) => {
-    //     console.log("action paylod ne: ", action.payload);
-    //     state.token = action.payload;
-    //   });
   },
 });
 

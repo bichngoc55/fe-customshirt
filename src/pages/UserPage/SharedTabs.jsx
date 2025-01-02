@@ -39,7 +39,7 @@ const SharedTabs = ({ userId }) => {
     { path: `/${userId}/profile`, label: "My profile" },
     { path: `/${userId}/profile/design`, label: "My design" },
     { path: `/${userId}/profile/order`, label: "My order state" },
-    { path: `/${userId}/profile/collection`, label: "NFT collection" },
+    // { path: `/${userId}/profile/collection`, label: "NFT collection" },
   ];
   const currentTab = tabRoutes.findIndex(
     (tab) => location.pathname === tab.path
