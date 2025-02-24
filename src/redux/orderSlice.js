@@ -286,8 +286,8 @@ const orderSlice = createSlice({
         state.status = "failed";
         state.error =
           action.payload?.message || "Failed to fetch order details";
-      });
-      }).addCase(updateOrderShipping.pending, (state) => {
+      })
+      .addCase(updateOrderShipping.pending, (state) => {
         state.updateStatus = "loading";
       })
       .addCase(updateOrderShipping.fulfilled, (state, action) => {
@@ -319,7 +319,7 @@ const orderSlice = createSlice({
         state.error =
           action.payload?.message || "Failed to update delivery status";
       })
-  },
+    },
 });
 
 export const { clearErrors } = orderSlice.actions;
